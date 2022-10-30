@@ -229,21 +229,28 @@ class DetailView extends State<ViewGenerator>{
                 ListView.builder(
                   padding: const EdgeInsets.all(10),
                   shrinkWrap: true,
-                  itemCount: item.history.length*2,
+                  itemCount: item.history.length,
                   itemBuilder: (context, i) {
-                    if(i.isOdd){
-                      return const Divider(color: Colors.white, thickness: 1,);
-                    }
-                    Transaction transaction = item.history[i ~/ 2];
-                    return ExpansionTile(
-                      title: Text(transaction.description, style: const TextStyle(color: Colors.white),),
-                      subtitle: Text(transaction.value.toString(), style: const TextStyle(color: Colors.white),),
-                      children: [
-                        ListTile(
-                          title: Text(transaction.associated.name, style: const TextStyle(color: Colors.white),),
-                          subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.white),),
-                        )
-                      ],
+                    Transaction transaction = item.history[item.history.length-1-i];
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.primaries[transaction.associated.id],
+                        borderRadius: const BorderRadius.all(Radius.circular(10))
+                      ),
+                      child: ExpansionTile(
+                        tilePadding: EdgeInsets.symmetric(horizontal: 10),
+                        childrenPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                        title: Text(transaction.description, style: const TextStyle(color: Colors.white),),
+                        subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.white),),
+                        children: [
+                          ListTile(
+                            tileColor: Colors.primaries[transaction.associated.id],
+                            title: Text(transaction.associated.name, style: const TextStyle(color: Colors.white),),
+                            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.white),),
+                          )
+                        ],
+                      ),
                     );
                   },
                 )

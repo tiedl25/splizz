@@ -225,7 +225,7 @@ class MasterView extends State<ListGenerator>{
         itemCount: _items.length*2,
         itemBuilder: (context, i) {
           if(i.isOdd){
-            return const Divider();
+            return const Divider(color: Colors.white, thickness: 1,);
           }
           return _buildDismissible(_items[i ~/ 2]);
         }
