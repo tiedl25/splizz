@@ -1,7 +1,7 @@
 import 'member.dart';
 
 class Transaction{
-  late final int _id;
+  int _id = 0;
   late final ShortMember associated;
   late String description;
   late DateTime _timestamp;
@@ -9,11 +9,7 @@ class Transaction{
 
   int get id => _id;
 
-  static int _counter = 0;
-
-  Transaction(this.associated, this.description, this.value){
-    _id = _counter;
-    _counter++;
+  Transaction(this.associated, this.description, this.value, this._id){
     _timestamp = DateTime.now();
   }
 
@@ -27,7 +23,6 @@ class Transaction{
     description = data['description'];
     _timestamp = DateTime.parse(data['_timestamp']);
     value = data['value'];
-    _counter = _id >= _counter ? _id+1 : _counter;
   }
 
   Map<String, dynamic> toJson() => {

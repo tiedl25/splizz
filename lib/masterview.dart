@@ -40,7 +40,7 @@ class MasterView extends State<ListGenerator>{
 
   void _showContent() {
     String title = '';
-    List<Member> member = [];
+    List<String> member = [];
     int count = 2;
 
     showDialog(
@@ -89,13 +89,13 @@ class MasterView extends State<ListGenerator>{
                               }
                               else if(i == 1) {
                                 return TextField(
-                                  onChanged: (value) {
+                                  onChanged: (name) {
                                     setState(() {
                                       if(member.length < i){
-                                        member.add(Member(value));
+                                        member.add(name);
                                       }
                                       else{
-                                        member[i-1].name = value;
+                                        member[i-1] = name;
                                       }
                                       if (count <= member.length+1){
                                         count++;
@@ -126,14 +126,14 @@ class MasterView extends State<ListGenerator>{
                                     member.removeAt(i);
                                   },
                                   child: TextField(
-                                    onChanged: (value) {
+                                    onChanged: (name) {
                                       setState((){
                                         if(member.length < i) {
-                                          member.add(Member(value));
+                                          member.add(name);
                                         } else {
-                                          member[i-1].name = value;
+                                          member[i-1] = name;
                                         }
-                                        if (count <= member.length+1){
+                                        if (count <= member.length+1 && count<=18){
                                           count++;
                                         }
 
@@ -174,16 +174,23 @@ class MasterView extends State<ListGenerator>{
             TextButton(
               child: const Text('OK'),
               onPressed: () {
-                if(title != '' && member.length > 1 && member[0] != '' && member[1] != '') {
-                  setState(() {
-                    Item newItem = Item(title, member);
-                    _items.add(newItem);
-                    FileHandler fh = FileHandler('item_${newItem.id}');
-                    fh.writeJsonFile(newItem);
-                    Navigator.pop(context);
-                  });
+                  List<Member> members = [];
+                  for(String name in member){
+                    if(name != ''){
+                      members.add(Member(name, members.length));
+                    }
+                  }
+
+                  if(title != '' && members.length > 1) {
+                    setState(() {
+                      Item newItem = Item(title, members);
+                      _items.add(newItem);
+                      FileHandler fh = FileHandler('item_${newItem.id}');
+                      fh.writeJsonFile(newItem);
+                      Navigator.pop(context);
+                    });
+                  }
                 }
-              },
             ),
           ],
         );

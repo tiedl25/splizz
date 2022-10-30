@@ -1,22 +1,16 @@
 import 'package:splizz/transaction.dart';
 
 class ShortMember{
-  late final int _id;
+  int _id = 0;
   String name = '';
-  static int _counter = 0;
 
   int get id => _id;
 
-  ShortMember(this.name){
-    _id = _counter;
-    _counter++;
-  }
+  ShortMember(this.name, this._id);
 
   ShortMember.fromJson(Map<String, dynamic> data) {
     _id = data['id'];
     name = data['name'];
-
-    _counter = _id >= _counter ? _id+1 : _counter;
   }
 
   ShortMember.fromMember(Member m){
@@ -46,7 +40,7 @@ class Member extends ShortMember{
     balance -= d;
   }
 
-  Member(String name) : super(name);
+  Member(String name, int id) : super(name, id);
 
   Member.fromJson(Map<String, dynamic> data) : super.fromJson(data){
     final historyData = data['history'] as List<dynamic>;

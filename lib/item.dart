@@ -5,7 +5,6 @@ class Item{
   late String name;
   late final int _id;
   List<Member> _member = [];
-  Map<int, int> indexToId = {};
 
   List<Member> get member => _member;
   List<Transaction> history = [];
@@ -15,16 +14,15 @@ class Item{
   static int _counter = 0;
 
   void addTransaction(Member m, Transaction t){
-    _member[indexToId[m.id]!].add(t);
+    _member[m.id].add(t);
     history.add(t);
     for(int i=0; i<_member.length; i++){
       _member[i].sub(t.value/_member.length);
     }
   }
   
-  void addMember(Member m){
-    _member.add(m);
-    indexToId.addAll({m.id : _member.length-1});
+  void addMember(String name){
+    _member.add(Member(name, id));
   }
 
   void setCounter(value){
@@ -34,10 +32,6 @@ class Item{
   Item(this.name, this._member){
     _id = _counter;
     _counter++;
-
-    for(int i=0; i<_member.length; i++){
-      indexToId.addAll({_member[i].id : i});
-    }
   }
 
   Item.fromJson(Map<String, dynamic> data) {
@@ -49,10 +43,6 @@ class Item{
     _id = data['id'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
     _counter = _id >= _counter ? _id+1 : _counter;
-
-    for(int i=0; i<_member.length; i++){
-      indexToId.addAll({_member[i].id : i});
-    }
   }
 
   Map<String, dynamic> toJson() => {

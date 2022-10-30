@@ -21,17 +21,22 @@ class DetailView extends State<ViewGenerator>{
 
   late Member associatedController;
   
-  Map<String, bool> pressed = {};
-  String previous='';
+  Map<int, bool> pressed = {};
+  int previous=-1;
 
   List<Container> _buildMemberBar(){
     List<Container> li = <Container>[];
     for (var element in item.member) {
-      pressed[element.name] = false;
+      pressed[element.id] = false;
       li.add(
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF282828),
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.primaries[element.id], const Color(0xFF282828)]
+              ),
+              color: Colors.primaries[element.id],
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
@@ -61,7 +66,7 @@ class DetailView extends State<ViewGenerator>{
       li.add(
           Container(
             decoration: BoxDecoration(
-              color: pressed[element.name]! ? const Color(0xFF00FFFF) : const Color(0xFF282828),
+              color: pressed[element.id]! ? Colors.primaries[element.id] : const Color(0xFF282828),
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
@@ -70,11 +75,11 @@ class DetailView extends State<ViewGenerator>{
             child: TextButton(
               child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
               onPressed: () => {
-              if(element.name != previous){
+              if(element.id != previous){
                 setState(() {
-                    pressed[element.name] = !pressed[element.name]!;
+                    pressed[element.id] = !pressed[element.id]!;
                     pressed[previous] = false;
-                    previous = element.name;
+                    previous = element.id;
                     associatedController = element;
                   })
                 }
@@ -161,14 +166,14 @@ class DetailView extends State<ViewGenerator>{
               onPressed: () {
                 if(ccontroller.doubleValue != 0 && descriptionController.text.isNotEmpty && associatedController.name.isNotEmpty) {
                   setState(() {
-                    Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, ccontroller.doubleValue);
+                    Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, ccontroller.doubleValue, item.history.length);
 
                     item.addTransaction(associatedController, tract);
                     FileHandler fh = FileHandler('item_${item.id}');
                     fh.writeJsonFile(item);
                     Navigator.pop(context);
-                    previous='';
-                    associatedController = Member('');
+                    previous=-1;
+                    associatedController = Member('', 0);
                   });
                 }
               },
