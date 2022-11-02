@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:splizz/detailview.dart';
 import 'package:splizz/item.dart';
 import 'package:splizz/filehandle.dart';
+import 'package:splizz/uielements.dart';
 
 import 'member.dart';
 
@@ -71,20 +72,8 @@ class MasterView extends State<ListGenerator>{
                                       title = value;
                                     });
                                   },
-                                  decoration: const InputDecoration(
-                                      hintText: 'Enter a Title',
-                                      hintStyle: TextStyle(color: Colors.white),
-                                      labelStyle: TextStyle(color: Colors.white),
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.white)
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.white)
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.red)
-                                      )
-                                  ),
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: UIElements.tfDecoration('Enter a Title'),
                                 );
                               }
                               else if(i == 1) {
@@ -102,20 +91,8 @@ class MasterView extends State<ListGenerator>{
                                       }
                                     });
                                   },
-                                  decoration: const InputDecoration(
-                                      hintText: 'Enter the name of a member',
-                                      hintStyle: TextStyle(color: Colors.white),
-                                      labelStyle: TextStyle(color: Colors.white),
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.white)
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.white)
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.red)
-                                      )
-                                  ),
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: UIElements.tfDecoration('Enter the name of a member'),
                                 );
                               }
                               return Dismissible(
@@ -133,27 +110,13 @@ class MasterView extends State<ListGenerator>{
                                         } else {
                                           member[i-1] = name;
                                         }
-                                        if (count <= member.length+1 && count<=18){
+                                        if (count <= member.length+1 && count<=12){
                                           count++;
                                         }
-
                                       });
-
                                     },
-                                    decoration: const InputDecoration(
-                                        hintText: 'Enter the name of a member',
-                                        hintStyle: TextStyle(color: Colors.white),
-                                        labelStyle: TextStyle(color: Colors.white),
-                                        enabledBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.white)
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.white)
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.red)
-                                        )
-                                    ),
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: UIElements.tfDecoration('Enter the name of a member')
                                   )
                               );
                             }
@@ -222,12 +185,9 @@ class MasterView extends State<ListGenerator>{
   Widget _buildBody() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _items.length*2,
+        itemCount: _items.length,
         itemBuilder: (context, i) {
-          if(i.isOdd){
-            return const Divider(color: Colors.white, thickness: 1,);
-          }
-          return _buildDismissible(_items[i ~/ 2]);
+          return _buildDismissible(_items[i]);
         }
     );
   }
@@ -245,8 +205,10 @@ class MasterView extends State<ListGenerator>{
         });
       },
       background: Container(
-        color: Colors.red,
-        margin: const EdgeInsets.symmetric(horizontal: 15),
+        decoration: const BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
         alignment: Alignment.centerRight,
         child: const Icon(
           Icons.delete,
@@ -260,6 +222,12 @@ class MasterView extends State<ListGenerator>{
   Widget _buildRow(Item item) {
     final markedFav = _hearted.contains(item);
     return ListTile(
+      contentPadding: const EdgeInsets.all(5),
+        shape: const RoundedRectangleBorder(
+          side: BorderSide(color: Color(0xFF303030)),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        tileColor: const Color(0xFF282828),
         title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
         trailing: Icon(
           markedFav ? Icons.favorite : Icons.favorite_border,

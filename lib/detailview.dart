@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:splizz/filehandle.dart';
 import 'package:splizz/member.dart';
 import 'package:splizz/transaction.dart';
+import 'package:splizz/uielements.dart';
 import 'item.dart';
 import 'package:currency_textfield/currency_textfield.dart';
 
@@ -34,9 +35,9 @@ class DetailView extends State<ViewGenerator>{
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.primaries[element.id], const Color(0xFF282828)]
+                  colors: [Item.colormap[element.id], Item.colormap[element.id].withOpacity(0.2), Item.colormap[element.id].withOpacity(0.2)]
               ),
-              color: Colors.primaries[element.id],
+              color: Item.colormap[element.id],
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
@@ -44,7 +45,7 @@ class DetailView extends State<ViewGenerator>{
             margin: const EdgeInsets.all(2),
             child: Column(
               children: [
-                Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
+                Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
                 Row(
                   children: [
                     Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green : Colors.red),
@@ -66,7 +67,7 @@ class DetailView extends State<ViewGenerator>{
       li.add(
           Container(
             decoration: BoxDecoration(
-              color: pressed[element.id]! ? Colors.primaries[element.id] : const Color(0xFF282828),
+              color: pressed[element.id]! ? Item.colormap[element.id] : const Color(0xFF282828),
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
@@ -91,25 +92,8 @@ class DetailView extends State<ViewGenerator>{
     return li;
   }
 
-  InputDecoration _tfDecoration(String hintText){
-    return InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.white),
-        labelStyle: const TextStyle(color: Colors.white),
-        enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white)
-        ),
-        focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white)
-        ),
-        errorBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red)
-        )
-    );
-  }
-
   void _addTransaction() {
-    var ccontroller = CurrencyTextFieldController(rightSymbol: '€', decimalSymbol: ',');
+    var ccontroller = CurrencyTextFieldController(rightSymbol: '', decimalSymbol: ',');
     var descriptionController = TextEditingController();
 
     showDialog(
@@ -132,7 +116,10 @@ class DetailView extends State<ViewGenerator>{
                             setState(() {
                             });
                           },
-                          decoration: _tfDecoration('Set a description')
+                          style: const TextStyle(
+                              color: Colors.white
+                          ),
+                          decoration: UIElements.tfDecoration('Set a description')
                       ),
                         SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -142,12 +129,15 @@ class DetailView extends State<ViewGenerator>{
                             )
                         ),
                         TextField(
+                          style: const TextStyle(
+                            color: Colors.white
+                          ),
                           controller: ccontroller,
                             onChanged: (value) {
                               setState(() {
                               });
                             },
-                            decoration: _tfDecoration('Set the amount of money')
+                            decoration: UIElements.tfDecoration('Set the amount of money', const Icon(Icons.euro, color: Colors.white))
                         )
                       ]
                   )
@@ -221,7 +211,7 @@ class DetailView extends State<ViewGenerator>{
             child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF282828),
-                  border: Border.all(color: const Color(0xFF343434)),
+                  border: Border.all(color: const Color(0xFF303030)),
                   borderRadius: const BorderRadius.all(Radius.circular(15)),
                 ),
                 margin: const EdgeInsets.all(5),
@@ -233,21 +223,21 @@ class DetailView extends State<ViewGenerator>{
                   itemBuilder: (context, i) {
                     Transaction transaction = item.history[item.history.length-1-i];
                     return Container(
-                      margin: EdgeInsets.only(bottom: 5),
+                      margin: const EdgeInsets.only(bottom: 5),
                       decoration: BoxDecoration(
-                        color: Colors.primaries[transaction.associated.id],
+                        color: Item.colormap[transaction.associated.id],
                         borderRadius: const BorderRadius.all(Radius.circular(10))
                       ),
                       child: ExpansionTile(
-                        tilePadding: EdgeInsets.symmetric(horizontal: 10),
-                        childrenPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                        title: Text(transaction.description, style: const TextStyle(color: Colors.white),),
-                        subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.white),),
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+                        childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                        title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+                        subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
                         children: [
                           ListTile(
-                            tileColor: Colors.primaries[transaction.associated.id],
-                            title: Text(transaction.associated.name, style: const TextStyle(color: Colors.white),),
-                            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.white),),
+                            tileColor: Item.colormap[transaction.associated.id],
+                            title: Text(transaction.associated.name, style: const TextStyle(color: Colors.black),),
+                            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
                           )
                         ],
                       ),

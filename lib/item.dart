@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:splizz/member.dart';
 import 'package:splizz/transaction.dart';
 
@@ -12,6 +13,21 @@ class Item{
   int get id => _id;
 
   static int _counter = 0;
+
+  static List<Color> colormap = [
+    Colors.blue.shade300,
+    Colors.red.shade300,
+    Colors.green.shade300,
+    Colors.yellow.shade300,
+    Colors.orange.shade300,
+    Colors.purple.shade300,
+    Colors.pink.shade300,
+    Colors.grey.shade300,
+    Colors.teal.shade300,
+    Colors.amber.shade300,
+    Colors.indigo.shade300,
+    Colors.lime.shade300,
+  ];
 
   void addTransaction(Member m, Transaction t){
     _member[m.id].add(t);
