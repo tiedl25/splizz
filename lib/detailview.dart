@@ -23,35 +23,48 @@ class DetailView extends State<ViewGenerator>{
   late Member associatedController;
   
   Map<int, bool> pressed = {};
-  int previous=-1;
+  int previous=0;
 
   List<Container> _buildMemberBar(){
     List<Container> li = <Container>[];
     for (var element in item.member) {
-      pressed[element.id] = false;
+      pressed[element.id] = element.id==0 ? true : false;
       li.add(
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Item.colormap[element.id], Item.colormap[element.id].withOpacity(0.2), Item.colormap[element.id].withOpacity(0.2)]
+                  colors: [element.color, element.color.withOpacity(1), element.color.withOpacity(1)]
               ),
-              color: Item.colormap[element.id],
+              color: element.color,
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 5),
+            //padding: const EdgeInsets.symmetric(horizontal: 5),
             margin: const EdgeInsets.all(2),
             child: Column(
               children: [
                 Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
-                Row(
-                  children: [
-                    Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green : Colors.red),
-                    Text('${element.balance.abs().toStringAsFixed(2)}€', style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green : Colors.red)),
-                  ],
+                Container(
+                  decoration: BoxDecoration(
+                    //color: Colors.white.withAlpha(150),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [element.color, Colors.white.withAlpha(150), Colors.white.withAlpha(150)]
+                    ),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20))
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Row(
+                    children: [
+                      Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                      Text('${element.balance.abs().toStringAsFixed(2)}€', style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
+                    ],
+                  ),
                 )
+
               ],
             )
           )
@@ -67,7 +80,7 @@ class DetailView extends State<ViewGenerator>{
       li.add(
           Container(
             decoration: BoxDecoration(
-              color: pressed[element.id]! ? Item.colormap[element.id] : const Color(0xFF282828),
+              color: pressed[element.id]! ? element.color : const Color(0xFF282828),
               border: Border.all(color: const Color(0xFF343434)),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
@@ -119,7 +132,7 @@ class DetailView extends State<ViewGenerator>{
                           style: const TextStyle(
                               color: Colors.white
                           ),
-                          decoration: UIElements.tfDecoration('Set a description')
+                          decoration: UIElements.tfDecoration('Add a description')
                       ),
                         SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -137,7 +150,7 @@ class DetailView extends State<ViewGenerator>{
                               setState(() {
                               });
                             },
-                            decoration: UIElements.tfDecoration('Set the amount of money', const Icon(Icons.euro, color: Colors.white))
+                            decoration: UIElements.tfDecoration('0,00', IconButton(onPressed: (){ }, icon: const Icon(Icons.euro), color: Colors.white))
                         )
                       ]
                   )
@@ -162,8 +175,8 @@ class DetailView extends State<ViewGenerator>{
                     FileHandler fh = FileHandler('item_${item.id}');
                     fh.writeJsonFile(item);
                     Navigator.pop(context);
-                    previous=-1;
-                    associatedController = Member('', 0);
+                    previous=0;
+                    associatedController = Member('', 0, Item.colormap[0]);
                   });
                 }
               },
@@ -173,8 +186,6 @@ class DetailView extends State<ViewGenerator>{
       },
     );
   }
-
-
 
   Widget _buildBody() {
     memberBar = _buildMemberBar();
@@ -225,7 +236,7 @@ class DetailView extends State<ViewGenerator>{
                     return Container(
                       margin: const EdgeInsets.only(bottom: 5),
                       decoration: BoxDecoration(
-                        color: Item.colormap[transaction.associated.id],
+                        color: item.member[transaction.associated.id].color,
                         borderRadius: const BorderRadius.all(Radius.circular(10))
                       ),
                       child: ExpansionTile(
@@ -235,7 +246,7 @@ class DetailView extends State<ViewGenerator>{
                         subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
                         children: [
                           ListTile(
-                            tileColor: Item.colormap[transaction.associated.id],
+                            tileColor: item.member[transaction.associated.id].color,
                             title: Text(transaction.associated.name, style: const TextStyle(color: Colors.black),),
                             subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
                           )

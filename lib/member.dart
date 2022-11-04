@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:splizz/transaction.dart';
 
 class ShortMember{
@@ -27,6 +29,7 @@ class ShortMember{
 class Member extends ShortMember{
   double total = 0;
   double balance = 0;
+  late Color color;
   late List<Transaction> history = [];
 
   void add(Transaction t){
@@ -40,7 +43,7 @@ class Member extends ShortMember{
     balance -= d;
   }
 
-  Member(String name, int id) : super(name, id);
+  Member(String name, int id, this.color) : super(name, id);
 
   Member.fromJson(Map<String, dynamic> data) : super.fromJson(data){
     final historyData = data['history'] as List<dynamic>;
@@ -48,6 +51,7 @@ class Member extends ShortMember{
     total = data['total'];
     balance = data['balance'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
+    color = Color(data['color']);
   }
 
   @override
@@ -56,7 +60,8 @@ class Member extends ShortMember{
     su.addAll({
       'total': total,
       'balance': balance,
-      'history': history.map((transaction) => transaction.toJson()).toList()});
+      'history': history.map((transaction) => transaction.toJson()).toList(),
+      'color': color.hashCode});
     return su;
   }
 }

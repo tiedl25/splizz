@@ -1,13 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:splizz/detailview.dart';
 import 'package:splizz/item.dart';
 import 'package:splizz/filehandle.dart';
 import 'package:splizz/uielements.dart';
-
-import 'member.dart';
 
 class ListGenerator extends StatefulWidget{
   const ListGenerator({Key? key}) : super(key: key);
@@ -18,7 +17,7 @@ class ListGenerator extends StatefulWidget{
 
 
 class MasterView extends State<ListGenerator>{
-  final _items = <Item>[];
+  var _items = <Item>[];
   final _hearted = <Item>{};
 
   bool _itemsLoaded = false;
@@ -39,134 +38,23 @@ class MasterView extends State<ListGenerator>{
     }
   }
 
-  void _showContent() {
-    String title = '';
-    List<String> member = [];
-    int count = 2;
-
+  _showAddDialog(){
+    AddItemDialog cd = AddItemDialog(items: _items, setParentState: setState,);
     showDialog(
-      context: context, barrierDismissible: false, // user must tap button!
+        context: context, barrierDismissible: false, // user must tap button!
 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Create a new Splizz', style: TextStyle(color: Colors.white),),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-          backgroundColor: const Color(0xFF2B2B2B),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/4,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatefulBuilder(builder: (context, setState) {
-                    return SizedBox(
-                        height: MediaQuery.of(context).size.height/4,
-                        child: ListView.builder(
-                            itemCount: count,
-                            itemBuilder: (context, i) {
-                              if(i == 0) {
-                                return TextField(
-                                  onChanged: (value) {
-                                    setState(() {
-                                      title = value;
-                                    });
-                                  },
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: UIElements.tfDecoration('Enter a Title'),
-                                );
-                              }
-                              else if(i == 1) {
-                                return TextField(
-                                  onChanged: (name) {
-                                    setState(() {
-                                      if(member.length < i){
-                                        member.add(name);
-                                      }
-                                      else{
-                                        member[i-1] = name;
-                                      }
-                                      if (count <= member.length+1){
-                                        count++;
-                                      }
-                                    });
-                                  },
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: UIElements.tfDecoration('Enter the name of a member'),
-                                );
-                              }
-                              return Dismissible(
-                                  key: ValueKey(i),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (context){
-                                    count--;
-                                    member.removeAt(i);
-                                  },
-                                  child: TextField(
-                                    onChanged: (name) {
-                                      setState((){
-                                        if(member.length < i) {
-                                          member.add(name);
-                                        } else {
-                                          member[i-1] = name;
-                                        }
-                                        if (count <= member.length+1 && count<=12){
-                                          count++;
-                                        }
-                                      });
-                                    },
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: UIElements.tfDecoration('Enter the name of a member')
-                                  )
-                              );
-                            }
-                        )
-                    );
-                  })
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Dismiss')
-            ),
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                  List<Member> members = [];
-                  for(String name in member){
-                    if(name != ''){
-                      members.add(Member(name, members.length));
-                    }
-                  }
+        builder: (BuildContext context){
 
-                  if(title != '' && members.length > 1) {
-                    setState(() {
-                      Item newItem = Item(title, members);
-                      _items.add(newItem);
-                      FileHandler fh = FileHandler('item_${newItem.id}');
-                      fh.writeJsonFile(newItem);
-                      Navigator.pop(context);
-                    });
-                  }
-                }
-            ),
-          ],
-        );
-      },
-    );
+          return cd;
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      if(!_itemsLoaded){_loadItems(); _itemsLoaded=true;}
-    });
 
+    setState(() {
+      if(!_itemsLoaded){_items.clear(); _loadItems(); _itemsLoaded=true;}
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xFF2B2B2B),
@@ -176,7 +64,7 @@ class MasterView extends State<ListGenerator>{
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showContent,
+        onPressed: _showAddDialog,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),

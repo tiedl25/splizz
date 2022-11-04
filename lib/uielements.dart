@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
+import 'filehandle.dart';
+import 'item.dart';
+import 'member.dart';
 
 
-class UIElements{
-  static InputDecoration tfDecoration(String title, [Icon? icon]){
+class UIElements {
+  static InputDecoration tfDecoration(String title, [IconButton? icon]) {
     return InputDecoration(
         suffixIcon: icon,
         hintText: title,
@@ -18,5 +23,166 @@ class UIElements{
             borderSide: BorderSide(color: Colors.red)
         )
     );
+  }
+}
+
+class AddItemDialog extends StatefulWidget {
+  final List<Item> items;
+  final Function setParentState;
+
+  const AddItemDialog({
+    Key? key,
+    required this.items,
+    required this.setParentState
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _AddItemDialogState();
+  }
+}
+
+class _AddItemDialogState extends State<AddItemDialog>{
+  late List<Item> _items;
+
+  String title = '';
+  List<String> member = [];
+  var cm = List<Color>.from(Item.colormap);
+  int count = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    _items = widget.items;
+    return AlertDialog(
+      title: const Text('Create a new Splizz', style: TextStyle(color: Colors.white),),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+      backgroundColor: const Color(0xFF2B2B2B),
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height/4,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                    height: MediaQuery.of(context).size.height/4,
+                    child: ListView.builder(
+                        itemCount: count,
+                        itemBuilder: (context, i) {
+                          if(i == 0) {
+                            return TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  title = value;
+                                });
+                              },
+                              style: const TextStyle(color: Colors.white),
+                              decoration: UIElements.tfDecoration('Enter a Title'),
+                            );
+                          }
+                          else if(i == 1) {
+                            return _textField(i);
+                          }
+                          return Dismissible(
+                              key: ValueKey(i),
+                              direction: DismissDirection.endToStart,
+                              onDismissed: (context){
+                                count--;
+                                member.removeAt(i);
+                              },
+                              child: _textField(i)
+                          );
+                        }
+                    )
+                )
+            ],
+          ),
+        ),
+      ),
+      actions: _dialogButtons()
+    );
+  }
+  
+  List<Widget> _dialogButtons(){
+    return <Widget>[
+      TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Dismiss')
+      ),
+      TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            List<Member> members = [];
+            for(String name in member){
+              if(name != ''){
+                members.add(Member(name, members.length, cm[members.length]));
+              }
+            }
+            if(title != '' && members.length > 1) {
+              widget.setParentState(() {
+                Item newItem = Item(title, members);
+                _items.add(newItem);
+                FileHandler fh = FileHandler('item_${newItem.id}');
+                fh.writeJsonFile(newItem);
+                Navigator.pop(context);
+              });
+            }
+          }
+      ),
+    ];
+  }
+
+  void _colorPicker(int i){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          Color defaultColor = cm[i-1];
+          return AlertDialog(
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+              backgroundColor: const Color(0xFF303030),
+              insetPadding: EdgeInsets.zero,
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width/2,
+                height: MediaQuery.of(context).size.height/3,
+                child: BlockPicker(
+                        availableColors: cm,
+                        pickerColor: defaultColor,
+                        onColorChanged: (Color color){
+                          setState(() {
+                            //cm[i-1] = color;
+                            for(int a=0; a<cm.length; a++){
+                              if(cm[a] == color){
+                                Color tmp = cm[i-1];
+                                cm[i-1] = cm[a];
+                                cm[a] = tmp;
+                              }
+                            }
+                          }
+                          );
+                          Navigator.of(context).pop();
+                        })
+              ));
+        });
+  }
+
+  TextField _textField(int i){
+    return TextField(
+            onChanged: (name) {
+              setState((){
+                if(member.length < i) {
+                  member.add(name);
+                } else {
+                  member[i-1] = name;
+                }
+                if (count <= member.length+1 && count<=12){
+                  count++;
+                }
+              });
+            },
+            style: const TextStyle(color: Colors.white),
+            decoration: UIElements.tfDecoration('Enter the name of a member', IconButton(icon: const Icon(Icons.color_lens), color: cm[i-1], onPressed: () { _colorPicker(i); }))
+          );
   }
 }

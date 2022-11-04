@@ -38,7 +38,7 @@ class Item{
   }
   
   void addMember(String name){
-    _member.add(Member(name, id));
+    _member.add(Member(name, id, colormap[id]));
   }
 
   void setCounter(value){
