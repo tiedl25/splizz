@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:splizz/transaction.dart';
 
+import 'item.dart';
+
 class ShortMember{
   int _id = 0;
   String name = '';
@@ -51,7 +53,12 @@ class Member extends ShortMember{
     total = data['total'];
     balance = data['balance'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
-    color = Color(data['color']);
+    try{
+      color = Color(data['color']);
+    } catch (_){
+      color = Color(Item.colormap[data['id']].hashCode);
+    }
+
   }
 
   @override

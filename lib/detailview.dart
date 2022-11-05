@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:splizz/filehandle.dart';
-import 'package:splizz/member.dart';
+import 'package:splizz/addtransactiondialog.dart';
 import 'package:splizz/transaction.dart';
-import 'package:splizz/uielements.dart';
 import 'item.dart';
-import 'package:currency_textfield/currency_textfield.dart';
 
 class ViewGenerator extends StatefulWidget{
   final Item item;
@@ -20,15 +17,9 @@ class DetailView extends State<ViewGenerator>{
   List<Container> memberBar = <Container>[];
   List<ListTile> historyList = <ListTile>[];
 
-  late Member associatedController;
-  
-  Map<int, bool> pressed = {};
-  int previous=0;
-
   List<Container> _buildMemberBar(){
     List<Container> li = <Container>[];
     for (var element in item.member) {
-      pressed[element.id] = element.id==0 ? true : false;
       li.add(
           Container(
             decoration: BoxDecoration(
@@ -52,7 +43,7 @@ class DetailView extends State<ViewGenerator>{
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [element.color, Colors.white.withAlpha(150), Colors.white.withAlpha(150)]
+                      colors: [element.color, const Color(0x88BBBBBB), const Color(0x88BBBBBB)]
                     ),
                     borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20))
                   ),
@@ -73,116 +64,11 @@ class DetailView extends State<ViewGenerator>{
     return li;
   }
 
-  List<Container> _buildMemberSwitch(BuildContext context, StateSetter setState){
-    List<Container> li = <Container>[];
-
-    for (Member element in item.member) {
-      li.add(
-          Container(
-            decoration: BoxDecoration(
-              color: pressed[element.id]! ? element.color : const Color(0xFF282828),
-              border: Border.all(color: const Color(0xFF343434)),
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            margin: const EdgeInsets.all(2),
-            child: TextButton(
-              child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
-              onPressed: () => {
-              if(element.id != previous){
-                setState(() {
-                    pressed[element.id] = !pressed[element.id]!;
-                    pressed[previous] = false;
-                    previous = element.id;
-                    associatedController = element;
-                  })
-                }
-              }
-            )
-          )
-      );
-    }
-    return li;
-  }
-
-  void _addTransaction() {
-    var ccontroller = CurrencyTextFieldController(rightSymbol: '', decimalSymbol: ',');
-    var descriptionController = TextEditingController();
-
+  void _showAddDialog() {
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add new Transaction', style: TextStyle(color: Colors.white),),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-          backgroundColor: const Color(0xFF2B2B2B),
-          content: SingleChildScrollView(
-            child: StatefulBuilder(builder: (context, setState) {
-              memberBar = _buildMemberSwitch(context, setState);
-              return SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [TextField(
-                          controller: descriptionController,
-                          onChanged: (value) {
-                            setState(() {
-                            });
-                          },
-                          style: const TextStyle(
-                              color: Colors.white
-                          ),
-                          decoration: UIElements.tfDecoration('Add a description')
-                      ),
-                        SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: memberBar,
-                            )
-                        ),
-                        TextField(
-                          style: const TextStyle(
-                            color: Colors.white
-                          ),
-                          controller: ccontroller,
-                            onChanged: (value) {
-                              setState(() {
-                              });
-                            },
-                            decoration: UIElements.tfDecoration('0,00', IconButton(onPressed: (){ }, icon: const Icon(Icons.euro), color: Colors.white))
-                        )
-                      ]
-                  )
-              );}
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Dismiss')
-            ),
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                if(ccontroller.doubleValue != 0 && descriptionController.text.isNotEmpty && associatedController.name.isNotEmpty) {
-                  setState(() {
-                    Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, ccontroller.doubleValue, item.history.length);
-
-                    item.addTransaction(associatedController, tract);
-                    FileHandler fh = FileHandler('item_${item.id}');
-                    fh.writeJsonFile(item);
-                    Navigator.pop(context);
-                    previous=0;
-                    associatedController = Member('', 0, Item.colormap[0]);
-                  });
-                }
-              },
-            ),
-          ],
-        );
+        return AddTransactionDialog(item: item, setParentState: setState);
       },
     );
   }
@@ -274,7 +160,7 @@ class DetailView extends State<ViewGenerator>{
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addTransaction,
+        onPressed: _showAddDialog,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),

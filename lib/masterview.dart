@@ -6,7 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:splizz/detailview.dart';
 import 'package:splizz/item.dart';
 import 'package:splizz/filehandle.dart';
-import 'package:splizz/uielements.dart';
+
+import 'additemdialog.dart';
 
 class ListGenerator extends StatefulWidget{
   const ListGenerator({Key? key}) : super(key: key);
@@ -17,7 +18,7 @@ class ListGenerator extends StatefulWidget{
 
 
 class MasterView extends State<ListGenerator>{
-  var _items = <Item>[];
+  final _items = <Item>[];
   final _hearted = <Item>{};
 
   bool _itemsLoaded = false;
@@ -39,13 +40,11 @@ class MasterView extends State<ListGenerator>{
   }
 
   _showAddDialog(){
-    AddItemDialog cd = AddItemDialog(items: _items, setParentState: setState,);
     showDialog(
-        context: context, barrierDismissible: false, // user must tap button!
-
+        context: context,
+        barrierDismissible: true, // user must tap button!
         builder: (BuildContext context){
-
-          return cd;
+          return AddItemDialog(items: _items, setParentState: setState,);
         });
   }
 
@@ -93,6 +92,7 @@ class MasterView extends State<ListGenerator>{
         });
       },
       background: Container(
+        margin: const EdgeInsets.symmetric(vertical: 2),
         decoration: const BoxDecoration(
           color: Colors.red,
           borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -109,26 +109,29 @@ class MasterView extends State<ListGenerator>{
 
   Widget _buildRow(Item item) {
     final markedFav = _hearted.contains(item);
-    return ListTile(
-      contentPadding: const EdgeInsets.all(5),
-        shape: const RoundedRectangleBorder(
-          side: BorderSide(color: Color(0xFF303030)),
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        tileColor: const Color(0xFF282828),
-        title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
-        trailing: Icon(
-          markedFav ? Icons.favorite : Icons.favorite_border,
-          color: markedFav ? Colors.red : null,
-        ),
-        onTap: () {
-          _pushDetailView(item);
-        },
-        onLongPress: () {
-          setState(() {
-            markedFav ? _hearted.remove(item) : _hearted.add(item);
-          });
-        }
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: ListTile(
+          //contentPadding: const EdgeInsets.all(5),
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: Color(0xFF303030)),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          tileColor: const Color(0xFF282828),
+          title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
+          trailing: Icon(
+            markedFav ? Icons.favorite : Icons.favorite_border,
+            color: markedFav ? Colors.red : null,
+          ),
+          onTap: () {
+            _pushDetailView(item);
+          },
+          onLongPress: () {
+            setState(() {
+              markedFav ? _hearted.remove(item) : _hearted.add(item);
+            });
+          }
+      ),
     );
   }
 
