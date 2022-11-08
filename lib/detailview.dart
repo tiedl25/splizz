@@ -38,19 +38,15 @@ class DetailView extends State<ViewGenerator>{
               children: [
                 Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
                 Container(
-                  decoration: BoxDecoration(
-                    //color: Colors.white.withAlpha(150),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [element.color, const Color(0x88BBBBBB), const Color(0x88BBBBBB)]
-                    ),
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20))
+                  decoration: const BoxDecoration(
+                    color: Color(0xAAD5D5D5),
+
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Row(
                     children: [
-                      Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                      Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green : Colors.red),
                       Text('${element.balance.abs().toStringAsFixed(2)}€', style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
                     ],
                   ),
