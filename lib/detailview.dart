@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:splizz/addPayoffdialog.dart';
 import 'package:splizz/addtransactiondialog.dart';
 import 'package:splizz/transaction.dart';
 import 'item.dart';
@@ -60,6 +61,38 @@ class DetailView extends State<ViewGenerator>{
     return li;
   }
 
+  void _showPayoffDialog(){
+    showDialog(
+      context: context, barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        return AddPayoffDialog(item: item, setParentState: setState);
+      },
+    );
+  }
+
+  Widget _payoffButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Transactions', style: TextStyle(fontSize: 30, color: Colors.white),textAlign: TextAlign.center,),
+          Container(
+            margin: const EdgeInsets.only(left: 50),
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green
+            ),
+            child: IconButton(
+                onPressed: _showPayoffDialog,
+                icon: const Icon(Icons.handshake, color: Colors.white,)
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void _showAddDialog() {
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
@@ -69,8 +102,50 @@ class DetailView extends State<ViewGenerator>{
     );
   }
 
+  Widget _transactionList() {
+    return Expanded(
+      flex: 50,
+      child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF282828),
+            border: Border.all(color: const Color(0xFF303030)),
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+          ),
+          margin: const EdgeInsets.all(5),
+          child:
+          ListView.builder(
+            padding: const EdgeInsets.all(10),
+            shrinkWrap: true,
+            itemCount: item.history.length,
+            itemBuilder: (context, i) {
+              Transaction transaction = item.history[item.history.length-1-i];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 5),
+                decoration: BoxDecoration(
+                    color: item.member[transaction.associated.id].color,
+                    borderRadius: const BorderRadius.all(Radius.circular(10))
+                ),
+                child: ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+                  childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                  title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+                  subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
+                  children: [
+                    ListTile(
+                      tileColor: item.member[transaction.associated.id].color,
+                      title: Text(transaction.associated.name, style: const TextStyle(color: Colors.black),),
+                      subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
+                    )
+                  ],
+                ),
+              );
+            },
+          )
+      ),
+    );
+  }
+
   Widget _buildBody() {
-    memberBar = _buildMemberBar();
     return Column(
           children: [
           Row(
@@ -85,61 +160,26 @@ class DetailView extends State<ViewGenerator>{
               fit: BoxFit.fill
             ),
             )
-
             ]
             ),
+
           const Spacer(),
+
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: memberBar,
+              children: _buildMemberBar(),
             )
           ),
-          const Spacer(flex: 5,),
-          const Text('Transactions', style: TextStyle(fontSize: 30, color: Colors.white),),
-          const Spacer(),
-          Expanded(
-            flex: 50,
-            child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF282828),
-                  border: Border.all(color: const Color(0xFF303030)),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                ),
-                margin: const EdgeInsets.all(5),
-                child:
-                ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  shrinkWrap: true,
-                  itemCount: item.history.length,
-                  itemBuilder: (context, i) {
-                    Transaction transaction = item.history[item.history.length-1-i];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 5),
-                      decoration: BoxDecoration(
-                        color: item.member[transaction.associated.id].color,
-                        borderRadius: const BorderRadius.all(Radius.circular(10))
-                      ),
-                      child: ExpansionTile(
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 10),
-                        childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                        title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
-                        subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
-                        children: [
-                          ListTile(
-                            tileColor: item.member[transaction.associated.id].color,
-                            title: Text(transaction.associated.name, style: const TextStyle(color: Colors.black),),
-                            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
-                          )
-                        ],
-                      ),
-                    );
-                  },
-                )
-            ),
-          ),
 
+          const Spacer(flex: 5,),
+
+          _payoffButton(),
+
+          const Spacer(),
+
+          _transactionList(),
           ],
     );
   }

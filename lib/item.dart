@@ -32,9 +32,44 @@ class Item{
   void addTransaction(Member m, Transaction t){
     _member[m.id].add(t);
     history.add(t);
+    double val = t.value/_member.length;
+    print('${_member[m.id].name} : ${val}');
     for(int i=0; i<_member.length; i++){
-      _member[i].sub(t.value/_member.length);
+      _member[i].sub(val);
     }
+  }
+
+  Map<Member, List<Member>> payoff(){
+    List<Member> tmp = [];
+    for(var e in _member){
+      var a = Member.fromMember(e);
+      tmp.add(a);
+    }
+
+
+    List<Member> positive = List.from(tmp.where((element) => element.balance > 0));
+    positive.sort((a,b) => a.balance.compareTo(b.balance));
+    positive.reversed;
+    List<Member> negative = List.from(tmp.where((element) => element.balance < 0));
+    negative.sort((a,b) => a.balance.compareTo(b.balance));
+    negative.reversed;
+    
+    Map<Member, List<Member>> payMap = { for (var item in negative) item : [] };
+
+    for(int a=0; a<positive.length; a++){
+      for(int b=0; b<negative.length; b++){
+        if(negative[b].balance <= positive[a].balance){
+          positive[a].balance += negative[b].balance;
+          Member topay = Member.fromMember(positive[a]);
+          //topay.balance = negative[b].balance;
+          payMap[negative[b]]?.add(topay);
+        }
+      }
+      negative.sort((a,b) => a.balance.compareTo((b.balance)));
+      negative.reversed;
+    }
+
+    return payMap;
   }
   
   void addMember(String name){

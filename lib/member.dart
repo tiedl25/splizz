@@ -47,6 +47,13 @@ class Member extends ShortMember{
 
   Member(String name, int id, this.color) : super(name, id);
 
+  Member.fromMember(Member m) : super.fromMember(m){
+    total = m.total;
+    balance = m.balance;
+    color = m.color;
+    history = m.history;
+  }
+
   Member.fromJson(Map<String, dynamic> data) : super.fromJson(data){
     final historyData = data['history'] as List<dynamic>;
 
