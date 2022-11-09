@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'item.dart';
 import 'member.dart';
+import 'uielements.dart';
 
 class AddPayoffDialog extends StatefulWidget {
   final Item item;
@@ -25,7 +26,7 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
   @override
   Widget build(BuildContext context) {
     _item = widget.item;
-    var paymap = _item.payoff();
+    var paymap = _item.calculatePayoff();
     return AlertDialog(
       title: const Text('Payoff', style: TextStyle(color: Colors.white),),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
@@ -43,12 +44,20 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
             ),
         ),
       ),
-      actions: _dialogButtons(),
+      actions: UIElements.dialogButtons(
+        context: context,
+        callback: (){
+          widget.setParentState(() {
+            _item.payoff();
+          });
+        }
+      ),
     );
   }
 
   Widget _listElement(Member m, List<Member> paylist){
       return Container(
+        margin: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
           color: const Color(0xFF444444),
           borderRadius: BorderRadius.circular(20),
@@ -119,22 +128,4 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
     
     return payoffRelation;
   }
-
-  List<Widget> _dialogButtons(){
-    return <Widget>[
-      TextButton(
-          child: const Text('Dismiss'),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-      ),
-      TextButton(
-          child: const Text('OK'),
-          onPressed: () {
-              Navigator.pop(context);
-          }
-      ),
-    ];
-  }
-
 }

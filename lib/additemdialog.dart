@@ -83,21 +83,9 @@ class _AddItemDialogState extends State<AddItemDialog>{
             ),
           ),
         ),
-        actions: _dialogButtons()
-    );
-  }
-
-  List<Widget> _dialogButtons(){
-    return <Widget>[
-      TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Dismiss')
-      ),
-      TextButton(
-          child: const Text('OK'),
-          onPressed: () {
+        actions: UIElements.dialogButtons(
+          context: context,
+          callback: (){
             List<Member> members = [];
             for(String name in member){
               if(name != ''){
@@ -110,12 +98,11 @@ class _AddItemDialogState extends State<AddItemDialog>{
                 _items.add(newItem);
                 FileHandler fh = FileHandler('item_${newItem.id}');
                 fh.writeJsonFile(newItem);
-                Navigator.pop(context);
               });
             }
           }
-      ),
-    ];
+        )
+    );
   }
 
   void _colorPicker(int i){

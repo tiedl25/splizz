@@ -21,4 +21,22 @@ class UIElements {
       )
     );
   }
+
+  static List<Widget> dialogButtons({required BuildContext context, required Function callback}){
+    return <Widget>[
+      TextButton(
+        child: const Text('Dismiss'),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            callback();
+            Navigator.pop(context);
+          }
+      ),
+    ];
+  }
 }

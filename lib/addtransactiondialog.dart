@@ -96,36 +96,22 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
               )
           )
       ),
-      actions: _dialogButtons(),
+      actions: UIElements.dialogButtons(
+          context: context,
+          callback: () {
+            if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && associatedController.name.isNotEmpty) {
+              setState(() {
+                Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, currencyController.doubleValue, _item.history.length);
+
+                _item.addTransaction(associatedController, tract);
+                FileHandler fh = FileHandler('item_${_item.id}');
+                fh.writeJsonFile(_item);
+                previous=0;
+                associatedController = Member('', 0, Item.colormap[0]);
+              });
+            }
+          }),
     );
-  }
-
-  List<Widget> _dialogButtons(){
-    return <Widget>[
-      TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Dismiss')
-      ),
-      TextButton(
-        child: const Text('OK'),
-        onPressed: () {
-          if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && associatedController.name.isNotEmpty) {
-            setState(() {
-              Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, currencyController.doubleValue, _item.history.length);
-
-              _item.addTransaction(associatedController, tract);
-              FileHandler fh = FileHandler('item_${_item.id}');
-              fh.writeJsonFile(_item);
-              Navigator.pop(context);
-              previous=0;
-              associatedController = Member('', 0, Item.colormap[0]);
-            });
-          }
-        },
-      ),
-    ];
   }
 
   List<Container> _buildMemberSwitch(){

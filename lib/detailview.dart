@@ -76,7 +76,11 @@ class DetailView extends State<ViewGenerator>{
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Transactions', style: TextStyle(fontSize: 30, color: Colors.white),textAlign: TextAlign.center,),
+          const Text(
+              'Transactions',
+              style: TextStyle(fontSize: 30, color: Colors.white),
+              textAlign: TextAlign.center
+            ),
           Container(
             margin: const EdgeInsets.only(left: 50),
             decoration: const BoxDecoration(
@@ -162,9 +166,7 @@ class DetailView extends State<ViewGenerator>{
             )
             ]
             ),
-
           const Spacer(),
-
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -172,13 +174,9 @@ class DetailView extends State<ViewGenerator>{
               children: _buildMemberBar(),
             )
           ),
-
           const Spacer(flex: 5,),
-
           _payoffButton(),
-
           const Spacer(),
-
           _transactionList(),
           ],
     );
