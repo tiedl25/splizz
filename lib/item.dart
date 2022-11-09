@@ -41,8 +41,9 @@ class Item{
 
   Map<Member, List<Member>> calculatePayoff(){
     List<Member> tmp = [];
-    for(var e in _members){
-      var a = Member.fromMember(e);
+    for(Member e in _members){
+      Member a = Member.fromMember(e);
+      a.total = a.balance;
       tmp.add(a);
     }
 
@@ -57,11 +58,21 @@ class Item{
 
     for(int a=0; a<positive.length; a++){
       for(int b=0; b<negative.length; b++){
-        if(negative[b].balance <= positive[a].balance){
-          positive[a].balance += negative[b].balance;
+        if(positive[a].balance > 0){
+          double tmp2 = positive[a].balance;
           Member topay = Member.fromMember(positive[a]);
+          if(negative[b].balance.abs() >= positive[a].balance){
+            positive[a].balance = 0;
+            negative[b].balance += tmp2;
+          }else{
+            topay.balance = negative[b].balance;
+            positive[a].balance += negative[b].balance;
+            negative[b].balance = 0;
+
+          }
           payMap[negative[b]]?.add(topay);
         }
+
       }
       negative.sort((a,b) => a.balance.compareTo((b.balance)));
       negative.reversed;

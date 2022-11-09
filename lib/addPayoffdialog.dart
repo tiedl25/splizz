@@ -83,7 +83,7 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.white54
                       ),
-                      child: Text('${m.balance.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
+                      child: Text('${m.total.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
                 ],
               ),
             ),
