@@ -30,7 +30,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
   TextEditingController descriptionController = TextEditingController();
   late Member associatedController;
   List<bool> pressed = [];
-  int previous=0;
+  int previous=-1;
   bool currency = false;
   
   void _init(){
@@ -106,7 +106,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
                 _item.addTransaction(associatedController, tract);
                 FileHandler fh = FileHandler('item_${_item.id}');
                 fh.writeJsonFile(_item);
-                previous=0;
+                previous=-1;
                 associatedController = Member('', 0, Item.colormap[0]);
               });
             }
@@ -133,7 +133,9 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
                     if(element.id != previous){
                       setState(() {
                         pressed[element.id] = !pressed[element.id];
-                        pressed[previous] = false;
+                        if (previous != -1){
+                          pressed[previous] = false;
+                        }
                         previous = element.id;
                         associatedController = element;
                       })
