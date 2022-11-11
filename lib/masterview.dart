@@ -111,12 +111,11 @@ class MasterView extends State<ListGenerator>{
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: ListTile(
-          //contentPadding: const EdgeInsets.all(5),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           shape: const RoundedRectangleBorder(
-            side: BorderSide(color: Color(0xFF303030)),
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
-          tileColor: const Color(0xFF282828),
+          tileColor: const Color(0xFF383838),
           title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
           trailing: Icon(
             markedFav ? Icons.favorite : Icons.favorite_border,
