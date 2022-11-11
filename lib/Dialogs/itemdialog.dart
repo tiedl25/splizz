@@ -2,17 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:splizz/uielements.dart';
+import 'package:splizz/Helper/uielements.dart';
 
-import 'filehandle.dart';
-import 'item.dart';
-import 'member.dart';
+import '../Helper/filehandle.dart';
+import '../Models/item.dart';
+import '../Models/member.dart';
 
-class AddItemDialog extends StatefulWidget {
+class ItemDialog extends StatefulWidget {
   final List<Item> items;
   final Function setParentState;
 
-  const AddItemDialog({
+  const ItemDialog({
     Key? key,
     required this.items,
     required this.setParentState
@@ -20,11 +20,11 @@ class AddItemDialog extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _AddItemDialogState();
+    return _ItemDialogState();
   }
 }
 
-class _AddItemDialogState extends State<AddItemDialog>{
+class _ItemDialogState extends State<ItemDialog>{
   late List<Item> _items;
 
   String title = '';

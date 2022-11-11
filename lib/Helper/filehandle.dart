@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'item.dart';
+import '../Models/item.dart';
 
 class FileHandler{
   String name = '';

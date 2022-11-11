@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:splizz/member.dart';
-import 'package:splizz/transaction.dart';
+import 'package:splizz/Models/member.dart';
+import 'package:splizz/Models/transaction.dart';
 
 class Item{
   late String name;
@@ -33,24 +33,23 @@ class Item{
     _members[m.id].add(t);
     history.add(t);
     double val = t.value/_members.length;
-    print('${_members[m.id].name} : ${val}');
     for(int i=0; i<_members.length; i++){
       _members[i].sub(val);
     }
   }
 
   Map<Member, List<Member>> calculatePayoff(){
-    List<Member> tmp = [];
+    List<Member> payer = [];
     for(Member e in _members){
       Member a = Member.fromMember(e);
       a.total = a.balance;
-      tmp.add(a);
+      payer.add(a);
     }
 
-    List<Member> positive = List.from(tmp.where((element) => element.balance > 0));
+    List<Member> positive = List.from(payer.where((element) => element.balance > 0));
     positive.sort((a,b) => a.balance.compareTo(b.balance));
     positive.reversed;
-    List<Member> negative = List.from(tmp.where((element) => element.balance < 0));
+    List<Member> negative = List.from(payer.where((element) => element.balance < 0));
     negative.sort((a,b) => a.balance.compareTo(b.balance));
     negative.reversed;
     
@@ -59,18 +58,19 @@ class Item{
     for(int a=0; a<positive.length; a++){
       for(int b=0; b<negative.length; b++){
         if(positive[a].balance > 0){
-          double tmp2 = positive[a].balance;
-          Member topay = Member.fromMember(positive[a]);
+          double tmp = positive[a].balance;
+          Member receiver = Member.fromMember(positive[a]);
+          
           if(negative[b].balance.abs() >= positive[a].balance){
             positive[a].balance = 0;
-            negative[b].balance += tmp2;
+            negative[b].balance += tmp;
           }else{
-            topay.balance = negative[b].balance;
+            receiver.balance = negative[b].balance;
             positive[a].balance += negative[b].balance;
             negative[b].balance = 0;
-
           }
-          payMap[negative[b]]?.add(topay);
+          
+          payMap[negative[b]]?.add(receiver);
         }
 
       }

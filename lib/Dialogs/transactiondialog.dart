@@ -2,18 +2,18 @@ import 'dart:ui';
 
 import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:splizz/transaction.dart';
-import 'package:splizz/uielements.dart';
+import 'package:splizz/Models/transaction.dart';
+import 'package:splizz/Helper/uielements.dart';
 
-import 'filehandle.dart';
-import 'item.dart';
-import 'member.dart';
+import '../Helper/filehandle.dart';
+import '../Models/item.dart';
+import '../Models/member.dart';
 
-class AddTransactionDialog extends StatefulWidget {
+class TransactionDialog extends StatefulWidget {
   final Item item;
   final Function setParentState;
 
-  const AddTransactionDialog({
+  const TransactionDialog({
     Key? key,
     required this.item,
     required this.setParentState
@@ -21,11 +21,11 @@ class AddTransactionDialog extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _AddTransactionDialogState();
+    return _TransactionDialogState();
   }
 }
 
-class _AddTransactionDialogState extends State<AddTransactionDialog>{
+class _TransactionDialogState extends State<TransactionDialog>{
   List<Container> memberSwitch = <Container>[];
   late Item _item;
   CurrencyTextFieldController currencyController = CurrencyTextFieldController(rightSymbol: '', decimalSymbol: ',');

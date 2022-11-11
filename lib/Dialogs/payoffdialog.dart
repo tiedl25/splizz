@@ -2,15 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'item.dart';
-import 'member.dart';
-import 'uielements.dart';
+import '../Models/item.dart';
+import '../Models/member.dart';
+import '../Helper/uielements.dart';
 
-class AddPayoffDialog extends StatefulWidget {
+class PayoffDialog extends StatefulWidget {
   final Item item;
   final Function setParentState;
 
-  const AddPayoffDialog({
+  const PayoffDialog({
     Key? key,
     required this.item,
     required this.setParentState
@@ -18,11 +18,11 @@ class AddPayoffDialog extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _AddPayoffDialogState();
+    return _PayoffDialogState();
   }
 }
 
-class _AddPayoffDialogState extends State<AddPayoffDialog>{
+class _PayoffDialogState extends State<PayoffDialog>{
   late Item _item;
 
   @override

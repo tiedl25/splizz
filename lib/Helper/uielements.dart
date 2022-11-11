@@ -34,7 +34,7 @@ class UIElements {
           children: [
             Expanded(
                 child: CupertinoButton(
-                  padding: EdgeInsets.symmetric(vertical: 0),
+                  padding: const EdgeInsets.symmetric(vertical: 0),
                   child: const Text('Discard'),
                   onPressed: () {
                     Navigator.pop(context);
@@ -46,7 +46,7 @@ class UIElements {
             ),
             Expanded(
               child: CupertinoButton(
-                padding: EdgeInsets.symmetric(vertical: 0),
+                padding: const EdgeInsets.symmetric(vertical: 0),
                   child: const Text('Apply'),
                   onPressed: () {
                     callback();

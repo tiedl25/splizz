@@ -2,21 +2,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:splizz/detailview.dart';
-import 'package:splizz/item.dart';
-import 'package:splizz/filehandle.dart';
+import 'package:splizz/Views/detailview.dart';
+import 'package:splizz/Models/item.dart';
+import 'package:splizz/Helper/filehandle.dart';
 
-import 'additemdialog.dart';
+import '../Dialogs/itemdialog.dart';
 
-class ListGenerator extends StatefulWidget{
-  const ListGenerator({Key? key}) : super(key: key);
+class MasterView extends StatefulWidget{
+  const MasterView({Key? key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => MasterView();
+  State<StatefulWidget> createState() => _MasterViewState();
 }
 
 
-class MasterView extends State<ListGenerator>{
+class _MasterViewState extends State<MasterView>{
   final _items = <Item>[];
   final _hearted = <Item>{};
 
@@ -43,7 +43,7 @@ class MasterView extends State<ListGenerator>{
         context: context,
         barrierDismissible: true, // user must tap button!
         builder: (BuildContext context){
-          return AddItemDialog(items: _items, setParentState: setState,);
+          return ItemDialog(items: _items, setParentState: setState,);
         });
   }
 
@@ -138,7 +138,7 @@ class MasterView extends State<ListGenerator>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-        return ViewGenerator(item: i,);
+        return DetailView(item: i,);
         },
       ),
     );

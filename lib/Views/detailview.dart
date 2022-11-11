@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:splizz/addPayoffdialog.dart';
-import 'package:splizz/addtransactiondialog.dart';
-import 'package:splizz/transaction.dart';
-import 'item.dart';
+import 'package:splizz/Dialogs/payoffdialog.dart';
+import 'package:splizz/Dialogs/transactiondialog.dart';
+import 'package:splizz/Models/transaction.dart';
+import '../Models/item.dart';
 
-class ViewGenerator extends StatefulWidget{
+class DetailView extends StatefulWidget{
   final Item item;
-  const ViewGenerator({Key? key, required this.item}) : super(key:key);
+  const DetailView({Key? key, required this.item}) : super(key:key);
 
   @override
-  State<StatefulWidget> createState() => DetailView();
+  State<StatefulWidget> createState() => _DetailViewState();
 }
 
-class DetailView extends State<ViewGenerator>{
+class _DetailViewState extends State<DetailView>{
   late Item item;
 
   List<Container> memberBar = <Container>[];
@@ -65,7 +65,7 @@ class DetailView extends State<ViewGenerator>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return AddPayoffDialog(item: item, setParentState: setState);
+        return PayoffDialog(item: item, setParentState: setState);
       },
     );
   }
@@ -101,7 +101,7 @@ class DetailView extends State<ViewGenerator>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return AddTransactionDialog(item: item, setParentState: setState);
+        return TransactionDialog(item: item, setParentState: setState);
       },
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:splizz/masterview.dart';
+import 'package:splizz/Views/masterview.dart';
 
 void main() => runApp(const MyApp());
 
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Splizz',
-      home: ListGenerator(),
+      home: MasterView(),
     );
   }
 }

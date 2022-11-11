@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:splizz/transaction.dart';
+import 'package:splizz/Models/transaction.dart';
 
 import 'item.dart';
 
