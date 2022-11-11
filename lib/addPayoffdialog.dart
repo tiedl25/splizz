@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import 'item.dart';
@@ -27,7 +29,9 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
   Widget build(BuildContext context) {
     _item = widget.item;
     var paymap = _item.calculatePayoff();
-    return AlertDialog(
+    return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: AlertDialog(
       title: const Text('Payoff', style: TextStyle(color: Colors.white),),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
       backgroundColor: const Color(0xFF2B2B2B),
@@ -52,7 +56,7 @@ class _AddPayoffDialogState extends State<AddPayoffDialog>{
           });
         }
       ),
-    );
+    ));
   }
 
   Widget _listElement(Member m, List<Member> paylist){

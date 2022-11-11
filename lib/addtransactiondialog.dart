@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:splizz/transaction.dart';
@@ -45,7 +47,9 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
   Widget build(BuildContext context) {
     _init();
     
-    return AlertDialog(
+    return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: AlertDialog(
       title: const Text('Add new Transaction', style: TextStyle(color: Colors.white),),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
       backgroundColor: const Color(0xFF2B2B2B),
@@ -111,7 +115,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog>{
               });
             }
           }),
-    );
+    ));
   }
 
   List<Container> _buildMemberSwitch(){

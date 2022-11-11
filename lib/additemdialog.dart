@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/uielements.dart';
@@ -34,75 +36,77 @@ class _AddItemDialogState extends State<AddItemDialog>{
   Widget build(BuildContext context) {
     _items = widget.items;
 
-    return AlertDialog(
-        title: const Text('Create a new Splizz', style: TextStyle(color: Colors.white),),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-        backgroundColor: const Color(0xFF2B2B2B),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height/4,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                    height: MediaQuery.of(context).size.height/4,
-                    child: ListView.builder(
-                        itemCount: count,
-                        itemBuilder: (context, i) {
-                          if(i == 0) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: TextField(
-                                onChanged: (value) {
-                                  setState(() {
-                                    title = value;
-                                  });
-                                },
-                                style: const TextStyle(color: Colors.white),
-                                decoration: UIElements.tfDecoration(title: 'Enter a Title'),
-                              ),
-                            );
-                          }
-                          else if(i == 1) {
-                            return _textField(i);
-                          }
-                          return Dismissible(
-                              key: ValueKey(i),
-                              direction: DismissDirection.endToStart,
-                              onDismissed: (context){
-                                count--;
-                                member.removeAt(i);
-                              },
-                              child: _textField(i)
-                          );
-                        }
+    return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: AlertDialog(
+            title: const Text('Create a new Splizz', style: TextStyle(color: Colors.white),),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+            backgroundColor: const Color(0xFF2B2B2B),
+            content: SingleChildScrollView(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height/4,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height/4,
+                        child: ListView.builder(
+                            itemCount: count,
+                            itemBuilder: (context, i) {
+                              if(i == 0) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: TextField(
+                                    onChanged: (value) {
+                                      setState(() {
+                                        title = value;
+                                      });
+                                    },
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: UIElements.tfDecoration(title: 'Enter a Title'),
+                                  ),
+                                );
+                              }
+                              else if(i == 1) {
+                                return _textField(i);
+                              }
+                              return Dismissible(
+                                  key: ValueKey(i),
+                                  direction: DismissDirection.endToStart,
+                                  onDismissed: (context){
+                                    count--;
+                                    member.removeAt(i);
+                                  },
+                                  child: _textField(i)
+                              );
+                            }
+                        )
                     )
-                )
-              ],
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-        actions: UIElements.dialogButtons(
-          context: context,
-          callback: (){
-            List<Member> members = [];
-            for(String name in member){
-              if(name != ''){
-                members.add(Member(name, members.length, cm[members.length]));
-              }
-            }
-            if(title != '' && members.length > 1) {
-              widget.setParentState(() {
-                Item newItem = Item(title, members);
-                _items.add(newItem);
-                FileHandler fh = FileHandler('item_${newItem.id}');
-                fh.writeJsonFile(newItem);
-              });
-            }
-          }
-        )
-    );
+            actions: UIElements.dialogButtons(
+                context: context,
+                callback: (){
+                  List<Member> members = [];
+                  for(String name in member){
+                    if(name != ''){
+                      members.add(Member(name, members.length, cm[members.length]));
+                    }
+                  }
+                  if(title != '' && members.length > 1) {
+                    widget.setParentState(() {
+                      Item newItem = Item(title, members);
+                      _items.add(newItem);
+                      FileHandler fh = FileHandler('item_${newItem.id}');
+                      fh.writeJsonFile(newItem);
+                    });
+                  }
+                }
+            )
+        ));
   }
 
   void _colorPicker(int i){
