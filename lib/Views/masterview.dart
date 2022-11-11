@@ -63,7 +63,7 @@ class _MasterViewState extends State<MasterView>{
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
-        tooltip: 'Increment',
+        tooltip: 'Add Splizz',
         child: const Icon(Icons.add),
       ),
     );

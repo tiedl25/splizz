@@ -14,6 +14,7 @@ class DetailView extends StatefulWidget{
 
 class _DetailViewState extends State<DetailView>{
   late Item item;
+  bool unbalanced = false;
 
   List<Container> memberBar = <Container>[];
   List<ListTile> historyList = <ListTile>[];
@@ -61,15 +62,6 @@ class _DetailViewState extends State<DetailView>{
     return li;
   }
 
-  void _showPayoffDialog(){
-    showDialog(
-      context: context, barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return PayoffDialog(item: item, setParentState: setState);
-      },
-    );
-  }
-
   Widget _payoffButton() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -82,14 +74,23 @@ class _DetailViewState extends State<DetailView>{
               textAlign: TextAlign.center
             ),
           Container(
-            margin: const EdgeInsets.only(left: 50),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.green
+                color: unbalanced ? Colors.green : const Color(0x00000000)
             ),
             child: IconButton(
-                onPressed: _showPayoffDialog,
-                icon: const Icon(Icons.handshake, color: Colors.white,)
+              splashRadius: 25,
+              onPressed: (){
+                if(unbalanced){
+                  showDialog(
+                    context: context, barrierDismissible: true, // user must tap button!
+                    builder: (BuildContext context) {
+                      return PayoffDialog(item: item, setParentState: setState);
+                    },
+                  );
+                }
+              },
+              icon: const Icon(Icons.handshake, color: Colors.white,)
             ),
           )
         ],
@@ -182,9 +183,20 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
+  bool _checkBalances(){
+    for(var m in item.member){
+      if(m.balance != 0){
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     item = widget.item;
+    unbalanced = _checkBalances();
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: const Color(0xFF2B2B2B),
@@ -195,7 +207,7 @@ class _DetailViewState extends State<DetailView>{
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
-        tooltip: 'Increment',
+        tooltip: 'Add Transaction',
         child: const Icon(Icons.add),
       ),
     );

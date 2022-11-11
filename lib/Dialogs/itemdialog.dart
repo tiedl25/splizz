@@ -64,22 +64,11 @@ class _ItemDialogState extends State<ItemDialog>{
                                       });
                                     },
                                     style: const TextStyle(color: Colors.white),
-                                    decoration: UIElements.tfDecoration(title: 'Enter a Title'),
+                                    decoration: UIElements.tfDecoration(title: 'Title'),
                                   ),
                                 );
                               }
-                              else if(i == 1) {
-                                return _textField(i);
-                              }
-                              return Dismissible(
-                                  key: ValueKey(i),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (context){
-                                    count--;
-                                    member.removeAt(i);
-                                  },
-                                  child: _textField(i)
-                              );
+                              return _textField(i);
                             }
                         )
                     )
@@ -160,7 +149,7 @@ class _ItemDialogState extends State<ItemDialog>{
           },
           style: const TextStyle(color: Colors.white),
           decoration: UIElements.tfDecoration(
-              title: 'Enter the name of a member',
+              title: 'Member $i',
               icon: IconButton(icon: const Icon(Icons.color_lens), color: cm[i-1], onPressed: () { _colorPicker(i); })
           )
       ),
