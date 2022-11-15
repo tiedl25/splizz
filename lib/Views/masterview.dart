@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Helper/filehandle.dart';
+import 'package:splizz/Views/settingsview.dart';
 
 import '../Dialogs/itemdialog.dart';
 
@@ -58,6 +59,12 @@ class _MasterViewState extends State<MasterView>{
       backgroundColor: const Color(0xFF2B2B2B),
       appBar: AppBar(
         title: const Text('Splizz'),
+        actions: [
+          IconButton(
+              onPressed: _pushSettingsView,
+              icon: const Icon(Icons.settings)
+          )
+        ],
         backgroundColor: Colors.transparent,
       ),
       body: _buildBody(),
@@ -129,6 +136,17 @@ class _MasterViewState extends State<MasterView>{
               markedFav ? _hearted.remove(item) : _hearted.add(item);
             });
           }
+      ),
+    );
+  }
+
+  void _pushSettingsView(){
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context){
+          return SettingsView();
+        },
       ),
     );
   }
