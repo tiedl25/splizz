@@ -108,7 +108,12 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, currencyController.doubleValue, _item.history.length);
 
                 _item.addTransaction(associatedController, tract);
-                FileHandler fh = FileHandler('item_${_item.id}');
+                FileHandler fh;
+                if(_item.storageLocation == 'wd'){
+                  fh = FileHandler('item_${_item.id}.json');
+                } else {
+                  fh = FileHandler.path(_item.storageLocation);
+                }
                 fh.writeJsonFile(_item);
                 previous=-1;
                 associatedController = Member('', 0, Item.colormap[0]);

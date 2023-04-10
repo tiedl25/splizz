@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:splizz/Helper/filehandle.dart';
 
 import '../Models/item.dart';
 import '../Models/member.dart';
@@ -53,6 +54,13 @@ class _PayoffDialogState extends State<PayoffDialog>{
         callback: (){
           widget.setParentState(() {
             _item.payoff();
+            FileHandler fh;
+            if(_item.storageLocation == 'wd'){
+              fh = FileHandler('item_${_item.id}.json');
+            } else {
+              fh = FileHandler.path(_item.storageLocation);
+            }
+            fh.writeJsonFile(_item);
           });
         }
       ),
@@ -60,42 +68,45 @@ class _PayoffDialogState extends State<PayoffDialog>{
   }
 
   Widget _listElement(Member m, List<Member> paylist){
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFF444444),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.only(left: 10),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: m.color,
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFF444444),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.only(left: 10),
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: m.color,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(m.name),
+                    const Icon(Icons.arrow_forward),
+                    Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white54
+                        ),
+                        child: Text('${m.total.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(m.name),
-                  const Icon(Icons.arrow_forward),
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white54
-                      ),
-                      child: Text('${m.total.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
-                ],
-              ),
-            ),
-            Column(
-              children: _buildPayoffRelation(paylist),
-            )
-          ],
-        ),
+              Column(
+                children: _buildPayoffRelation(paylist),
+              )
+            ],
+          ),
+        )
       );
   }
   

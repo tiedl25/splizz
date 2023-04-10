@@ -1,13 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Views/settingsview.dart';
 
 import '../Dialogs/itemdialog.dart';
+import '../Models/Storage.dart';
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -18,33 +16,14 @@ class MasterView extends StatefulWidget{
 
 
 class _MasterViewState extends State<MasterView>{
-  final _items = <Item>[];
-  final _hearted = <Item>{};
-
-  bool _itemsLoaded = false;
-
-  getItem(final element) async{
-    FileHandler fh = FileHandler.path(element.path);
-    Item item = Item.fromJson(await fh.readJsonFile());
-    setState(() {
-      _items.add(item);
-    });
-  }
-
-  void _loadItems() async {
-    Directory dir = await getApplicationSupportDirectory();
-    var li = dir.listSync(followLinks: false);
-    for (var element in li) {
-      getItem(element);
-    }
-  }
+  Settings st = Settings();
 
   _showAddDialog(){
     showDialog(
         context: context,
         barrierDismissible: true, // user must tap button!
         builder: (BuildContext context){
-          return ItemDialog(items: _items, setParentState: setState,);
+          return ItemDialog(items: st.items, setParentState: setState,);
         });
   }
 
@@ -52,7 +31,7 @@ class _MasterViewState extends State<MasterView>{
   Widget build(BuildContext context) {
 
     setState(() {
-      if(!_itemsLoaded){_items.clear(); _loadItems(); _itemsLoaded=true;}
+      st.loadItems(setState);
     });
 
     return Scaffold(
@@ -62,7 +41,8 @@ class _MasterViewState extends State<MasterView>{
         actions: [
           IconButton(
               onPressed: _pushSettingsView,
-              icon: const Icon(Icons.settings)
+              icon: const Icon(Icons.settings
+              )
           )
         ],
         backgroundColor: Colors.transparent,
@@ -78,9 +58,9 @@ class _MasterViewState extends State<MasterView>{
   Widget _buildBody() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _items.length,
+        itemCount: st.items.length,
         itemBuilder: (context, i) {
-          return _buildDismissible(_items[i]);
+          return _buildDismissible(st.items[i]);
         }
     );
   }
@@ -90,11 +70,15 @@ class _MasterViewState extends State<MasterView>{
       key: UniqueKey(),
       direction: DismissDirection.endToStart,
       onDismissed: (context) async {
-        Directory dir = await getApplicationSupportDirectory();
         setState(() {
-          _items.remove(item);
-          FileHandler fh = FileHandler.path('${dir.path}/item_${item.id}.json');
-          fh.deleteFile();
+          st.items.remove(item);
+          if(item.storageLocation == 'wd'){
+            FileHandlerOutdated fh = FileHandlerOutdated.path('${st.wd!.path}/item_${item.id}.json');
+            fh.deleteFile();
+          } else {
+            st.locations.remove(item.storageLocation);
+            st.save();
+          }
         });
       },
       background: Container(
@@ -114,7 +98,7 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget _buildRow(Item item) {
-    final markedFav = _hearted.contains(item);
+    final markedFav = st.hearted.contains(item);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: ListTile(
@@ -133,7 +117,7 @@ class _MasterViewState extends State<MasterView>{
           },
           onLongPress: () {
             setState(() {
-              markedFav ? _hearted.remove(item) : _hearted.add(item);
+              markedFav ? st.hearted.remove(item) : st.hearted.add(item);
             });
           }
       ),
@@ -145,7 +129,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView();
+          return SettingsView(settings: st, setParentState: setState);
         },
       ),
     );

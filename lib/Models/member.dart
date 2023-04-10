@@ -60,11 +60,7 @@ class Member extends ShortMember{
     total = data['total'];
     balance = data['balance'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
-    try{
-      color = Color(data['color']);
-    } catch (_){
-      color = Color(Item.colormap[data['id']].hashCode);
-    }
+    color = Color(data['color']);
 
   }
 
@@ -75,7 +71,7 @@ class Member extends ShortMember{
       'total': total,
       'balance': balance,
       'history': history.map((transaction) => transaction.toJson()).toList(),
-      'color': color.hashCode});
+      'color': color.value});
     return su;
   }
 }
