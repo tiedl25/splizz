@@ -43,14 +43,11 @@ class _SettingsViewState extends State<SettingsView>{
     ]
     );
   }
-
-
   Future<void> _pickDir() async {
     FilePickerResult? selectedFile = await FilePicker.platform.pickFiles();
     String? filepath = selectedFile?.files.single.path;
     if (selectedFile != null) {
       widget.setParentState(() {
-        print(filepath);
         widget.settings.locations.add(filepath!);
         widget.settings.save();
       });

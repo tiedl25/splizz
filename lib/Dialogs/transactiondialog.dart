@@ -28,7 +28,7 @@ class TransactionDialog extends StatefulWidget {
 class _TransactionDialogState extends State<TransactionDialog>{
   List<Container> memberSwitch = <Container>[];
   late Item _item;
-  CurrencyTextFieldController currencyController = CurrencyTextFieldController(rightSymbol: '', decimalSymbol: ',');
+  CurrencyTextFieldController currencyController = CurrencyTextFieldController(decimalSymbol: ',');
   TextEditingController descriptionController = TextEditingController();
   late Member associatedController;
   List<bool> pressed = [];

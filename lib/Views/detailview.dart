@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Models/transaction.dart';
+import '../Helper/drive.dart';
 import '../Models/item.dart';
 
 class DetailView extends StatefulWidget{
@@ -192,6 +197,14 @@ class _DetailViewState extends State<DetailView>{
     return false;
   }
 
+  Future<void> _upload() async {
+    Directory dir = await getApplicationSupportDirectory();
+    var filepath = dir.path;
+    var gd = GoogleDrive();
+    File file = File('$filepath/item_${item.id}.json');
+    gd.uploadFileToGoogleDrive(file);
+  }
+
   @override
   Widget build(BuildContext context) {
     item = widget.item;
@@ -202,6 +215,12 @@ class _DetailViewState extends State<DetailView>{
       backgroundColor: const Color(0xFF2B2B2B),
       appBar: AppBar(
         title: Text(item.name),
+        actions: [
+          IconButton(
+              onPressed: _upload,
+              icon: const Icon(Icons.share)
+          )
+        ],
         backgroundColor: const Color(0x882B2B2B),
       ),
       body: _buildBody(),

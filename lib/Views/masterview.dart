@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Views/settingsview.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 
 import '../Dialogs/itemdialog.dart';
 import '../Models/Storage.dart';
+
+final googleSignIn = GoogleSignIn();
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -55,6 +61,43 @@ class _MasterViewState extends State<MasterView>{
       ),
     );
   }
+
+//  Future<void> _signInWithGoogle() async {
+//    try {
+//      final account = await googleSignIn.signIn();
+//      // Handle successful sign-in
+//    } catch (e) {
+//      // Handle sign-in error
+//    }
+//  }
+//
+//
+//
+//
+//  Future<void> _listFiles() async {
+//    final clientId = ClientId(
+//      "802052442135-0hibj9u6162pqdhoq93b6gu18qvc9b02.apps.googleusercontent.com",
+//      "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",
+//    );
+//
+//    final scopes = ['https://www.googleapis.com/auth/drive'];
+//
+//
+//
+//    final account = await googleSignIn.signIn();
+//    final authHeaders = await account?.authHeaders;
+//    final httpClient = authenticatedClient(http.Client(), headers: authHeaders);
+//    final driveApi = drive.DriveApi(httpClient);
+//
+//    final files = await driveApi.files.list();
+//    print('Files:');
+//    files.files?.forEach((file) {
+//      print('${file.name} (${file.id})');
+//    });
+//  }
+//
+//
+
   Widget _buildBody() {
     return ListView.builder(
         padding: const EdgeInsets.all(16),
