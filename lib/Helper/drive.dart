@@ -38,6 +38,7 @@ const _scopes = ['https://www.googleapis.com/auth/drive.file'];
 
 class GoogleDrive {
   final storage = SecureStorage();
+  final folderName = 'Splizz';
 
   //Get Authenticated Http Client
   Future<http.Client> getHttpClient() async {
@@ -71,15 +72,16 @@ class GoogleDrive {
 // if not available create a folder in drive and return id
 //   if not able to create id then it means user authetication has failed
   Future<String?> _getFolderId(ga.DriveApi driveApi) async {
-    final mimeType = "application/vnd.google-apps.folder";
-    String folderName = "Splizz";
+    const mimeType = "application/vnd.google-apps.folder";
 
     try {
       final found = await driveApi.files.list(
         q: "mimeType = '$mimeType' and name = '$folderName'",
         $fields: "files(id, name)",
       );
+
       final files = found.files;
+
       if (files == null) {
         print("Sign-in first Error");
         return null;
@@ -104,6 +106,42 @@ class GoogleDrive {
     }
   }
 
+  Future<String?> testFilenames(int id) async {
+    var client = await getHttpClient();
+    var drive = ga.DriveApi(client);
+    String? folderId =  await _getFolderId(drive);
+    if(folderId == null){
+      print("Sign-in first Error");
+    }else {
+      var fileList = (await drive.files.list(q: "'$folderId' in parents")).files;
+      for (var file in fileList!){
+        if(file.name == 'item_$id.json'){
+          return file.id;
+        }
+      }
+    }
+    return 'false';
+  }
+
+  updateFile(File file, id) async {
+    var client = await getHttpClient();
+    var drive = ga.DriveApi(client);
+    String? folderId =  await _getFolderId(drive);
+    if(folderId == null){
+      print("Sign-in first Error");
+    }else {
+      ga.File fileToUpload = ga.File();
+      fileToUpload.parents = [folderId];
+      fileToUpload.name = p.basename(file.absolute.path);
+      final updatedFile = ga.File()..name = p.basename(file.absolute.path);
+      var response = await drive.files.update(
+        updatedFile,
+        id,
+        uploadMedia: ga.Media(file.openRead(), file.lengthSync()),
+      );
+      print(response);
+    }
+  }
 
   uploadFileToGoogleDrive(File file) async {
     var client = await getHttpClient();
@@ -123,8 +161,4 @@ class GoogleDrive {
     }
 
   }
-
-
-
-
 }

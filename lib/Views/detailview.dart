@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
+import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
 import '../Helper/drive.dart';
 import '../Models/item.dart';
@@ -112,6 +112,15 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
+  void _showShareDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ShareDialog(item: item, setParentState: setState);
+      },
+    );
+  }
+
   Widget _transactionList() {
     return Expanded(
       flex: 50,
@@ -125,6 +134,7 @@ class _DetailViewState extends State<DetailView>{
           child:
           ListView.builder(
             padding: const EdgeInsets.all(10),
+            physics: const BouncingScrollPhysics(),
             shrinkWrap: true,
             itemCount: item.history.length,
             itemBuilder: (context, i) {
@@ -197,14 +207,6 @@ class _DetailViewState extends State<DetailView>{
     return false;
   }
 
-  Future<void> _upload() async {
-    Directory dir = await getApplicationSupportDirectory();
-    var filepath = dir.path;
-    var gd = GoogleDrive();
-    File file = File('$filepath/item_${item.id}.json');
-    gd.uploadFileToGoogleDrive(file);
-  }
-
   @override
   Widget build(BuildContext context) {
     item = widget.item;
@@ -217,7 +219,7 @@ class _DetailViewState extends State<DetailView>{
         title: Text(item.name),
         actions: [
           IconButton(
-              onPressed: _upload,
+              onPressed: _showShareDialog,
               icon: const Icon(Icons.share)
           )
         ],

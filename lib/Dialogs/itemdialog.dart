@@ -64,7 +64,9 @@ class _ItemDialogState extends State<ItemDialog>{
                                       });
                                     },
                                     style: const TextStyle(color: Colors.white),
-                                    decoration: UIElements.tfDecoration(title: 'Title'),
+                                    decoration: UIElements.tfDecoration(
+                                        title: 'Title',
+                                        icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt))),
                                   ),
                                 );
                               }
@@ -96,6 +98,10 @@ class _ItemDialogState extends State<ItemDialog>{
                 }
             )
         ));
+  }
+
+  void _imagePicker(){
+
   }
 
   void _colorPicker(int i){

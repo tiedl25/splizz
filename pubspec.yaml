@@ -45,6 +45,8 @@ dependencies:
   googleapis_auth:
   google_sign_in:
   flutter_secure_storage: ^5.0.2
+  camera:
+  path:
 
 dev_dependencies:
   flutter_test:
