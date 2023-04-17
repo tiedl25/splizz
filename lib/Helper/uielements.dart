@@ -6,15 +6,17 @@ class UIElements {
     return InputDecoration(
       suffixIcon: icon,
       hintText: title,
+      fillColor: const Color(0xFF383838),
+      filled: true,
       hintStyle: const TextStyle(color: Colors.white),
       labelStyle: const TextStyle(color: Colors.white),
       enabledBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
-          borderSide: BorderSide(color: Colors.white)
+          borderSide: BorderSide(color: Color(0xFF383838))
       ),
       focusedBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
-          borderSide: BorderSide(color: Colors.white)
+          borderSide: BorderSide(color: Colors.blue)
       ),
       errorBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),

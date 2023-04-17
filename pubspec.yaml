@@ -47,6 +47,7 @@ dependencies:
   flutter_secure_storage: ^5.0.2
   camera:
   path:
+  flutter_speed_dial:
 
 dev_dependencies:
   flutter_test:

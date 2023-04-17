@@ -34,11 +34,10 @@ class SecureStorage {
 
 const _clientId = '802052442135-kfeelho298649sd84qh5uqrvd9eu31s9.apps.googleusercontent.com';
 const _clientSecret = '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';
-const _scopes = ['https://www.googleapis.com/auth/drive.file'];
+const _scopes = ['https://www.googleapis.com/auth/drive'];
 
 class GoogleDrive {
   final storage = SecureStorage();
-  final folderName = 'Splizz';
 
   //Get Authenticated Http Client
   Future<http.Client> getHttpClient() async {
@@ -71,7 +70,7 @@ class GoogleDrive {
 // check if the directory forlder is already available in drive , if available return its id
 // if not available create a folder in drive and return id
 //   if not able to create id then it means user authetication has failed
-  Future<String?> _getFolderId(ga.DriveApi driveApi) async {
+  Future<String?> _getFolderId(ga.DriveApi driveApi, {String folderName='Splizz'}) async {
     const mimeType = "application/vnd.google-apps.folder";
 
     try {
@@ -121,6 +120,19 @@ class GoogleDrive {
       }
     }
     return 'false';
+  }
+
+  Future<List> getFilenames({String folder="Für mich freigegeben"}) async {
+    var client = await getHttpClient();
+    var drive = ga.DriveApi(client);
+    var response = (await drive.files.list(supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
+    var itemlist = [];
+    for (var file in response!){
+      if((file.name)!.startsWith('item_') && (file.name)!.endsWith('.json')){
+        itemlist.add([file.name, file.id]);
+      }
+    }
+    return itemlist;
   }
 
   updateFile(File file, id) async {

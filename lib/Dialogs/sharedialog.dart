@@ -1,16 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:splizz/Models/transaction.dart';
 import 'package:splizz/Helper/uielements.dart';
 
 import '../Helper/drive.dart';
-import '../Helper/filehandle.dart';
 import '../Models/item.dart';
-import '../Models/member.dart';
 
 class ShareDialog extends StatefulWidget {
   final Item item;

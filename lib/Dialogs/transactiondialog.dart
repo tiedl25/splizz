@@ -54,6 +54,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
       backgroundColor: const Color(0xFF2B2B2B),
       content: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
@@ -70,6 +71,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                       decoration: UIElements.tfDecoration(title: 'Add a description')
                   ),
                     SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Row(

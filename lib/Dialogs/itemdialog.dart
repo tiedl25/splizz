@@ -43,6 +43,7 @@ class _ItemDialogState extends State<ItemDialog>{
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
             backgroundColor: const Color(0xFF2B2B2B),
             content: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height/4,
@@ -52,6 +53,7 @@ class _ItemDialogState extends State<ItemDialog>{
                     SizedBox(
                         height: MediaQuery.of(context).size.height/4,
                         child: ListView.builder(
+                            physics: const BouncingScrollPhysics(),
                             itemCount: count,
                             itemBuilder: (context, i) {
                               if(i == 0) {
@@ -66,7 +68,7 @@ class _ItemDialogState extends State<ItemDialog>{
                                     style: const TextStyle(color: Colors.white),
                                     decoration: UIElements.tfDecoration(
                                         title: 'Title',
-                                        icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt))),
+                                        icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
                                   ),
                                 );
                               }

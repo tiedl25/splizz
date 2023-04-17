@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis_auth/auth_io.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Views/settingsview.dart';
-import 'package:googleapis/drive/v3.dart' as drive;
 
+import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
 import '../Models/Storage.dart';
 
@@ -33,6 +32,15 @@ class _MasterViewState extends State<MasterView>{
         });
   }
 
+  _showImportDialog(){
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context){
+          return ImportDialog(setParentState: setState,);
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -54,52 +62,36 @@ class _MasterViewState extends State<MasterView>{
         backgroundColor: Colors.transparent,
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDialog,
-        tooltip: 'Add Splizz',
+      floatingActionButton: SpeedDial(
+        spacing: 5,
+        animatedIcon: AnimatedIcons.menu_close,
+        animatedIconTheme: const IconThemeData(size: 22.0),
+        curve: Curves.bounceIn,
+        overlayColor: Colors.black,
+        overlayOpacity: 0.5,
+        children: [
+          SpeedDialChild(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+            onTap: _showAddDialog,
+          ),
+          SpeedDialChild(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.import_export),
+            onTap: _showImportDialog,
+          ),
+          // add more options as needed
+        ],
         child: const Icon(Icons.add),
-      ),
+      )
     );
   }
 
-//  Future<void> _signInWithGoogle() async {
-//    try {
-//      final account = await googleSignIn.signIn();
-//      // Handle successful sign-in
-//    } catch (e) {
-//      // Handle sign-in error
-//    }
-//  }
-//
-//
-//
-//
-//  Future<void> _listFiles() async {
-//    final clientId = ClientId(
-//      "802052442135-0hibj9u6162pqdhoq93b6gu18qvc9b02.apps.googleusercontent.com",
-//      "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",
-//    );
-//
-//    final scopes = ['https://www.googleapis.com/auth/drive'];
-//
-//
-//
-//    final account = await googleSignIn.signIn();
-//    final authHeaders = await account?.authHeaders;
-//    final httpClient = authenticatedClient(http.Client(), headers: authHeaders);
-//    final driveApi = drive.DriveApi(httpClient);
-//
-//    final files = await driveApi.files.list();
-//    print('Files:');
-//    files.files?.forEach((file) {
-//      print('${file.name} (${file.id})');
-//    });
-//  }
-//
-//
-
   Widget _buildBody() {
     return ListView.builder(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: st.items.length,
         itemBuilder: (context, i) {

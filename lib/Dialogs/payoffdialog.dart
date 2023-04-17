@@ -37,10 +37,12 @@ class _PayoffDialogState extends State<PayoffDialog>{
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
       backgroundColor: const Color(0xFF2B2B2B),
       content: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height/4,
           child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
                 itemCount: paymap.length,
                 itemBuilder: (context, i) {
                   Member m = paymap.keys.toList()[i];
@@ -69,6 +71,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
 
   Widget _listElement(Member m, List<Member> paylist){
       return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         scrollDirection: Axis.horizontal,
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 5),

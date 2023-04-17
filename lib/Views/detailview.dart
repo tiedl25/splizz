@@ -184,6 +184,7 @@ class _DetailViewState extends State<DetailView>{
             ),
           const Spacer(),
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
