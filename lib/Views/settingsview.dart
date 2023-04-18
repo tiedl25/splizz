@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:file_picker/file_picker.dart';
-
 import '../Models/Storage.dart';
 
 class SettingsView extends StatefulWidget{
@@ -27,32 +25,6 @@ class _SettingsViewState extends State<SettingsView>{
         title: const Text('Settings'),
         backgroundColor: Colors.transparent,
       ),
-      body: _buildBody(),
     );
-  }
-
-  Widget _buildBody() {
-    return ListView(
-      children: [
-        ListTile(
-          title: const Text('Add storage location', style: TextStyle(color: Colors.white),),
-          onTap: () {
-            _pickDir();
-          }
-    )
-    ]
-    );
-  }
-  Future<void> _pickDir() async {
-    FilePickerResult? selectedFile = await FilePicker.platform.pickFiles();
-    String? filepath = selectedFile?.files.single.path;
-    if (selectedFile != null) {
-      widget.setParentState(() {
-        widget.settings.locations.add(filepath!);
-        widget.settings.save();
-      });
-
-
-    }
   }
 }

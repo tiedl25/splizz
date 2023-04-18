@@ -6,22 +6,10 @@ import '../Helper/filehandle.dart';
 import 'item.dart';
 
 class Settings{
-  Directory? wd;
-  List<String> locations = <String>[];
+  Directory? wd; //Working Directory
   final items = <Item>[];
-  final hearted = <Item>{};
 
   bool itemsLoaded = false;
-
-  Future<void> init() async {
-    wd = await getWorkingDir();
-
-    if(await File('${wd!.path}/settings.json').exists()){
-      await loadLocations();
-    } else {
-      save();
-    }
-  }
 
   Settings();
 
@@ -30,16 +18,9 @@ class Settings{
     return dir;
   }
 
-  Future<void> loadLocations() async {
-    FileHandler fh = FileHandler('settings.json', wd!.path);
-    Settings tmp = Settings.fromJson(await fh.readJsonFile());
-    wd = tmp.wd;
-    locations = tmp.locations;
-  }
-
   getItem(final element, Function setState) async{
-    FileHandlerOutdated fh = FileHandlerOutdated.path(element);
-    Item item = Item.fromJson(await fh.readJsonFile(), element);
+    FileHandler fh = FileHandler(element);
+    Item item = Item.fromJson(await fh.readJsonFile());
     setState((){
       items.add(item);
     });
@@ -52,9 +33,11 @@ class Settings{
     items.clear();
 
     if(wd == null){
-      await init();
+      wd = await getWorkingDir();
+      save();
     }
 
+    //search Working Directory for all item files
     var li = wd!.listSync(followLinks: false);
     for (var element in li) {
       if(element.path.contains('item_'))
@@ -63,13 +46,10 @@ class Settings{
       }
     }
 
-    for (var element in locations){
-      getItem(element, setState);
-    }
-
     itemsLoaded = true;
   }
 
+  //save settings file to Working Directory
   void save(){
     FileHandler fh = FileHandler('settings.json', wd!.path);
     Settings tmp = this;
@@ -77,18 +57,14 @@ class Settings{
     itemsLoaded = false;
   }
 
+
+  //Convert from/to Json
+
   Settings.fromJson(Map<String, dynamic> data) {
-    final locationsData = data['locations'] as List<dynamic>;
-
-    for(var e in locationsData){
-      locations.add(e);
-    }
-
     wd = Directory(data['wd']);
   }
 
   Map<String, dynamic> toJson() => {
     'wd': wd!.path,
-    'locations': locations.map((m) => m).toList(),
   };
 }

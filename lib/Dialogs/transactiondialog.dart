@@ -42,7 +42,41 @@ class _TransactionDialogState extends State<TransactionDialog>{
     }
     memberSwitch = _buildMemberSwitch();    
   }
-  
+
+  List<Container> _buildMemberSwitch(){
+    List<Container> li = <Container>[];
+
+    for (Member element in _item.member) {
+      li.add(
+          Container(
+              decoration: BoxDecoration(
+                color: pressed[element.id] ? element.color : const Color(0xFF282828),
+                border: Border.all(color: const Color(0xFF343434)),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              margin: const EdgeInsets.all(2),
+              child: TextButton(
+                  child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
+                  onPressed: () => {
+                    if(element.id != previous){
+                      setState(() {
+                        pressed[element.id] = !pressed[element.id];
+                        if (previous != -1){
+                          pressed[previous] = false;
+                        }
+                        previous = element.id;
+                        associatedController = element;
+                      })
+                    }
+                  }
+              )
+          )
+      );
+    }
+    return li;
+  }
+
   @override
   Widget build(BuildContext context) {
     _init();
@@ -111,11 +145,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
 
                 _item.addTransaction(associatedController, tract);
                 FileHandler fh;
-                if(_item.storageLocation == 'wd'){
-                  fh = FileHandler('item_${_item.id}.json');
-                } else {
-                  fh = FileHandler.path(_item.storageLocation);
-                }
+                fh = FileHandler.item(_item);
                 fh.writeJsonFile(_item);
                 previous=-1;
                 associatedController = Member('', 0, Item.colormap[0]);
@@ -123,39 +153,5 @@ class _TransactionDialogState extends State<TransactionDialog>{
             }
           }),
     ));
-  }
-
-  List<Container> _buildMemberSwitch(){
-    List<Container> li = <Container>[];
-
-    for (Member element in _item.member) {
-      li.add(
-          Container(
-              decoration: BoxDecoration(
-                color: pressed[element.id] ? element.color : const Color(0xFF282828),
-                border: Border.all(color: const Color(0xFF343434)),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              margin: const EdgeInsets.all(2),
-              child: TextButton(
-                  child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
-                  onPressed: () => {
-                    if(element.id != previous){
-                      setState(() {
-                        pressed[element.id] = !pressed[element.id];
-                        if (previous != -1){
-                          pressed[previous] = false;
-                        }
-                        previous = element.id;
-                        associatedController = element;
-                      })
-                    }
-                  }
-              )
-          )
-      );
-    }
-    return li;
   }
 }

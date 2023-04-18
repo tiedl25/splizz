@@ -48,6 +48,7 @@ dependencies:
   camera:
   path:
   flutter_speed_dial:
+  sqflite:
 
 dev_dependencies:
   flutter_test:

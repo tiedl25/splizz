@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Helper/filehandle.dart';
@@ -9,8 +8,6 @@ import 'package:splizz/Views/settingsview.dart';
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
 import '../Models/Storage.dart';
-
-final googleSignIn = GoogleSignIn();
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -107,13 +104,8 @@ class _MasterViewState extends State<MasterView>{
       onDismissed: (context) async {
         setState(() {
           st.items.remove(item);
-          if(item.storageLocation == 'wd'){
-            FileHandlerOutdated fh = FileHandlerOutdated.path('${st.wd!.path}/item_${item.id}.json');
-            fh.deleteFile();
-          } else {
-            st.locations.remove(item.storageLocation);
-            st.save();
-          }
+          FileHandler fh = FileHandler.item(item);
+          fh.deleteFile();
         });
       },
       background: Container(
@@ -133,7 +125,6 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget _buildRow(Item item) {
-    final markedFav = st.hearted.contains(item);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: ListTile(
@@ -143,18 +134,9 @@ class _MasterViewState extends State<MasterView>{
           ),
           tileColor: const Color(0xFF383838),
           title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
-          trailing: Icon(
-            markedFav ? Icons.favorite : Icons.favorite_border,
-            color: markedFav ? Colors.red : null,
-          ),
           onTap: () {
             _pushDetailView(item);
           },
-          onLongPress: () {
-            setState(() {
-              markedFav ? st.hearted.remove(item) : st.hearted.add(item);
-            });
-          }
       ),
     );
   }

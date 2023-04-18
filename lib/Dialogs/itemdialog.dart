@@ -93,7 +93,7 @@ class _ItemDialogState extends State<ItemDialog>{
                     widget.setParentState(() {
                       Item newItem = Item(title, members);
                       _items.add(newItem);
-                      FileHandlerOutdated fh = FileHandlerOutdated('item_${newItem.id}');
+                      FileHandler fh = FileHandler.item(newItem);
                       fh.writeJsonFile(newItem);
                     });
                   }

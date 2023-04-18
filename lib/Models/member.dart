@@ -2,8 +2,6 @@ import 'dart:ui';
 
 import 'package:splizz/Models/transaction.dart';
 
-import 'item.dart';
-
 class ShortMember{
   int _id = 0;
   String name = '';

@@ -20,6 +20,8 @@ class ImportDialog extends StatefulWidget {
 
 class _ImportDialogState extends State<ImportDialog>{
   late List _itemlist = [];
+  final List<bool> _isSelected = [];
+  int _selection = 0;
 
   @override
   void initState(){
@@ -36,6 +38,10 @@ class _ImportDialogState extends State<ImportDialog>{
 
   @override
   Widget build(BuildContext context) {
+    for (var _ in _itemlist){
+      _isSelected.add(false);
+    }
+
     if(_itemlist.isEmpty){
       return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
@@ -47,9 +53,7 @@ class _ImportDialogState extends State<ImportDialog>{
             actions: UIElements.dialogButtons(
                 context: context,
                 callback: () {
-                  setState(() {
-                  //Todo
-                  });
+                  setState(() {});
                 }),
           ));
     } else {
@@ -70,13 +74,26 @@ class _ImportDialogState extends State<ImportDialog>{
                             physics: const BouncingScrollPhysics(),
                             itemCount: _itemlist.length,
                             itemBuilder: (context, i) {
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                              return Container(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  title: Text(_itemlist[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                  tileColor: const Color(0xFF383838),
+                                  selected: _isSelected[i],
+                                  selectedTileColor: Colors.blue,
+                                  onTap: (){
+                                    setState(() {
+                                      var selected = _isSelected[i];
+                                      _isSelected.fillRange(0, _isSelected.length, false);
+                                      _isSelected[i] = !selected;
+                                      _selection = i;
+                                    });
+                                  },
                                 ),
-                                title: Text(_itemlist[i][0], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                tileColor: const Color(0xFF383838),
                               );
                             }
                         )
@@ -92,7 +109,8 @@ class _ImportDialogState extends State<ImportDialog>{
                 context: context,
                 callback: () {
                   setState(() {
-                  //Todo
+                    GoogleDrive ga = GoogleDrive();
+                    ga.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
                   });
                 }),
           ));

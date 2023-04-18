@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:splizz/Views/masterview.dart';
 
-void main() => runApp(const MyApp());
+//late ObjectBox objectBox;
+
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //objectBox = await ObjectBox.init();
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

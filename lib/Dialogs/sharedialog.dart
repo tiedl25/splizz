@@ -55,12 +55,13 @@ class _ShareDialogState extends State<ShareDialog>{
     Directory dir = await getApplicationSupportDirectory();
     var filepath = dir.path;
     var gd = GoogleDrive();
-    File file = File('$filepath/item_${_item.id}.json');
-    var id = await gd.testFilenames(_item.id);
+    final filename = 'item_${_item.id}_{${_item.name}}.json';
+    File file = File('$filepath/$filename');
+    var id = await gd.testFilenames(filename);
     if(id != 'false'){
       gd.updateFile(file, id);
     } else {
-      gd.uploadFileToGoogleDrive(file);
+      gd.uploadFile(file);
     }
   }
 }

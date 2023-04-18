@@ -57,11 +57,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
           widget.setParentState(() {
             _item.payoff();
             FileHandler fh;
-            if(_item.storageLocation == 'wd'){
-              fh = FileHandler('item_${_item.id}.json');
-            } else {
-              fh = FileHandler.path(_item.storageLocation);
-            }
+            fh = FileHandler.item(_item);
             fh.writeJsonFile(_item);
           });
         }

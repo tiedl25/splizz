@@ -6,9 +6,6 @@ class Item{
   late String name;
   late final int _id;
   List<Member> _members = [];
-  final String _storageLocation;
-
-  String get storageLocation => _storageLocation;
 
   List<Member> get member => _members;
   List<Transaction> history = [];
@@ -97,14 +94,14 @@ class Item{
     _counter = value;
   }
 
-  Item(this.name, this._members, [this._storageLocation='wd']){
+  Item(this.name, this._members){
     _id = _counter;
     _counter++;
   }
 
-  Item.tmp(this.name, this._members, [this._storageLocation='']);
+  Item.tmp(this.name, this._members);
 
-  Item.fromJson(Map<String, dynamic> data, this._storageLocation) {
+  Item.fromJson(Map<String, dynamic> data) {
     final historyData = data['history'] as List<dynamic>;
     final memberData = data['member'] as List<dynamic>;
 

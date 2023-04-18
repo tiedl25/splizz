@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../Models/item.dart';
 
 
 class SecureStorage {
@@ -38,7 +43,6 @@ const _scopes = ['https://www.googleapis.com/auth/drive'];
 
 class GoogleDrive {
   final storage = SecureStorage();
-
   //Get Authenticated Http Client
   Future<http.Client> getHttpClient() async {
     //Get Credentials
@@ -46,24 +50,32 @@ class GoogleDrive {
     if (credentials == null) {
       //Needs user authentication
       var authClient = await clientViaUserConsent(
-          ClientId(_clientId, _clientSecret),_scopes, (url) {
+          ClientId(_clientId, _clientSecret), _scopes, (url) {
         //Open Url in Browser
-        launch(url);
+        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       });
       //Save Credentials
       await storage.saveCredentials(authClient.credentials.accessToken,
           authClient.credentials.refreshToken!);
+
       return authClient;
+    } else if (DateTime.tryParse(credentials["expiry"])!.isBefore(DateTime.now())){
+      var accessToken = AccessToken(credentials["type"], credentials["data"],
+          DateTime.tryParse(credentials["expiry"])!);
+
+      var accessCredentials = AccessCredentials(accessToken, credentials["refreshToken"], _scopes);
+
+      var rc = await refreshCredentials(ClientId(_clientId, _clientSecret), accessCredentials, http.Client());
+
+      return authenticatedClient(http.Client(), rc);
+
     } else {
-      print(credentials["expiry"]);
-      //Already authenticated
-      return authenticatedClient(
-          http.Client(),
-          AccessCredentials(
-              AccessToken(credentials["type"], credentials["data"],
-                  DateTime.tryParse(credentials["expiry"])!),
-              credentials["refreshToken"],
-              _scopes));
+      var accessToken = AccessToken(credentials["type"], credentials["data"],
+          DateTime.tryParse(credentials["expiry"])!);
+
+      var accessCredentials = AccessCredentials(accessToken, credentials["refreshToken"], _scopes);
+      var authClient = http.Client();
+      return authenticatedClient(authClient, accessCredentials);
     }
   }
 
@@ -105,16 +117,17 @@ class GoogleDrive {
     }
   }
 
-  Future<String?> testFilenames(int id) async {
+  Future<String?> testFilenames(String filename) async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
     String? folderId =  await _getFolderId(drive);
     if(folderId == null){
       print("Sign-in first Error");
     }else {
-      var fileList = (await drive.files.list(q: "'$folderId' in parents")).files;
+      var fileList = (await drive.files.list(q: "'$folderId' in parents and trashed=false")).files;
       for (var file in fileList!){
-        if(file.name == 'item_$id.json'){
+        print(file.name);
+        if(file.name == filename){
           return file.id;
         }
       }
@@ -122,14 +135,17 @@ class GoogleDrive {
     return 'false';
   }
 
-  Future<List> getFilenames({String folder="Für mich freigegeben"}) async {
+  Future<List> getFilenames() async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
-    var response = (await drive.files.list(supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
+    var response = (await drive.files.list(q: 'sharedWithMe=true and trashed=false', supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
     var itemlist = [];
     for (var file in response!){
       if((file.name)!.startsWith('item_') && (file.name)!.endsWith('.json')){
-        itemlist.add([file.name, file.id]);
+        final startIndex = file.name?.indexOf('{');
+        final endIndex = file.name?.lastIndexOf('}');
+        final substring = file.name?.substring(startIndex!+1, endIndex!);
+        itemlist.add([file.name, file.id, substring]);
       }
     }
     return itemlist;
@@ -155,7 +171,7 @@ class GoogleDrive {
     }
   }
 
-  uploadFileToGoogleDrive(File file) async {
+  uploadFile(File file) async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
     String? folderId =  await _getFolderId(drive);
@@ -171,6 +187,32 @@ class GoogleDrive {
       );
       print(response);
     }
+  }
+  
+  downloadFile(String fileId, String filename) async {
+    var client = await getHttpClient();
+    var drive = ga.DriveApi(client);
 
+    //download ByteStream from GoogleDrive
+    ga.Media? response = (await drive.files.get(fileId, downloadOptions: ga.DownloadOptions.fullMedia)) as ga.Media?;
+
+    //check if sharedWithMe directory exists
+    var directory = await getApplicationSupportDirectory();
+    directory = Directory('${directory.path}/sharedWithMe');
+    if (!directory.existsSync()) {
+      await directory.create(recursive: true);
+    }
+    final saveFile = File('${directory.path}/$filename');
+
+    //save response ByteStream to file
+    List<int> dataStore = [];
+    response?.stream.listen((data) {
+      dataStore.insertAll(dataStore.length, data);
+    }, onDone: () {
+      saveFile.writeAsBytes(dataStore);
+      print("File saved at ${saveFile.path}");
+    }, onError: (error) {
+      print("Some Error");
+    });
   }
 }
