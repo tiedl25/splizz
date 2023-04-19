@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
-import '../Helper/drive.dart';
 import '../Models/item.dart';
 
 class DetailView extends StatefulWidget{
@@ -26,7 +22,7 @@ class _DetailViewState extends State<DetailView>{
 
   List<Container> _buildMemberBar(){
     List<Container> li = <Container>[];
-    for (var element in item.member) {
+    for (var element in item.members) {
       li.add(
           Container(
             decoration: BoxDecoration(
@@ -142,7 +138,7 @@ class _DetailViewState extends State<DetailView>{
               return Container(
                 margin: const EdgeInsets.only(bottom: 5),
                 decoration: BoxDecoration(
-                    color: item.member[transaction.associated.id].color,
+                    color: item.members[transaction.memberId].color,
                     borderRadius: const BorderRadius.all(Radius.circular(10))
                 ),
                 child: ExpansionTile(
@@ -152,8 +148,8 @@ class _DetailViewState extends State<DetailView>{
                   subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
                   children: [
                     ListTile(
-                      tileColor: item.member[transaction.associated.id].color,
-                      title: Text(transaction.associated.name, style: const TextStyle(color: Colors.black),),
+                      tileColor: item.members[transaction.memberId].color,
+                      title: Text(item.members[transaction.memberId].name, style: const TextStyle(color: Colors.black),),
                       subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
                     )
                   ],
@@ -200,7 +196,7 @@ class _DetailViewState extends State<DetailView>{
   }
 
   bool _checkBalances(){
-    for(var m in item.member){
+    for(var m in item.members){
       if(m.balance != 0){
         return true;
       }

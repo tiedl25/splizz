@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import '../Models/Storage.dart';
 
 class SettingsView extends StatefulWidget{
-  final Settings settings;
   final Function setParentState;
 
   const SettingsView({
     super.key,
-    required this.settings,
     required this.setParentState
   });
 

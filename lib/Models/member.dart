@@ -1,75 +1,103 @@
 import 'dart:ui';
-
 import 'package:splizz/Models/transaction.dart';
 
-class ShortMember{
-  int _id = 0;
-  String name = '';
+class Member{
+  //Private Variables
+  late final int _id;
+  late final String _name;
+  late double _total = 0;
+  late double _balance = 0;
+  late Color _color;
+  late List<Transaction> _history = [];
 
+//Getter
   int get id => _id;
+  String get name => _name;
+  double get total => _total;
+  double get balance => _balance;
+  Color get color => _color;
+  List<Transaction> get history => _history;
 
-  ShortMember(this.name, this._id);
-
-  ShortMember.fromJson(Map<String, dynamic> data) {
-    _id = data['id'];
-    name = data['name'];
+  //Setter
+  set balance(double value) {
+    _balance = value;
+  }
+  set history(List<Transaction> value) {
+    _history = value;
   }
 
-  ShortMember.fromMember(Member m){
-    name = m.name;
+  //Constructor
+  Member(this._id, this._name, this._color, [total, balance]){
+    if (total==null) {
+      _total=0;
+    } else {
+      _total=total.toDouble();
+    }
+    if (balance==null) {
+      _balance=0;
+    } else {
+      _balance=balance.toDouble();
+    }
+  }
+  Member.fromMember(Member m){
+    _name = m.name;
     _id = m.id;
+    _total = m.total;
+    _balance = m.balance;
+    _color = m.color;
+    _history = m.history;
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': _id,
-    'name': name,
-  };
-}
-
-class Member extends ShortMember{
-  double total = 0;
-  double balance = 0;
-  late Color color;
-  late List<Transaction> history = [];
+  //Methods
 
   void add(Transaction t){
     history.add(t);
-
-    total += t.value;
-    balance += t.value;
+    _total += t.value;
+    _balance += t.value;
   }
 
   void sub(double d){
-    balance -= d;
+    _balance -= d;
   }
 
-  Member(String name, int id, this.color) : super(name, id);
-
-  Member.fromMember(Member m) : super.fromMember(m){
-    total = m.total;
-    balance = m.balance;
-    color = m.color;
-    history = m.history;
+  void payoff(){
+    _total = _balance;
   }
 
-  Member.fromJson(Map<String, dynamic> data) : super.fromJson(data){
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'color': color.value,
+    'total': total,
+    'balance': balance,
+  };
+
+  factory Member.fromMap(Map<String, dynamic> map) {
+    return Member(
+      map['id'],
+      map['name'],
+      Color(map['color']),
+      map['total'],
+      map['balance'],
+    );
+  }
+
+  Member.fromJson(Map<String, dynamic> data){
     final historyData = data['history'] as List<dynamic>;
-
-    total = data['total'];
-    balance = data['balance'];
-    history = historyData.map((d) => Transaction.fromJson(d)).toList();
-    color = Color(data['color']);
+    _id = data['id'];
+    _name = data['name'];
+    _total = data['total'];
+    _balance = data['balance'];
+    _history = historyData.map((d) => Transaction.fromJson(d)).toList();
+    _color = Color(data['color']);
 
   }
 
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> su = super.toJson();
-    su.addAll({
+  Map<String, dynamic> toJson() => {
+      'id': _id,
+      'name': name,
       'total': total,
       'balance': balance,
       'history': history.map((transaction) => transaction.toJson()).toList(),
-      'color': color.value});
-    return su;
-  }
+      'color': color.value};
 }

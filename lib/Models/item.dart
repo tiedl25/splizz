@@ -1,18 +1,38 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
 class Item{
-  late String name;
+  //Private Variables
   late final int _id;
+  late String _name;
   List<Member> _members = [];
+  List<Transaction> _history = [];
 
-  List<Member> get member => _members;
-  List<Transaction> history = [];
-
+  //Getter
   int get id => _id;
+  String get name => _name;
+  List<Member> get members => _members;
+  List<Transaction> get history => _history;
 
-  static int _counter = 0;
+  //Setter
+  set members(List<Member> value) {
+    _members = value;
+  }
+  set history(List<Transaction> value) {
+    _history = value;
+  }
+
+  //Constructor
+  Item(this._id, this._name, [members]){
+    if (members != null){
+      _members = members;
+    }
+  }
+
+  Item.tmp(this._name, this._members);
 
   static List<Color> colormap = [
     Colors.blue.shade400,
@@ -42,7 +62,7 @@ class Item{
     List<Member> payer = [];
     for(Member e in _members){
       Member a = Member.fromMember(e);
-      a.total = a.balance;
+      a.payoff();
       payer.add(a);
     }
 
@@ -87,29 +107,35 @@ class Item{
   }
   
   void addMember(String name){
-    _members.add(Member(name, id, colormap[id]));
+    _members.add(Member(id, name, colormap[id]));
   }
 
-  void setCounter(value){
-    _counter = value;
-  }
+  @override
+  String toString() => 'Item(id: $id, name: $name)';
 
-  Item(this.name, this._members){
-    _id = _counter;
-    _counter++;
-  }
+  String toDB() => jsonEncode(toMap());
+  factory Item.fromDB(String source) => Item.fromMap(jsonDecode(source));
 
-  Item.tmp(this.name, this._members);
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'id': _id,
+  };
+
+  factory Item.fromMap(Map<String, dynamic> map) {
+    return Item(
+      map['id'],
+      map['name'],
+    );
+  }
 
   Item.fromJson(Map<String, dynamic> data) {
     final historyData = data['history'] as List<dynamic>;
     final memberData = data['member'] as List<dynamic>;
 
-    name = data['name'];
+    _name = data['name'];
     _members = memberData.map((d) => Member.fromJson(d)).toList();
     _id = data['id'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
-    _counter = _id >= _counter ? _id+1 : _counter;
   }
 
   Map<String, dynamic> toJson() => {

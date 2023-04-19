@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/transaction.dart';
 import 'package:splizz/Helper/uielements.dart';
 
-import '../Helper/filehandle.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -37,7 +37,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   
   void _init(){
     _item = widget.item;
-    for (Member _ in _item.member) {
+    for (Member _ in _item.members) {
       pressed.add(false);
     }
     memberSwitch = _buildMemberSwitch();    
@@ -46,7 +46,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   List<Container> _buildMemberSwitch(){
     List<Container> li = <Container>[];
 
-    for (Member element in _item.member) {
+    for (Member element in _item.members) {
       li.add(
           Container(
               decoration: BoxDecoration(
@@ -141,14 +141,13 @@ class _TransactionDialogState extends State<TransactionDialog>{
           callback: () {
             if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && associatedController.name.isNotEmpty) {
               setState(() {
-                Transaction tract = Transaction(ShortMember.fromMember(associatedController) , descriptionController.text, currencyController.doubleValue, _item.history.length);
+                Transaction tract = Transaction(associatedController.id , descriptionController.text, currencyController.doubleValue, _item.history.length);
 
                 _item.addTransaction(associatedController, tract);
-                FileHandler fh;
-                fh = FileHandler.item(_item);
-                fh.writeJsonFile(_item);
+                DatabaseHelper.instance.addTransaction(tract, _item.id);
+                DatabaseHelper.instance.update(_item);
                 previous=-1;
-                associatedController = Member('', 0, Item.colormap[0]);
+                associatedController = Member(0, '', Item.colormap[0]);
               });
             }
           }),

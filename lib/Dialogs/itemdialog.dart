@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/Helper/uielements.dart';
 
-import '../Helper/filehandle.dart';
+import '../Helper/database.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -86,15 +86,13 @@ class _ItemDialogState extends State<ItemDialog>{
                   List<Member> members = [];
                   for(String name in member){
                     if(name != ''){
-                      members.add(Member(name, members.length, cm[members.length]));
+                      members.add(Member(members.length, name, cm[members.length]));
                     }
                   }
                   if(title != '' && members.length > 1) {
                     widget.setParentState(() {
-                      Item newItem = Item(title, members);
-                      _items.add(newItem);
-                      FileHandler fh = FileHandler.item(newItem);
-                      fh.writeJsonFile(newItem);
+                      Item newItem = Item(_items.length, title, members);
+                      DatabaseHelper.instance.add(newItem);
                     });
                   }
                 }

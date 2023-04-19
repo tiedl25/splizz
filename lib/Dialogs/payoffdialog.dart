@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:splizz/Helper/filehandle.dart';
+import 'package:splizz/Helper/database.dart';
 
 import '../Models/item.dart';
 import '../Models/member.dart';
@@ -56,9 +56,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
         callback: (){
           widget.setParentState(() {
             _item.payoff();
-            FileHandler fh;
-            fh = FileHandler.item(_item);
-            fh.writeJsonFile(_item);
+            DatabaseHelper.instance.update(_item);
           });
         }
       ),

@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:splizz/Views/masterview.dart';
 
-//late ObjectBox objectBox;
-
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  //objectBox = await ObjectBox.init();
-
   runApp(const MyApp());
 }
 

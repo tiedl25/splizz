@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
-import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Views/settingsview.dart';
 
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
-import '../Models/Storage.dart';
+import '../Helper/database.dart';
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -18,14 +17,14 @@ class MasterView extends StatefulWidget{
 
 
 class _MasterViewState extends State<MasterView>{
-  Settings st = Settings();
+  List<Item> items = [];
 
   _showAddDialog(){
     showDialog(
         context: context,
         barrierDismissible: true, // user must tap button!
         builder: (BuildContext context){
-          return ItemDialog(items: st.items, setParentState: setState,);
+          return ItemDialog(items: items, setParentState: setState,);
         });
   }
 
@@ -40,11 +39,6 @@ class _MasterViewState extends State<MasterView>{
 
   @override
   Widget build(BuildContext context) {
-
-    setState(() {
-      st.loadItems(setState);
-    });
-
     return Scaffold(
       backgroundColor: const Color(0xFF2B2B2B),
       appBar: AppBar(
@@ -87,13 +81,26 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget _buildBody() {
-    return ListView.builder(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        itemCount: st.items.length,
-        itemBuilder: (context, i) {
-          return _buildDismissible(st.items[i]);
+    return Center(
+      child: FutureBuilder<List<Item>>(
+        future: DatabaseHelper.instance.getItems(),
+        builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
+          if (!snapshot.hasData){
+            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
+          }
+
+          return snapshot.data!.isEmpty ?
+              const Center(child: Text('No items in list', style: TextStyle(fontSize: 20, color: Colors.white),),)
+              : ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, i) {
+                return _buildDismissible(snapshot.data![i]);
+              }
+          );
         }
+      ),
     );
   }
 
@@ -103,9 +110,7 @@ class _MasterViewState extends State<MasterView>{
       direction: DismissDirection.endToStart,
       onDismissed: (context) async {
         setState(() {
-          st.items.remove(item);
-          FileHandler fh = FileHandler.item(item);
-          fh.deleteFile();
+          DatabaseHelper.instance.remove(item.id);
         });
       },
       background: Container(
@@ -146,7 +151,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView(settings: st, setParentState: setState);
+          return SettingsView(setParentState: setState);
         },
       ),
     );
