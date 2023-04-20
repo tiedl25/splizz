@@ -86,12 +86,12 @@ class _ItemDialogState extends State<ItemDialog>{
                   List<Member> members = [];
                   for(String name in member){
                     if(name != ''){
-                      members.add(Member(members.length, name, cm[members.length]));
+                      members.add(Member(name, cm[members.length]));
                     }
                   }
                   if(title != '' && members.length > 1) {
                     widget.setParentState(() {
-                      Item newItem = Item(_items.length, title, members);
+                      Item newItem = Item(title, members: members);
                       DatabaseHelper.instance.add(newItem);
                     });
                   }

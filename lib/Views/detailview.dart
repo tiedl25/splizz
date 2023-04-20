@@ -4,6 +4,7 @@ import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
 import '../Models/item.dart';
+import '../Models/member.dart';
 
 class DetailView extends StatefulWidget{
   final Item item;
@@ -118,6 +119,14 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Widget _transactionList() {
+    Map <int, int> memberMap = {};
+
+    int a=0;
+    for(Member m in item.members){
+      memberMap.addAll({m.id! : a});
+      a++;
+    }
+
     return Expanded(
       flex: 50,
       child: Container(
@@ -138,7 +147,7 @@ class _DetailViewState extends State<DetailView>{
               return Container(
                 margin: const EdgeInsets.only(bottom: 5),
                 decoration: BoxDecoration(
-                    color: item.members[transaction.memberId].color,
+                    color: item.members[memberMap[transaction.memberId]!].color,
                     borderRadius: const BorderRadius.all(Radius.circular(10))
                 ),
                 child: ExpansionTile(
@@ -148,8 +157,8 @@ class _DetailViewState extends State<DetailView>{
                   subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
                   children: [
                     ListTile(
-                      tileColor: item.members[transaction.memberId].color,
-                      title: Text(item.members[transaction.memberId].name, style: const TextStyle(color: Colors.black),),
+                      tileColor: item.members[memberMap[transaction.memberId]!].color,
+                      title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
                       subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
                     )
                   ],

@@ -75,7 +75,7 @@ class DatabaseHelper {
     List<Member> memberList = member.isNotEmpty ? member.map((e) => Member.fromMap(e)).toList() : [];
 
     for(Member m in memberList){
-      m.history = await getMemberTransactions(id, m.id);
+      m.history = await getMemberTransactions(id, m.id!);
     }
 
     return memberList;
@@ -92,22 +92,22 @@ class DatabaseHelper {
     Database db = await instance.database;
     var items = await db.query('splizz_items', orderBy: 'id');
     List<Item> itemList = items.isNotEmpty ? items.map((e) => Item.fromMap(e)).toList() : [];
-
     for(Item i in itemList){
-      i.members = await getMembers(i.id);
-      i.history = await getTransactions(i.id);
+      i.members = await getMembers(i.id!);
+      i.history = await getTransactions(i.id!);
     }
+
     return itemList;
   }
 
   add(Item item) async {
     Database db = await instance.database;
-    await db.insert('splizz_items', item.toMap());
+    int id = await db.insert('splizz_items', item.toMap());
     for (Member member in item.members){
-      addMember(member, item.id);
+      addMember(member, id);
     }
     for (Transaction transaction in item.history){
-      addTransaction(transaction, item.id);
+      addTransaction(transaction, id);
     }
   }
 
@@ -118,10 +118,10 @@ class DatabaseHelper {
     await db.insert('item_members', map);
   }
 
-  addTransaction(Transaction transaction, int itemId) async {
+  addTransaction(Transaction transaction, int itemId, [int? memberId]) async {
     Database db = await instance.database;
     var map = transaction.toMap();
-    map.addAll({'itemId' : itemId});
+    map.addAll({'itemId' : itemId, 'memberId' : memberId});
     await db.insert('item_transactions', map);
   }
 

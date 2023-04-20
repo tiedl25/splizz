@@ -6,13 +6,12 @@ import 'package:splizz/Models/transaction.dart';
 
 class Item{
   //Private Variables
-  late final int _id;
+  int? id;
   late String _name;
   List<Member> _members = [];
   List<Transaction> _history = [];
 
   //Getter
-  int get id => _id;
   String get name => _name;
   List<Member> get members => _members;
   List<Transaction> get history => _history;
@@ -26,7 +25,7 @@ class Item{
   }
 
   //Constructor
-  Item(this._id, this._name, [members]){
+  Item(this._name, {this.id, members}){
     if (members != null){
       _members = members;
     }
@@ -49,8 +48,8 @@ class Item{
     Colors.lime.shade400,
   ];
 
-  void addTransaction(Member m, Transaction t){
-    _members[m.id].add(t);
+  void addTransaction(int associatedId, Transaction t){
+    _members[associatedId].add(t);
     history.add(t);
     double val = t.value/_members.length;
     for(int i=0; i<_members.length; i++){
@@ -107,7 +106,7 @@ class Item{
   }
   
   void addMember(String name){
-    _members.add(Member(id, name, colormap[id]));
+    _members.add(Member(name, colormap[id!]));
   }
 
   @override
@@ -118,13 +117,13 @@ class Item{
 
   Map<String, dynamic> toMap() => {
     'name': name,
-    'id': _id,
+    'id': id,
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
     return Item(
-      map['id'],
       map['name'],
+      id: map['id'],
     );
   }
 
@@ -134,13 +133,13 @@ class Item{
 
     _name = data['name'];
     _members = memberData.map((d) => Member.fromJson(d)).toList();
-    _id = data['id'];
+    id = data['id'];
     history = historyData.map((d) => Transaction.fromJson(d)).toList();
   }
 
   Map<String, dynamic> toJson() => {
     'name': name,
-    'id': _id,
+    'id': id,
     'member': _members.map((m) => m.toJson()).toList(),
     'history': history.map((transaction) => transaction.toJson()).toList()
   };

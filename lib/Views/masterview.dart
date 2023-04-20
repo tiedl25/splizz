@@ -110,7 +110,7 @@ class _MasterViewState extends State<MasterView>{
       direction: DismissDirection.endToStart,
       onDismissed: (context) async {
         setState(() {
-          DatabaseHelper.instance.remove(item.id);
+          DatabaseHelper.instance.remove(item.id!);
         });
       },
       background: Container(
