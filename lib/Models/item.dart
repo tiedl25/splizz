@@ -1,38 +1,31 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
 class Item{
   //Private Variables
-  final int? id;
+  final int? _id;
   String _name;
+  String _sharedId;
+  bool _owner;
   List<Member> _members = [];
   List<Transaction> _history = [];
 
   //Getter
+  int? get id => _id;
   String get name => _name;
+  String get sharedId => _sharedId;
+  bool get owner => _owner;
   List<Member> get members => _members;
   List<Transaction> get history => _history;
 
   //Setter
-  set members(List<Member> value) {
-    _members = value;
-  }
-  set history(List<Transaction> value) {
-    _history = value;
-  }
+  set members(List<Member> members) {_members = members;}
+  set history(List<Transaction> history) {_history = history;}
+  set sharedId(String sharedId) {_sharedId = sharedId;}
 
   //Constructor
-  Item(this._name, {this.id, members, history}){
-    if (members != null){
-      _members = members;
-    }
-    if (history != null){
-      _history = _history;
-    }
-  }
+  Item(this._name, {id, sharedId='', owner=true, members, history}): _id=id, _sharedId=sharedId, _owner=owner, _history=history, _members=members;
 
   static List<Color> colormap = [
     Colors.blue.shade400,
@@ -116,22 +109,26 @@ class Item{
   Map<String, dynamic> toMap() => {
     'name': name,
     'id': id,
+    'sharedId': sharedId,
+    'owner': owner,
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
     return Item(
       map['name'],
       id: map['id'],
+      sharedId: map['sharedId'],
+      owner: map['owner'] == 1 ? true : false,
     );
   }
 
   factory Item.fromJson(Map<String, dynamic> data) {
     final historyData = data['history'] as List<dynamic>;
     final memberData = data['member'] as List<dynamic>;
-
     return Item(
         data['name'],
         id: data['id'],
+        owner: false,
         members: memberData.map((d) => Member.fromJson(d)).toList(),
         history: historyData.map((d) => Transaction.fromJson(d)).toList()
     );

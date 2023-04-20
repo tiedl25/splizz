@@ -1,7 +1,13 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Helper/uielements.dart';
 import 'package:splizz/Helper/drive.dart';
+import 'package:path/path.dart' as p;
+
+import '../Models/item.dart';
 
 class ImportDialog extends StatefulWidget {
   final Function setParentState;
@@ -104,11 +110,15 @@ class _ImportDialogState extends State<ImportDialog>{
             backgroundColor: const Color(0xFF2B2B2B),
             actions: UIElements.dialogButtons(
                 context: context,
-                callback: () {
+                callback: () async {
                   if (_selection != -1){
-                    setState(() {
-                      GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
-                    });
+                    File file = await GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
+                    Item item = Item.fromJson(await FileHandler.instance.readJsonFile(p.basename(file.absolute.path)));
+                    item.sharedId = _itemlist[_selection][1];
+                    DatabaseHelper.instance.add(item);
+                    //GoogleDrive.instance.addParents(file, item.sharedId);
+                    FileHandler.instance.deleteFile(file.path);
+                    widget.setParentState((){});
                   }
                 }),
           ));

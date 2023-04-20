@@ -32,7 +32,9 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE splizz_items(
         id INTEGER PRIMARY KEY,
-        name TEXT
+        name TEXT,
+        sharedId TEXT,
+        owner INTEGER
       )
     ''');
     await db.execute('''
@@ -93,6 +95,7 @@ class DatabaseHelper {
     Database db = await instance.database;
     var items = await db.query('splizz_items', orderBy: 'id');
     List<Item> itemList = items.isNotEmpty ? items.map((e) => Item.fromMap(e)).toList() : [];
+
     for(Item i in itemList){
       i.members = await getMembers(i.id!);
       i.history = await getTransactions(i.id!);
@@ -108,7 +111,7 @@ class DatabaseHelper {
       addMember(member, id);
     }
     for (Transaction transaction in item.history){
-      addTransaction(transaction, id);
+      addTransaction(transaction, id, transaction.memberId);
     }
   }
 

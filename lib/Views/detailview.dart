@@ -50,8 +50,12 @@ class _DetailViewState extends State<DetailView>{
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Row(
                     children: [
-                      Icon(element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
-                      Text('${element.balance.abs().toStringAsFixed(2)}€', style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
+                      Icon(
+                          element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                          color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                      Text(
+                          '${element.balance.abs().toStringAsFixed(2)}€',
+                          style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
                     ],
                   ),
                 )
@@ -113,7 +117,7 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return ShareDialog(item: item, setParentState: setState);
+          return item.sharedId=='' ? ShareDialog(item: item, setParentState: setState) : ManageDialog(item: item, setParentState: setState);
       },
     );
   }

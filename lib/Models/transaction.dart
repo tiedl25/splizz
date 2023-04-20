@@ -1,17 +1,19 @@
 class Transaction{
   //Private Variables
-  int? id;
-  int? memberId;
+  final int? _id;
+  final int? _memberId;
   late String _description;
   late DateTime _timestamp;
   late double _value;
 
   //Getter
+  int? get id => _id;
+  int? get memberId => _memberId;
   String get description => _description;
   DateTime get timestamp => _timestamp;
   double get value => _value;
 
-  Transaction(this._description, this._value, {this.id, this.memberId, timestamp}){
+  Transaction(this._description, this._value, {id, memberId, timestamp}): _id=id, _memberId=memberId{
     if (timestamp == null){
       _timestamp = DateTime.now();
     }
@@ -42,21 +44,21 @@ class Transaction{
     );
   }
 
-  Transaction.fromJson(Map<String, dynamic> data) {
-    id = data['id'];
-    memberId = data['associated'];
-    _description = data['description'];
-    _timestamp = DateTime.parse(data['_timestamp']);
-    _value = data['value'];
+  factory Transaction.fromJson(Map<String, dynamic> data) {
+    return Transaction(
+        data['description'],
+        data['value'],
+        id: data['id'],
+        memberId: data['associated'],
+        timestamp: DateTime.parse(data['timestamp']),
+    );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'associated': memberId,
     'description': description,
-    '_timestamp': '$_timestamp',
+    'timestamp': '$timestamp',
     'value': value
   };
-
-
 }

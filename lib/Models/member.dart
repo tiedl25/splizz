@@ -3,7 +3,7 @@ import 'package:splizz/Models/transaction.dart';
 
 class Member{
   //Private Variables
-  int? id;
+  final int? _id;
   late final String _name;
   late double _total = 0;
   late double _balance = 0;
@@ -11,6 +11,7 @@ class Member{
   late List<Transaction> _history = [];
 
 //Getter
+  int? get id => _id;
   String get name => _name;
   double get total => _total;
   double get balance => _balance;
@@ -26,7 +27,7 @@ class Member{
   }
 
   //Constructor
-  Member(this._name, this._color, {this.id, total, balance}){
+  Member(this._name, this._color, {id, total, balance, history}): _id=id{
     if (total==null) {
       _total=0;
     } else {
@@ -38,13 +39,16 @@ class Member{
       _balance=balance.toDouble();
     }
   }
-  Member.fromMember(Member m){
-    _name = m.name;
-    id = m.id;
-    _total = m.total;
-    _balance = m.balance;
-    _color = m.color;
-    _history = m.history;
+
+  factory Member.fromMember(Member m){
+    return Member(
+        m.name,
+        m.color,
+        id: m.id,
+        total: m.total,
+        balance: m.balance,
+        history: m.history
+    );
   }
 
   //Methods
@@ -81,15 +85,16 @@ class Member{
     );
   }
 
-  Member.fromJson(Map<String, dynamic> data){
+  factory Member.fromJson(Map<String, dynamic> data){
     final historyData = data['history'] as List<dynamic>;
-    id = data['id'];
-    _name = data['name'];
-    _total = data['total'];
-    _balance = data['balance'];
-    _history = historyData.map((d) => Transaction.fromJson(d)).toList();
-    _color = Color(data['color']);
-
+    return Member(
+        data['name'],
+        Color(data['color']),
+        id: data['id'],
+        total: data['total'],
+        balance: data['balance'],
+        history: historyData.map((d) => Transaction.fromJson(d)).toList()
+    );
   }
 
   Map<String, dynamic> toJson() => {

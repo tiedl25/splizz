@@ -15,6 +15,10 @@ class FileHandler{
 
   Future<String> get _directoryPath async {
     Directory dir = await getApplicationDocumentsDirectory();
+    dir = Directory('${dir.path}/shared');
+    if(!await dir.exists()){
+      dir.create();
+    }
     return dir.path;
   }
 
@@ -62,9 +66,26 @@ class FileHandler{
     return file;
   }
 
-  Future<int> deleteFile(String name) async {
+  Future<File> writeBytestream(String filename, stream) async {
+    String dirPath = await _directoryPath;
+    final file = File('$dirPath/$filename');
+
+    List<int> dataStore = [];
+    stream?.stream.listen((data) {
+      dataStore.insertAll(dataStore.length, data);
+    }, onDone: () {
+      file.writeAsBytes(dataStore);
+      print("File saved at ${file.path}");
+    }, onError: (error) {
+      print("Some Error");
+    });
+
+    return file;
+  }
+
+  Future<int> deleteFile(String path) async {
     try {
-      File file = File(name);
+      File file = File(path);
       await file.delete();
     } catch (e) {
       return 0;

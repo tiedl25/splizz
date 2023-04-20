@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as gd;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:splizz/Helper/filehandle.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SecureStorage {
@@ -121,7 +121,7 @@ class GoogleDrive {
   Future<String?> testFilenames(String filename) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
-    String? folderId =  await _getFolderId(drive);
+    String? folderId = await _getFolderId(drive);
     if(folderId == null){
       print("Sign-in first Error");
     }else {
@@ -139,10 +139,11 @@ class GoogleDrive {
   Future<List> getFilenames() async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
-    var response = (await drive.files.list(q: 'sharedWithMe=true and trashed=false', supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
+    String? folderId = await _getFolderId(drive);
+    var response = (await drive.files.list(q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents', supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
     var itemlist = [];
     for (var file in response!){
-      if((file.name)!.startsWith('item_') && (file.name)!.endsWith('.json')){
+      if((file.name)!.startsWith('item')){
         final startIndex = file.name?.indexOf('{');
         final endIndex = file.name?.lastIndexOf('}');
         final substring = file.name?.substring(startIndex!+1, endIndex!);
@@ -172,6 +173,26 @@ class GoogleDrive {
     }
   }
 
+  addParents(File file, id) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+    String? folderId =  await _getFolderId(drive);
+    if(folderId == null){
+      print("Sign-in first Error");
+    }else {
+      print(id);
+      var f = await drive.files.get(id);
+      var updatedFile = gd.File()..name = p.basename(file.absolute.path);
+      var a = gd.File(name: p.basename(file.absolute.path), parents: [folderId]);
+      var response = await drive.files.update(
+        a,
+        id,
+        addParents: folderId
+      );
+      print(response);
+    }
+  }
+
   Future<String?> uploadFile(File file) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
@@ -193,30 +214,12 @@ class GoogleDrive {
     }
   }
   
-  downloadFile(String fileId, String filename) async {
+  Future<File> downloadFile(String fileId, String filename) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
 
     //download ByteStream from GoogleDrive
     gd.Media? response = (await drive.files.get(fileId, downloadOptions: gd.DownloadOptions.fullMedia)) as gd.Media?;
-
-    //check if sharedWithMe directory exists
-    var directory = await getApplicationSupportDirectory();
-    directory = Directory('${directory.path}/sharedWithMe');
-    if (!directory.existsSync()) {
-      await directory.create(recursive: true);
-    }
-    final saveFile = File('${directory.path}/$filename');
-
-    //save response ByteStream to file
-    List<int> dataStore = [];
-    response?.stream.listen((data) {
-      dataStore.insertAll(dataStore.length, data);
-    }, onDone: () {
-      saveFile.writeAsBytes(dataStore);
-      print("File saved at ${saveFile.path}");
-    }, onError: (error) {
-      print("Some Error");
-    });
+    return FileHandler.instance.writeBytestream(filename, response);
   }
 }
