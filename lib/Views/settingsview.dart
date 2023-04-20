@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../Models/Storage.dart';
-
 class SettingsView extends StatefulWidget{
   final Function setParentState;
 

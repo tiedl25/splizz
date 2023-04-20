@@ -8,38 +8,27 @@ import 'package:path_provider/path_provider.dart';
 import '../Models/item.dart';
 
 class FileHandler{
-  String name;
-  String path;
+  //Singleton Pattern
+  FileHandler._privateConstructor();
 
-  FileHandler(this.name, [this.path='']);
-  FileHandler.path(this.path) : name='';
-  FileHandler.item(Item item) : name='', path=''{
-    name = 'item_${item.id}_{${item.name}}.json';
-  }
+  static final FileHandler instance = FileHandler._privateConstructor();
 
   Future<String> get _directoryPath async {
-    Directory dir = await getApplicationSupportDirectory();
+    Directory dir = await getApplicationDocumentsDirectory();
     return dir.path;
   }
 
-  Future<File> get _file async {
-    if(name == ''){
-      return File(path);
-    }else{
-      path = await _directoryPath;
-      return File('$path/$name');
-    }
+  Future<File> _file(String name) async {
+    String path = await _directoryPath;
+    return File('$path/$name');
   }
 
-  Future<File> writeContent(var data) async {
-    final file = await _file;
-    // Write the file
-
-    return file.writeAsString(data);
+  String filename(Item item){
+    return 'item{${item.name}}';
   }
 
-  Future<String> readTextFile() async {
-    File file = await _file;
+  Future<String> readTextFile(String name) async {
+    File file = await _file(name);
 
     String content = '';
 
@@ -55,27 +44,27 @@ class FileHandler{
     return content;
   }
 
-  Future<Map<String, dynamic>> readJsonFile() async {
-    File file = File('$path/$name');
-
-    var content = await file.readAsString();
+  Future<Map<String, dynamic>> readJsonFile(String name) async {
+    File file = await _file(name);
+    String content = await file.readAsString();
     return json.decode(content);
   }
 
-  writeTextFile(var data) async {
-    final file = await _file;
+  Future<File> writeTextFile(String name, var data) async {
+    File file = await _file(name);
     file.writeAsString(data);
+    return file;
   }
 
-  writeJsonFile(var data) async {
-    final file = await _file;
+  Future<File> writeJsonFile(String name, Map<String, dynamic> data) async {
+    File file = await _file(name);
     await file.writeAsString(json.encode(data));
+    return file;
   }
 
-  Future<int> deleteFile() async {
+  Future<int> deleteFile(String name) async {
     try {
-      final file = File(path);
-
+      File file = File(name);
       await file.delete();
     } catch (e) {
       return 0;

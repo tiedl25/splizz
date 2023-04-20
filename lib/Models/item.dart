@@ -6,8 +6,8 @@ import 'package:splizz/Models/transaction.dart';
 
 class Item{
   //Private Variables
-  int? id;
-  late String _name;
+  final int? id;
+  String _name;
   List<Member> _members = [];
   List<Transaction> _history = [];
 
@@ -25,13 +25,14 @@ class Item{
   }
 
   //Constructor
-  Item(this._name, {this.id, members}){
+  Item(this._name, {this.id, members, history}){
     if (members != null){
       _members = members;
     }
+    if (history != null){
+      _history = _history;
+    }
   }
-
-  Item.tmp(this._name, this._members);
 
   static List<Color> colormap = [
     Colors.blue.shade400,
@@ -112,9 +113,6 @@ class Item{
   @override
   String toString() => 'Item(id: $id, name: $name)';
 
-  String toDB() => jsonEncode(toMap());
-  factory Item.fromDB(String source) => Item.fromMap(jsonDecode(source));
-
   Map<String, dynamic> toMap() => {
     'name': name,
     'id': id,
@@ -127,20 +125,22 @@ class Item{
     );
   }
 
-  Item.fromJson(Map<String, dynamic> data) {
+  factory Item.fromJson(Map<String, dynamic> data) {
     final historyData = data['history'] as List<dynamic>;
     final memberData = data['member'] as List<dynamic>;
 
-    _name = data['name'];
-    _members = memberData.map((d) => Member.fromJson(d)).toList();
-    id = data['id'];
-    history = historyData.map((d) => Transaction.fromJson(d)).toList();
+    return Item(
+        data['name'],
+        id: data['id'],
+        members: memberData.map((d) => Member.fromJson(d)).toList(),
+        history: historyData.map((d) => Transaction.fromJson(d)).toList()
+    );
   }
 
   Map<String, dynamic> toJson() => {
     'name': name,
     'id': id,
-    'member': _members.map((m) => m.toJson()).toList(),
+    'member': members.map((m) => m.toJson()).toList(),
     'history': history.map((transaction) => transaction.toJson()).toList()
   };
 }

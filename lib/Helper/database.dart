@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:splizz/Helper/filehandle.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 
 import '../Models/item.dart';
@@ -151,5 +152,19 @@ class DatabaseHelper {
   updateTransaction(Transaction transaction) async {
     Database db = await instance.database;
     await db.update('item_transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
+  }
+
+  Future<File> export(int id) async {
+    Database db = await instance.database;
+    var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
+    Item? item = Item.fromMap(response[0]);
+    item.members = await getMembers(item.id!);
+    item.history = await getTransactions(item.id!);
+
+    String filename = FileHandler.instance.filename(item);
+
+    File file = await FileHandler.instance.writeJsonFile(filename, item.toJson());
+
+    return file;
   }
 }

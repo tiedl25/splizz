@@ -20,7 +20,7 @@ class ImportDialog extends StatefulWidget {
 class _ImportDialogState extends State<ImportDialog>{
   late List _itemlist = [];
   final List<bool> _isSelected = [];
-  int _selection = 0;
+  int _selection = -1;
 
   @override
   void initState(){
@@ -29,10 +29,8 @@ class _ImportDialogState extends State<ImportDialog>{
   }
 
   Future<void> _fetchData() async {
-    var gd = GoogleDrive();
-    _itemlist = await gd.getFilenames();
-    setState((){
-    });
+    _itemlist = await GoogleDrive.instance.getFilenames();
+    setState((){});
   }
 
   @override
@@ -107,10 +105,11 @@ class _ImportDialogState extends State<ImportDialog>{
             actions: UIElements.dialogButtons(
                 context: context,
                 callback: () {
-                  setState(() {
-                    GoogleDrive ga = GoogleDrive();
-                    ga.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
-                  });
+                  if (_selection != -1){
+                    setState(() {
+                      GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
+                    });
+                  }
                 }),
           ));
     }

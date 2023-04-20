@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/uielements.dart';
 
 import '../Helper/drive.dart';
@@ -52,16 +52,9 @@ class _ShareDialogState extends State<ShareDialog>{
   }
 
   Future<void> _upload() async {
-    Directory dir = await getApplicationSupportDirectory();
-    var filepath = dir.path;
-    var gd = GoogleDrive();
-    final filename = 'item_${_item.id}_{${_item.name}}.json';
-    File file = File('$filepath/$filename');
-    var id = await gd.testFilenames(filename);
-    if(id != 'false'){
-      gd.updateFile(file, id);
-    } else {
-      gd.uploadFile(file);
-    }
+    File file = await DatabaseHelper.instance.export(_item.id!);
+    String? id = await GoogleDrive.instance.uploadFile(file);
+    //Todo
+    //DatabaseHelper.instance.update(_item);
   }
 }
