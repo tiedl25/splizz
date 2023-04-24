@@ -92,7 +92,7 @@ class _ManageDialogState extends State<ManageDialog>{
     return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: AlertDialog(
-          title: const Text('Manage Splizz', style: TextStyle(color: Colors.white),),
+          title: const Text('Already Shared', style: TextStyle(color: Colors.white),),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
           backgroundColor: const Color(0xFF2B2B2B),
           actions: UIElements.dialogButtons(

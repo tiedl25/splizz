@@ -128,7 +128,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
           context: context,
           callback: () {
             if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && _selection!=-1) {
-              setState(() {
+              widget.setParentState(() {
                 int associatedId = _item.members[_selection].id!;
                 Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, memberId: associatedId);
 

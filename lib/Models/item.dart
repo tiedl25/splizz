@@ -23,9 +23,27 @@ class Item{
   set members(List<Member> members) {_members = members;}
   set history(List<Transaction> history) {_history = history;}
   set sharedId(String sharedId) {_sharedId = sharedId;}
+  set owner(bool owner) {_owner = owner;}
 
   //Constructor
-  Item(this._name, {id, sharedId='', owner=true, members, history}): _id=id, _sharedId=sharedId, _owner=owner, _history=history, _members=members;
+  Item(this._name, {id, sharedId='', owner=true, members, history}): _id=id, _sharedId=sharedId, _owner=owner {
+    if(members!=null){
+      _members=members;
+    }
+    if(history!=null){
+      _history=history;
+    }
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return other.id == id &&
+        other.name == name &&
+        other.sharedId == sharedId &&
+        other.owner == owner &&
+        other.members == members &&
+        other.history == history;
+  }
 
   static List<Color> colormap = [
     Colors.blue.shade400,
@@ -127,10 +145,20 @@ class Item{
     final memberData = data['member'] as List<dynamic>;
     return Item(
         data['name'],
-        id: data['id'],
         owner: false,
         members: memberData.map((d) => Member.fromJson(d)).toList(),
         history: historyData.map((d) => Transaction.fromJson(d)).toList()
+    );
+  }
+
+  factory Item.fromOld(Map<String, dynamic> data) {
+    final historyData = data['history'] as List<dynamic>;
+    final memberData = data['member'] as List<dynamic>;
+
+    return Item(
+        data['name'],
+        members: memberData.map((d) => Member.fromOld(d)).toList(),
+        history: historyData.map((d) => Transaction.fromOld(d)).toList()
     );
   }
 

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Views/masterview.dart';
+
+import 'Models/item.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 

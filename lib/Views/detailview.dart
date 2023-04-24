@@ -3,6 +3,7 @@ import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
+import '../Helper/database.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -175,36 +176,60 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Widget _buildBody() {
-    return Column(
-          children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-            ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-            child: Image(
-              image: const AssetImage('images/default.jpg'),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/5,
-              fit: BoxFit.fill
-            ),
-            )
-            ]
-            ),
-          const Spacer(),
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: _buildMemberBar(),
-            )
-          ),
-          const Spacer(flex: 5,),
-          _payoffButton(),
-          const Spacer(),
-          _transactionList(),
-          ],
+    return Center(
+      child: FutureBuilder<Item>(
+        future: DatabaseHelper.instance.getItem(item.id!),
+        builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
+          }
+          if (snapshot.data!.members.isEmpty) {
+            return const Center(child: Text('Item has no members', style: TextStyle(fontSize: 20, color: Colors.white),),);
+          } else {
+            item = snapshot.data!;
+            unbalanced = _checkBalances();
+            return Column(
+              children: [
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(20)),
+                        child: Image(
+                            image: const AssetImage('images/default.jpg'),
+                            width: MediaQuery
+                                .of(context)
+                                .size
+                                .width,
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height / 5,
+                            fit: BoxFit.fill
+                        ),
+                      )
+                    ]
+                ),
+                const Spacer(),
+                SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: _buildMemberBar(),
+                    )
+                ),
+                const Spacer(flex: 5,),
+                _payoffButton(),
+                const Spacer(),
+                _transactionList(),
+              ],
+            );
+          }
+
+        }
+      ),
     );
   }
 
@@ -220,7 +245,6 @@ class _DetailViewState extends State<DetailView>{
   @override
   Widget build(BuildContext context) {
     item = widget.item;
-    unbalanced = _checkBalances();
 
     return Scaffold(
       extendBodyBehindAppBar: true,

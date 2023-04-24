@@ -5,9 +5,6 @@ import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:splizz/Helper/uielements.dart';
 import 'package:splizz/Helper/drive.dart';
-import 'package:path/path.dart' as p;
-
-import '../Models/item.dart';
 
 class ImportDialog extends StatefulWidget {
   final Function setParentState;
@@ -113,9 +110,7 @@ class _ImportDialogState extends State<ImportDialog>{
                 callback: () async {
                   if (_selection != -1){
                     File file = await GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
-                    Item item = Item.fromJson(await FileHandler.instance.readJsonFile(p.basename(file.absolute.path)));
-                    item.sharedId = _itemlist[_selection][1];
-                    DatabaseHelper.instance.add(item);
+                    DatabaseHelper.instance.import(file.path, _itemlist[_selection][1]);
                     //GoogleDrive.instance.addParents(file, item.sharedId);
                     FileHandler.instance.deleteFile(file.path);
                     widget.setParentState((){});

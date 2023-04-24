@@ -1,7 +1,7 @@
 class Transaction{
   //Private Variables
   final int? _id;
-  final int? _memberId;
+  int? _memberId;
   late String _description;
   late DateTime _timestamp;
   late double _value;
@@ -13,6 +13,10 @@ class Transaction{
   DateTime get timestamp => _timestamp;
   double get value => _value;
 
+  //Setter
+  set memberId(int? memberId) {_memberId=memberId;}
+
+  //Constructor
   Transaction(this._description, this._value, {id, memberId, timestamp}): _id=id, _memberId=memberId{
     if (timestamp == null){
       _timestamp = DateTime.now();
@@ -21,6 +25,13 @@ class Transaction{
       _timestamp = timestamp;
     }
   }
+
+  //Operator
+  @override
+  bool operator ==(dynamic other) =>
+      other.description == description &&
+          other.timestamp == timestamp &&
+          other.value == value;
 
   String date(){
     return '${_timestamp.day}.${_timestamp.month}.${_timestamp.year}';
@@ -48,9 +59,17 @@ class Transaction{
     return Transaction(
         data['description'],
         data['value'],
-        id: data['id'],
         memberId: data['associated'],
         timestamp: DateTime.parse(data['timestamp']),
+    );
+  }
+
+  factory Transaction.fromOld(Map<String, dynamic> data) {
+    return Transaction(
+      data['description'],
+      data['value'],
+      memberId: data['associated']['id'],
+      timestamp: DateTime.parse(data['_timestamp']),
     );
   }
 

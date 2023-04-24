@@ -49,6 +49,7 @@ class GoogleDrive {
     //Get Credentials
     var credentials = await storage.getCredentials();
     if (credentials == null) {
+      print(1);
       //Needs user authentication
       var authClient = await clientViaUserConsent(
           ClientId(_clientId, _clientSecret), _scopes, (url) {
@@ -71,6 +72,7 @@ class GoogleDrive {
       return authenticatedClient(http.Client(), rc);
 
     } else {
+      print(3);
       var accessToken = AccessToken(credentials["type"], credentials["data"],
           DateTime.tryParse(credentials["expiry"])!);
 
@@ -160,10 +162,7 @@ class GoogleDrive {
     if(folderId == null){
       print("Sign-in first Error");
     }else {
-      gd.File fileToUpload = gd.File();
-      fileToUpload.parents = [folderId];
-      fileToUpload.name = p.basename(file.absolute.path);
-      final updatedFile = gd.File()..name = p.basename(file.absolute.path);
+      final updatedFile = gd.File(name: p.basename(file.absolute.path));
       var response = await drive.files.update(
         updatedFile,
         id,

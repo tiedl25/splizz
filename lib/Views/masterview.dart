@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Views/settingsview.dart';
@@ -7,6 +8,7 @@ import 'package:splizz/Views/settingsview.dart';
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
 import '../Helper/database.dart';
+import '../Helper/filehandle.dart';
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -86,9 +88,9 @@ class _MasterViewState extends State<MasterView>{
         future: DatabaseHelper.instance.getItems(),
         builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
           if (!snapshot.hasData){
+            //lol();
             return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
           }
-
           return snapshot.data!.isEmpty ?
               const Center(child: Text('No items in list', style: TextStyle(fontSize: 20, color: Colors.white),),)
               : ListView.builder(
@@ -102,6 +104,12 @@ class _MasterViewState extends State<MasterView>{
         }
       ),
     );
+  }
+
+  lol() async {
+    Item item = Item.fromOld(await FileHandler.instance.readJsonFile('item_3.json', (await getApplicationSupportDirectory()).path));
+    item.owner = true;
+    DatabaseHelper.instance.add(item);
   }
 
   Widget _buildDismissible(Item item){
@@ -157,7 +165,7 @@ class _MasterViewState extends State<MasterView>{
     );
   }
 
-  void _pushDetailView(Item i){
+  _pushDetailView(Item i) {
     Navigator.push(
       context,
       MaterialPageRoute<void>(

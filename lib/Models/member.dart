@@ -40,11 +40,11 @@ class Member{
     }
   }
 
-  factory Member.fromMember(Member m){
+  factory Member.fromMember(Member m, [int? id]){
     return Member(
         m.name,
         m.color,
-        id: m.id,
+        id: id ?? m.id,
         total: m.total,
         balance: m.balance,
         history: m.history
@@ -90,10 +90,20 @@ class Member{
     return Member(
         data['name'],
         Color(data['color']),
-        id: data['id'],
         total: data['total'],
         balance: data['balance'],
-        history: historyData.map((d) => Transaction.fromJson(d)).toList()
+        history: historyData.map((d) => Transaction.fromOld(d)).toList()
+    );
+  }
+
+  factory Member.fromOld(Map<String, dynamic> data){
+    final historyData = data['history'] as List<dynamic>;
+    return Member(
+        data['name'],
+        Color(data['color']),
+        total: data['total'],
+        balance: data['balance'],
+        history: historyData.map((d) => Transaction.fromOld(d)).toList()
     );
   }
 

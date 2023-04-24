@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
+import 'package:path/path.dart' as p;
 
 import '../Models/item.dart';
 import '../Models/member.dart';
@@ -86,7 +90,7 @@ class DatabaseHelper {
 
   Future<List<Transaction>> getTransactions(int id) async {
     Database db = await instance.database;
-    var transaction = await db.query('item_transactions', orderBy: 'id', where: 'itemId = ?', whereArgs: [id]);
+    var transaction = await db.query('item_transactions', orderBy: 'timestamp', where: 'itemId = ?', whereArgs: [id]);
     List<Transaction> transactionList = transaction.isNotEmpty ? transaction.map((e) => Transaction.fromMap(e)).toList() : [];
     return transactionList;
   }
@@ -96,12 +100,56 @@ class DatabaseHelper {
     var items = await db.query('splizz_items', orderBy: 'id');
     List<Item> itemList = items.isNotEmpty ? items.map((e) => Item.fromMap(e)).toList() : [];
 
-    for(Item i in itemList){
-      i.members = await getMembers(i.id!);
-      i.history = await getTransactions(i.id!);
+    return itemList;
+  }
+
+  Future<Item> getItem(int id) async {
+    Database db = await instance.database;
+    var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
+    Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
+
+    item.members = await getMembers(id);
+    item.history = await getTransactions(id);
+
+    if (item.sharedId == '') {
+      return item;
     }
 
-    return itemList;
+    String filename = FileHandler.instance.filename(item);
+    File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+
+    Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
+    driveItem.sharedId = item.sharedId;
+
+    if (listEquals(item.history, driveItem.history)) {
+      FileHandler.instance.deleteFile(file.path);
+      return item;
+    }
+    item = await conflictManagement(item, driveItem);
+
+    export(item.id!);
+    GoogleDrive.instance.updateFile(file, item.sharedId);
+    FileHandler.instance.deleteFile(file.path);
+
+    return item;
+  }
+
+  Future<Item> conflictManagement(Item item, Item driveItem) async {
+    Database db = await instance.database;
+    for (Transaction t in driveItem.history) {
+      if (!item.history.contains(t)) {
+        int memberId = item.members[t.memberId!].id!;
+
+        Transaction tNew = Transaction(t.description, t.value, memberId: memberId, timestamp: t.timestamp);
+        item.addTransaction(t.memberId!, tNew);
+
+        addTransaction(tNew, item.id!, memberId);
+      }
+    }
+    update(item);
+    item.history = await getTransactions(item.id!);
+
+    return item;
   }
 
   add(Item item) async {
@@ -110,8 +158,26 @@ class DatabaseHelper {
     for (Member member in item.members){
       addMember(member, id);
     }
+    item.members = await getMembers(id);
+
     for (Transaction transaction in item.history){
+      print('hello${transaction.memberId!}');
+      transaction.memberId = item.members[transaction.memberId!].id;
       addTransaction(transaction, id, transaction.memberId);
+    }
+  }
+
+  import(String path, String sharedId) async {
+    Item item = Item.fromJson(await FileHandler.instance.readJsonFile(p.basename(path)));
+    item.sharedId = sharedId;
+
+    Database db = await instance.database;
+    int id = await db.insert('splizz_items', item.toMap());
+    for (Member member in item.members){
+      addMember(member, id);
+    }
+    for (Transaction transaction in item.history){
+      addTransaction(transaction, id, item.members[transaction.memberId!].id);
     }
   }
 
@@ -163,6 +229,16 @@ class DatabaseHelper {
     Item? item = Item.fromMap(response[0]);
     item.members = await getMembers(item.id!);
     item.history = await getTransactions(item.id!);
+
+    //Map the memberId to a value between 0 and the count of the members so that in another database each transaction can be correctly mapped
+    //The memberId is database specific
+    Map<int, int> map = {};
+    for (int i=0; i<item.members.length; i++) {
+      map.addAll({item.members[i].id! : i});
+    }
+    for (int i=0; i<item.history.length; i++) {
+      item.history[i].memberId = map[item.history[i].memberId];
+    }
 
     String filename = FileHandler.instance.filename(item);
 
