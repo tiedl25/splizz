@@ -156,12 +156,11 @@ class DatabaseHelper {
     Database db = await instance.database;
     int id = await db.insert('splizz_items', item.toMap());
     for (Member member in item.members){
-      addMember(member, id);
+      member.id = await addMember(member, id);
     }
-    item.members = await getMembers(id);
+    //item.members = await getMembers(id);
 
     for (Transaction transaction in item.history){
-      print('hello${transaction.memberId!}');
       transaction.memberId = item.members[transaction.memberId!].id;
       addTransaction(transaction, id, transaction.memberId);
     }
@@ -174,25 +173,28 @@ class DatabaseHelper {
     Database db = await instance.database;
     int id = await db.insert('splizz_items', item.toMap());
     for (Member member in item.members){
-      addMember(member, id);
+      member.id = await addMember(member, id);
     }
+    //item.members = await getMembers(id);
+
     for (Transaction transaction in item.history){
-      addTransaction(transaction, id, item.members[transaction.memberId!].id);
+      transaction.memberId = item.members[transaction.memberId!].id;
+      addTransaction(transaction, id, transaction.memberId);
     }
   }
 
-  addMember(Member member, int itemId) async {
+  Future<int> addMember(Member member, int itemId) async {
     Database db = await instance.database;
     var map = member.toMap();
     map.addAll({'itemId' : itemId});
-    await db.insert('item_members', map);
+    return await db.insert('item_members', map);
   }
 
-  addTransaction(Transaction transaction, int itemId, [int? memberId]) async {
+  Future<int> addTransaction(Transaction transaction, int itemId, [int? memberId]) async {
     Database db = await instance.database;
     var map = transaction.toMap();
     map.addAll({'itemId' : itemId, 'memberId' : memberId});
-    await db.insert('item_transactions', map);
+    return await db.insert('item_transactions', map);
   }
 
   remove(int id) async {

@@ -25,6 +25,9 @@ class Member{
   set history(List<Transaction> value) {
     _history = value;
   }
+  set id(int? id) {
+    _id ?? id;
+  }
 
   //Constructor
   Member(this._name, this._color, {id, total, balance, history}): _id=id{
@@ -92,7 +95,7 @@ class Member{
         Color(data['color']),
         total: data['total'],
         balance: data['balance'],
-        history: historyData.map((d) => Transaction.fromOld(d)).toList()
+        history: historyData.map((d) => Transaction.fromJson(d)).toList()
     );
   }
 

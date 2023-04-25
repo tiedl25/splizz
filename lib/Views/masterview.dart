@@ -107,7 +107,7 @@ class _MasterViewState extends State<MasterView>{
   }
 
   lol() async {
-    Item item = Item.fromOld(await FileHandler.instance.readJsonFile('item_3.json', (await getApplicationSupportDirectory()).path));
+    Item item = Item.fromOld(await FileHandler.instance.readJsonFile('item_2.json', (await getApplicationSupportDirectory()).path));
     item.owner = true;
     DatabaseHelper.instance.add(item);
   }
