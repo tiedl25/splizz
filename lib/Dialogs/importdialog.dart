@@ -114,6 +114,7 @@ class _ImportDialogState extends State<ImportDialog>{
                     //GoogleDrive.instance.addParents(file, item.sharedId);
                     FileHandler.instance.deleteFile(file.path);
                     widget.setParentState((){});
+                    setState((){});
                   }
                 }),
           ));

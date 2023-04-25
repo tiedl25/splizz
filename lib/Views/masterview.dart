@@ -88,7 +88,9 @@ class _MasterViewState extends State<MasterView>{
         future: DatabaseHelper.instance.getItems(),
         builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
           if (!snapshot.hasData){
-            //lol();
+            //DatabaseHelper.instance.migrate('item_3.json');
+            //DatabaseHelper.instance.import('item{relationship stuff}', '1hoCvDgWZS-vdPiEcFMV79vb6Y3xwQa-J');
+            //DatabaseHelper.instance.import('item{Test}', '1jKwF-EyOwkqXWpziiMYwNdcBvsoRc7Tk');
             return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
           }
           return snapshot.data!.isEmpty ?
@@ -104,12 +106,6 @@ class _MasterViewState extends State<MasterView>{
         }
       ),
     );
-  }
-
-  lol() async {
-    Item item = Item.fromOld(await FileHandler.instance.readJsonFile('item_2.json', (await getApplicationSupportDirectory()).path));
-    item.owner = true;
-    DatabaseHelper.instance.add(item);
   }
 
   Widget _buildDismissible(Item item){

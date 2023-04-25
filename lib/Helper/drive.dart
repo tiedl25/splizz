@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as gd;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -145,7 +146,7 @@ class GoogleDrive {
     var response = (await drive.files.list(q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents', supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
     var itemlist = [];
     for (var file in response!){
-      if((file.name)!.startsWith('item')){
+      if((file.name)!.startsWith('item') && await DatabaseHelper.instance.checkSharedId(file.id!)){
         final startIndex = file.name?.indexOf('{');
         final endIndex = file.name?.lastIndexOf('}');
         final substring = file.name?.substring(startIndex!+1, endIndex!);

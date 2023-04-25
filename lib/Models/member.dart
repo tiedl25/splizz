@@ -25,9 +25,6 @@ class Member{
   set history(List<Transaction> value) {
     _history = value;
   }
-  set id(int? id) {
-    _id ?? id;
-  }
 
   //Constructor
   Member(this._name, this._color, {id, total, balance, history}): _id=id{

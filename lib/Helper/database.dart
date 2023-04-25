@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
@@ -8,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
-import 'package:path/path.dart' as p;
 
 import '../Models/item.dart';
 import '../Models/member.dart';
@@ -155,10 +153,9 @@ class DatabaseHelper {
   add(Item item) async {
     Database db = await instance.database;
     int id = await db.insert('splizz_items', item.toMap());
-    for (Member member in item.members){
-      member.id = await addMember(member, id);
+    for (int i=0; i<item.members.length; i++){
+      item.members[i] = Member.fromMember(item.members[i], await addMember(item.members[i], id));
     }
-    //item.members = await getMembers(id);
 
     for (Transaction transaction in item.history){
       transaction.memberId = item.members[transaction.memberId!].id;
@@ -167,20 +164,25 @@ class DatabaseHelper {
   }
 
   import(String path, String sharedId) async {
-    Item item = Item.fromJson(await FileHandler.instance.readJsonFile(p.basename(path)));
+    Item item = Item.fromJson(await FileHandler.instance.readJsonFile(basename(path)));
     item.sharedId = sharedId;
 
-    Database db = await instance.database;
-    int id = await db.insert('splizz_items', item.toMap());
-    for (Member member in item.members){
-      member.id = await addMember(member, id);
-    }
-    //item.members = await getMembers(id);
+    add(item);
+  }
 
-    for (Transaction transaction in item.history){
-      transaction.memberId = item.members[transaction.memberId!].id;
-      addTransaction(transaction, id, transaction.memberId);
+  migrate(String name) async {
+    Directory dir = await getApplicationSupportDirectory();
+    for (var file in dir.listSync()){
+      Item item = Item.fromOld(await FileHandler.instance.readJsonFile(basename(file.path), dir.path));
+      item.owner = true;
+      add(item);
     }
+  }
+  
+  Future<bool> checkSharedId(String sharedId) async {
+    Database db = await instance.database;
+    List<Map<String, dynamic>> response = await db.query('splizz_items', where: 'sharedId = ?', whereArgs: [sharedId]);
+    return response.isEmpty;
   }
 
   Future<int> addMember(Member member, int itemId) async {
