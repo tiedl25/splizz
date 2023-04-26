@@ -86,6 +86,13 @@ class DatabaseHelper {
     return memberList;
   }
 
+  Future<List<Transaction>> getUniqueTransactions(int id) async {
+    Database db = await instance.database;
+    var transaction = await db.query('item_transactions', orderBy: 'timestamp', where: 'itemId = ?', whereArgs: [id], distinct: true, groupBy: 'timestamp');
+    List<Transaction> transactionList = transaction.isNotEmpty ? transaction.map((e) => Transaction.fromMap(e)).toList() : [];
+    return transactionList;
+  }
+
   Future<List<Transaction>> getTransactions(int id) async {
     Database db = await instance.database;
     var transaction = await db.query('item_transactions', orderBy: 'timestamp', where: 'itemId = ?', whereArgs: [id]);
@@ -107,11 +114,13 @@ class DatabaseHelper {
     Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
 
     item.members = await getMembers(id);
-    item.history = await getTransactions(id);
+    item.history = await getUniqueTransactions(id);
 
-    if (item.sharedId == '') {
-      return item;
-    }
+    return item;
+  }
+
+  Future<Item> itemSync(Item item) async {
+    if (item.sharedId == '') return item;
 
     String filename = FileHandler.instance.filename(item);
     File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
@@ -119,8 +128,13 @@ class DatabaseHelper {
     Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
     driveItem.sharedId = item.sharedId;
 
+    var history = item.history;
+    //assure that history contains all transactions not only the unique ones
+    item.history = await getTransactions(item.id!);
+
     if (listEquals(item.history, driveItem.history)) {
       FileHandler.instance.deleteFile(file.path);
+      item.history = history;
       return item;
     }
     item = await conflictManagement(item, driveItem);
@@ -133,19 +147,26 @@ class DatabaseHelper {
   }
 
   Future<Item> conflictManagement(Item item, Item driveItem) async {
-    Database db = await instance.database;
     for (Transaction t in driveItem.history) {
       if (!item.history.contains(t)) {
-        int memberId = item.members[t.memberId!].id!;
+        Transaction tNew;
+        if(t.description != 'payoff') {
+            int memberId = item.members[t.memberId!].id!;
+            tNew = Transaction(t.description, t.value, memberId: memberId, timestamp: t.timestamp);
+            item.addTransaction(t.memberId!, tNew);
+            addTransaction(tNew, item.id!, memberId);
+        } else {
+          int memberId = item.members[t.memberId!].id!;
+          tNew = Transaction.payoff(t.value, timestamp: t.timestamp);
+          item.addPayoff(t.memberId!, tNew);
+          addTransaction(tNew, item.id!, memberId);
+        }
 
-        Transaction tNew = Transaction(t.description, t.value, memberId: memberId, timestamp: t.timestamp);
-        item.addTransaction(t.memberId!, tNew);
-
-        addTransaction(tNew, item.id!, memberId);
       }
     }
+
     update(item);
-    item.history = await getTransactions(item.id!);
+    item.history = await getUniqueTransactions(item.id!);
 
     return item;
   }
@@ -158,15 +179,19 @@ class DatabaseHelper {
     }
 
     for (Transaction transaction in item.history){
-      transaction.memberId = item.members[transaction.memberId!].id;
-      addTransaction(transaction, id, transaction.memberId);
+      if(transaction.memberId != null) {
+        transaction.memberId = item.members[transaction.memberId!].id;
+        addTransaction(transaction, id, transaction.memberId);
+      } else {
+        addTransaction(transaction, id, transaction.memberId);
+      }
     }
   }
 
   import(String path, String sharedId) async {
     Item item = Item.fromJson(await FileHandler.instance.readJsonFile(basename(path)));
     item.sharedId = sharedId;
-
+    item.owner = await GoogleDrive.instance.checkOwner(sharedId);
     add(item);
   }
 

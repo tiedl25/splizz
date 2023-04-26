@@ -63,7 +63,12 @@ class Member{
     _balance -= d;
   }
 
-  void payoff(){
+  void payoff(Transaction t){
+    history.add(t);
+    _balance += t.value;
+  }
+
+  void compensate(){
     _total = _balance;
   }
 

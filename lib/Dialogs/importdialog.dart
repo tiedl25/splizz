@@ -21,7 +21,7 @@ class ImportDialog extends StatefulWidget {
 }
 
 class _ImportDialogState extends State<ImportDialog>{
-  late List _itemlist = [];
+  List _itemlist = [];
   final List<bool> _isSelected = [];
   int _selection = -1;
 
@@ -114,7 +114,6 @@ class _ImportDialogState extends State<ImportDialog>{
                     //GoogleDrive.instance.addParents(file, item.sharedId);
                     FileHandler.instance.deleteFile(file.path);
                     widget.setParentState((){});
-                    setState((){});
                   }
                 }),
           ));

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 
 import '../Models/item.dart';
+import '../Models/transaction.dart';
 import '../Models/member.dart';
 import '../Helper/uielements.dart';
 

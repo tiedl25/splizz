@@ -4,7 +4,6 @@ import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
 import '../Helper/database.dart';
-import '../Helper/drive.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -19,6 +18,7 @@ class DetailView extends StatefulWidget{
 class _DetailViewState extends State<DetailView>{
   late Item item;
   bool unbalanced = false;
+  bool synced = false;
 
   List<Container> memberBar = <Container>[];
   List<ListTile> historyList = <ListTile>[];
@@ -150,30 +150,54 @@ class _DetailViewState extends State<DetailView>{
             itemCount: item.history.length,
             itemBuilder: (context, i) {
               Transaction transaction = item.history[item.history.length-1-i];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 5),
-                decoration: BoxDecoration(
-                    color: item.members[memberMap[transaction.memberId]!].color,
-                    borderRadius: const BorderRadius.all(Radius.circular(10))
-                ),
-                child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 10),
-                  childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                  title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
-                  subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
-                  children: [
-                    ListTile(
-                      tileColor: item.members[memberMap[transaction.memberId]!].color,
-                      title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
-                      subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
-                    )
-                  ],
-                ),
-              );
+              if (transaction.description == 'payoff'){
+                return Column(
+                    children: [
+                      Divider(color: Colors.grey, thickness: 2,),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Payoff', style: TextStyle(color: Colors.white),),
+                            Text(transaction.timestamp.toString(), style: TextStyle(color: Colors.white),)
+                          ],
+                        ),
+                      ),
+                      Divider(color: Colors.grey, thickness: 2,),
+                    ],
+                );
+              } else {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 5),
+                  decoration: BoxDecoration(
+                      color: item.members[memberMap[transaction.memberId]!].color,
+                      borderRadius: const BorderRadius.all(Radius.circular(10))
+                  ),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+                    childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+                    subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
+                    children: [
+                      ListTile(
+                        tileColor: item.members[memberMap[transaction.memberId]!].color,
+                        title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
+                        subtitle: Text(transaction.timestamp.toString(), style: const TextStyle(color: Colors.black),),
+                      )
+                    ],
+                  ),
+                );
+              }
+
             },
           )
       ),
     );
+  }
+
+  reload() async {
+
   }
 
   Widget _buildBody() {
@@ -183,50 +207,57 @@ class _DetailViewState extends State<DetailView>{
         builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
-          }
-          if (snapshot.data!.members.isEmpty) {
-            return const Center(child: Text('Item has no members', style: TextStyle(fontSize: 20, color: Colors.white),),);
           } else {
             item = snapshot.data!;
             unbalanced = _checkBalances();
-            return Column(
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            return FutureBuilder<Item>(
+              future: DatabaseHelper.instance.itemSync(item),
+                builder: (BuildContext context, AsyncSnapshot<Item> syncSnapshot) {
+                  if (syncSnapshot.hasData) {
+                    item = syncSnapshot.data!;
+                    unbalanced = _checkBalances();
+                  }
+                  return Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(20)),
-                        child: Image(
-                            image: const AssetImage('images/default.jpg'),
-                            width: MediaQuery
-                                .of(context)
-                                .size
-                                .width,
-                            height: MediaQuery
-                                .of(context)
-                                .size
-                                .height / 5,
-                            fit: BoxFit.fill
-                        ),
-                      )
-                    ]
-                ),
-                const Spacer(),
-                SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: _buildMemberBar(),
-                    )
-                ),
-                const Spacer(flex: 5,),
-                _payoffButton(),
-                const Spacer(),
-                _transactionList(),
-              ],
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  bottom: Radius.circular(20)),
+                              child: Image(
+                                  image: const AssetImage('images/default.jpg'),
+                                  width: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width,
+                                  height: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height / 5,
+                                  fit: BoxFit.fill
+                              ),
+                            )
+                          ]
+                      ),
+                      const Spacer(),
+                      SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: _buildMemberBar(),
+                          )
+                      ),
+                      const Spacer(flex: 5,),
+                      _payoffButton(),
+                      const Spacer(),
+                      _transactionList(),
+                    ],
+                  );
+                }
             );
+
           }
 
         }

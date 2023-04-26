@@ -50,7 +50,6 @@ class GoogleDrive {
     //Get Credentials
     var credentials = await storage.getCredentials();
     if (credentials == null) {
-      print(1);
       //Needs user authentication
       var authClient = await clientViaUserConsent(
           ClientId(_clientId, _clientSecret), _scopes, (url) {
@@ -63,17 +62,22 @@ class GoogleDrive {
 
       return authClient;
     } else if (DateTime.tryParse(credentials["expiry"])!.isBefore(DateTime.now())){
+
       var accessToken = AccessToken(credentials["type"], credentials["data"],
           DateTime.tryParse(credentials["expiry"])!);
 
       var accessCredentials = AccessCredentials(accessToken, credentials["refreshToken"], _scopes);
 
-      var rc = await refreshCredentials(ClientId(_clientId, _clientSecret), accessCredentials, http.Client());
-
-      return authenticatedClient(http.Client(), rc);
+      try {
+        var rc = await refreshCredentials(ClientId(_clientId, _clientSecret), accessCredentials, http.Client());
+        return authenticatedClient(http.Client(), rc);
+      } catch (error){
+        print(error);
+        storage.clear();
+        return getHttpClient();
+      }
 
     } else {
-      print(3);
       var accessToken = AccessToken(credentials["type"], credentials["data"],
           DateTime.tryParse(credentials["expiry"])!);
 
@@ -156,6 +160,26 @@ class GoogleDrive {
     return itemlist;
   }
 
+  Future<List> getSharedPeople(String id) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    final about = await drive.about.get($fields: 'user(emailAddress)');
+    final userEmail = about.user?.emailAddress;
+
+    final permissions = await drive.permissions.list(id, $fields: "*",);
+
+    List people = [];
+
+    for (var permission in permissions.permissions!) {
+      if(permission.emailAddress != userEmail) {
+        people.add({'email' : permission.emailAddress, 'name' : permission.displayName});
+      }
+    }
+
+    return people;
+  }
+
   updateFile(File file, id) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
@@ -212,6 +236,23 @@ class GoogleDrive {
       print(response);
       return response.id;
     }
+  }
+
+  Future<bool> checkOwner(String fileId) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    final about = await drive.about.get($fields: '*');
+    final id = about.user?.permissionId;
+
+    final permissions = await drive.permissions.list(fileId, $fields: "*",);
+
+    for (var permission in permissions.permissions!) {
+      if(permission.id == id) {
+        return permission.role == 'owner';
+      }
+    }
+    return false;
   }
   
   Future<File> downloadFile(String fileId, String filename) async {

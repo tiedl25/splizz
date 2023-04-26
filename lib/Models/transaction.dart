@@ -26,6 +26,16 @@ class Transaction{
     }
   }
 
+  factory Transaction.payoff(value, {id, memberId, timestamp}){
+    return Transaction(
+      'payoff',
+      value,
+      id: id,
+      memberId: memberId,
+      timestamp: timestamp,
+    );
+  }
+
   //Operator
   @override
   bool operator ==(dynamic other) =>

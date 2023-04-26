@@ -25,7 +25,15 @@ class UIElements {
     );
   }
 
-  static List<Widget> dialogButtons({required BuildContext context, required Function callback}){
+  static BoxDecoration boxDecoration() {
+    return BoxDecoration(
+        color: const Color(0xFF383838),
+        border: Border.all(color: Color(0xFF383838)),
+        borderRadius: BorderRadius.all(Radius.circular(15)),
+    );
+  }
+
+  static List<Widget> dialogButtons({required BuildContext context, required Function callback, String leftText='Discard', String rightText='Apply'}){
     return <Widget>[
       const Divider(
         color: Colors.white54,
@@ -37,7 +45,7 @@ class UIElements {
             Expanded(
                 child: CupertinoButton(
                   padding: const EdgeInsets.symmetric(vertical: 0),
-                  child: const Text('Discard'),
+                  child: Text(leftText),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -49,7 +57,7 @@ class UIElements {
             Expanded(
               child: CupertinoButton(
                 padding: const EdgeInsets.symmetric(vertical: 0),
-                  child: const Text('Apply'),
+                  child: Text(rightText),
                   onPressed: () {
                     callback();
                     Navigator.pop(context);

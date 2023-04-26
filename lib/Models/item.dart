@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
@@ -35,16 +36,6 @@ class Item{
     }
   }
 
-  @override
-  bool operator ==(dynamic other) {
-    return other.id == id &&
-        other.name == name &&
-        other.sharedId == sharedId &&
-        other.owner == owner &&
-        other.members == members &&
-        other.history == history;
-  }
-
   static List<Color> colormap = [
     Colors.blue.shade400,
     Colors.red.shade400,
@@ -69,11 +60,26 @@ class Item{
     }
   }
 
+  void addPayoff(int associatedId, Transaction t){
+    _members[associatedId].payoff(t);
+    history.add(t);
+  }
+
+  void payoff(){
+    var timestamp = DateTime.now();
+    for(Member e in _members){
+      Transaction t = Transaction.payoff(-e.balance, memberId: e.id, timestamp: timestamp);
+      history.add(t);
+      e.payoff(t);
+      DatabaseHelper.instance.addTransaction(t, id!, e.id);
+    }
+  }
+
   Map<Member, List<Member>> calculatePayoff(){
     List<Member> payer = [];
     for(Member e in _members){
       Member a = Member.fromMember(e);
-      a.payoff();
+      a.compensate();
       payer.add(a);
     }
 
@@ -109,12 +115,6 @@ class Item{
       negative.reversed;
     }
     return payMap;
-  }
-  
-  void payoff(){
-    for(Member e in _members){
-      e.balance = 0;
-    }
   }
   
   void addMember(String name){
