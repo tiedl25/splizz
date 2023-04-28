@@ -36,35 +36,16 @@ class _ShareDialogState extends State<ShareDialog>{
 
   @override
   Widget build(BuildContext context) {
-    return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: AlertDialog(
-          title: const Text('Share Splizz', style: TextStyle(color: Colors.white),),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-          backgroundColor: const Color(0xFF2B2B2B),
-          content: Container(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: UIElements.tfDecoration(
-                  title: 'E-Mail Address',
-                  icon: IconButton(
-                      onPressed: () {
-
-                      },
-                      icon: const Icon(Icons.add, color: Colors.white,)
-                  )
-              ),
-            ),
-          ),
-          actions: UIElements.dialogButtons(
-              context: context,
-              callback: () {
-                setState(() {
-                  _upload();
-                });
-              }),
-        ));
+    return UIElements.dialog(
+          title: 'Share Splizz',
+          content: const Text('Do you really want to share this item', style: TextStyle(color: Colors.white, fontSize: 20),),
+          context: context,
+          onConfirmed: (){
+            setState(() {
+              _upload();
+            });
+          }
+        );
   }
 
   Future<void> _upload() async {
@@ -92,10 +73,10 @@ class ManageDialog extends StatefulWidget {
   }
 }
 
-//Todo
 class _ManageDialogState extends State<ManageDialog>{
   late Item _item;
   List _people = [];
+  TextEditingController tc = TextEditingController();
 
   @override
   void initState(){
@@ -104,91 +85,122 @@ class _ManageDialogState extends State<ManageDialog>{
     _fetchData();
   }
 
-  Future<void> _fetchData() async {
+  Future<List> _fetchData() async {
     _people = await GoogleDrive.instance.getSharedPeople(_item.sharedId);
-    setState((){});
+    return _people;
+  }
+
+  _addPerson() async {
+    var person = {};
+    if (tc.text.isNotEmpty) person = await GoogleDrive.instance.addPeople(_item.sharedId, tc.text);
+    if (person.isNotEmpty && !_people.contains(person)) {
+      setState(() {
+        _people.add(person);
+        tc.text = '';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_people.isEmpty) {
-      return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-          child: AlertDialog(
-            title: const Text('Manage Access', style: TextStyle(color: Colors.white),),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            backgroundColor: const Color(0xFF2B2B2B),
-            content: const Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white)),
-            actions: UIElements.dialogButtons(
-                context: context,
-                callback: () {
-                  setState(() {});
-                }),
-          )
-      );
-    } else {
-      return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-          child: AlertDialog(
-            title: const Text('Manage Access', style: TextStyle(color: Colors.white),),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            backgroundColor: const Color(0xFF2B2B2B),
-            content: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height/4,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: TextField(
-                        style: const TextStyle(color: Colors.white),
-                        decoration: UIElements.tfDecoration(
-                            title: 'E-Mail Address',
-                            icon: IconButton(
-                                onPressed: () {
-
-                                },
-                                icon: const Icon(Icons.add, color: Colors.white,)
-                            )
+    return FutureBuilder<List>(
+      future: _fetchData(),
+        builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
+          if(!snapshot.hasData) {
+            return UIElements.dialog(
+              title: 'Manage Access',
+              content: const Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white)),
+              context: context,
+              onConfirmed: (){}
+            );
+          }
+          return UIElements.dialog(
+              title: 'Manage Access',
+              context: context,
+              content: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height/4,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: TextField(
+                          controller: tc,
+                          //contextMenuBuilder: , Todo
+                          style: const TextStyle(color: Colors.white),
+                          decoration: UIElements.tfDecoration(
+                              title: 'E-Mail Address',
+                              icon: IconButton(
+                                  onPressed: () {
+                                    _addPerson();
+                                  },
+                                  icon: const Icon(Icons.add, color: Colors.white,)
+                              )
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(
+                      SizedBox(
                         height: MediaQuery.of(context).size.height/6,
                         child:
-                            ListView.builder(
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: _people.length,
-                              itemBuilder: (context, i) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                  margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                  decoration: UIElements.boxDecoration(),
-                                  child: SingleChildScrollView(
-                                    physics: const BouncingScrollPhysics(),
-                                    scrollDirection: Axis.horizontal,
-                                    child: Text("${_people[i]['name']} (${_people[i]['email']})", style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                  ),
-                                );
-                              }
-                          ),
-                        )
-                  ],
+                        ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _people.length,
+                            itemBuilder: (context, i) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                ),
+                                child: Dismissible(
+                                    key: UniqueKey(),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (context) async {
+                                      GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
+                                      _fetchData().then(
+                                              (_) => setState(() {})
+
+                                      );
+                                    },
+                                    confirmDismiss: (direction){
+                                      return showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return UIElements.dialog(
+                                              title: 'Confirm Dismiss',
+                                              content: const Text('Do you really want to remove this Person', style: TextStyle(color: Colors.white, fontSize: 20),),
+                                              context: context,
+                                              onConfirmed: (){}
+                                          );
+                                        },
+                                      );
+                                    },
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                      child: const Icon(Icons.delete, color: Colors.white),
+                                    ),
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                      decoration: UIElements.boxDecoration(),
+                                      child: Text("${_people[i]['name']}", style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                    )
+                                ),
+                              );
+                            }
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
-            actions: UIElements.dialogButtons(
-              context: context,
-              callback: () {
-                setState(() {
-                  //Todo
-                });
-              },),
-          ));
-      }
+            onConfirmed: (){},
+          );
+        }
+    );
     }
-
 }

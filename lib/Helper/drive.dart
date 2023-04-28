@@ -173,11 +173,46 @@ class GoogleDrive {
 
     for (var permission in permissions.permissions!) {
       if(permission.emailAddress != userEmail) {
-        people.add({'email' : permission.emailAddress, 'name' : permission.displayName});
+        people.add({'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id});
       }
     }
 
     return people;
+  }
+
+  Future<Map> addPeople(String fileId, String email) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    var permission = gd.Permission(
+      emailAddress: email,
+      role: 'writer',
+      type: 'user'
+    );
+
+    try {
+      permission = await drive.permissions.create(
+        permission,
+        fileId,
+        sendNotificationEmail: false,
+        $fields: '*'
+      );
+      if (permission.emailAddress != null) {
+        return {'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id};
+      } else {
+        return {};
+      }
+    } catch(error) {
+      print(error);
+      return {};
+    }
+  }
+
+  removePeople(String fileId, String permissionId) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    await drive.permissions.delete(fileId, permissionId);
   }
 
   updateFile(File file, id) async {

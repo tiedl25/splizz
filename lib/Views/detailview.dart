@@ -153,18 +153,18 @@ class _DetailViewState extends State<DetailView>{
               if (transaction.description == 'payoff'){
                 return Column(
                     children: [
-                      Divider(color: Colors.grey, thickness: 2,),
+                      const Divider(color: Colors.grey, thickness: 2,),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Payoff', style: TextStyle(color: Colors.white),),
-                            Text(transaction.timestamp.toString(), style: TextStyle(color: Colors.white),)
+                            const Text('Payoff', style: TextStyle(color: Colors.white),),
+                            Text(transaction.date(), style: const TextStyle(color: Colors.white),)
                           ],
                         ),
                       ),
-                      Divider(color: Colors.grey, thickness: 2,),
+                      const Divider(color: Colors.grey, thickness: 2,),
                     ],
                 );
               } else {
@@ -183,7 +183,7 @@ class _DetailViewState extends State<DetailView>{
                       ListTile(
                         tileColor: item.members[memberMap[transaction.memberId]!].color,
                         title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
-                        subtitle: Text(transaction.timestamp.toString(), style: const TextStyle(color: Colors.black),),
+                        subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
                       )
                     ],
                   ),
@@ -226,7 +226,7 @@ class _DetailViewState extends State<DetailView>{
                               borderRadius: const BorderRadius.vertical(
                                   bottom: Radius.circular(20)),
                               child: Image(
-                                  image: const AssetImage('images/default.jpg'),
+                                  image: const AssetImage('images/default_blue.jpg'),
                                   width: MediaQuery
                                       .of(context)
                                       .size

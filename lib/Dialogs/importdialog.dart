@@ -43,80 +43,70 @@ class _ImportDialogState extends State<ImportDialog>{
     }
 
     if(_itemlist.isEmpty){
-      return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-          child: AlertDialog(
-            title: const Text('Import Splizz', style: TextStyle(color: Colors.white),),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            backgroundColor: const Color(0xFF2B2B2B),
-            content: const Text('No items available. Make sure that there are items shared with you.', style: TextStyle(fontSize: 20, color: Colors.white)),
-            actions: UIElements.dialogButtons(
-                context: context,
-                callback: () {
-                  setState(() {});
-                }),
-          ));
+      return UIElements.dialog(
+        title: 'Import Splizz',
+        context: context,
+        content: const Text('No items available. Make sure that there are items shared with you.', style: TextStyle(fontSize: 20, color: Colors.white)),
+        onConfirmed: (){
+          setState((){});
+        }
+        );
     } else {
-      return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-          child: AlertDialog(
-            content: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height/4,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height/4,
-                        child: ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _itemlist.length,
-                            itemBuilder: (context, i) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                  title: Text(_itemlist[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                  tileColor: const Color(0xFF383838),
-                                  selected: _isSelected[i],
-                                  selectedTileColor: Colors.blue,
-                                  onTap: (){
-                                    setState(() {
-                                      var selected = _isSelected[i];
-                                      _isSelected.fillRange(0, _isSelected.length, false);
-                                      _isSelected[i] = !selected;
-                                      _selection = i;
-                                    });
-                                  },
+      return UIElements.dialog(
+          title: 'Import Splizz',
+          context: context,
+          content: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height/4,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height/4,
+                      child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _itemlist.length,
+                          itemBuilder: (context, i) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
                                 ),
-                              );
-                            }
-                        )
-                    )
-                  ],
-                ),
+                                title: Text(_itemlist[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                tileColor: const Color(0xFF383838),
+                                selected: _isSelected[i],
+                                selectedTileColor: Colors.blue,
+                                onTap: (){
+                                  setState(() {
+                                    var selected = _isSelected[i];
+                                    _isSelected.fillRange(0, _isSelected.length, false);
+                                    _isSelected[i] = !selected;
+                                    _selection = i;
+                                  });
+                                },
+                              ),
+                            );
+                          }
+                      )
+                  )
+                ],
               ),
             ),
-            title: const Text('Import Splizz', style: TextStyle(color: Colors.white),),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            backgroundColor: const Color(0xFF2B2B2B),
-            actions: UIElements.dialogButtons(
-                context: context,
-                callback: () async {
-                  if (_selection != -1){
-                    File file = await GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
-                    DatabaseHelper.instance.import(file.path, _itemlist[_selection][1]);
-                    //GoogleDrive.instance.addParents(file, item.sharedId);
-                    FileHandler.instance.deleteFile(file.path);
-                    widget.setParentState((){});
-                  }
-                }),
-          ));
+          ),
+          onConfirmed: () async {
+                if (_selection != -1){
+                  File file = await GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
+                  DatabaseHelper.instance.import(file.path, _itemlist[_selection][1]);
+                  //GoogleDrive.instance.addParents(file, item.sharedId);
+                  FileHandler.instance.deleteFile(file.path);
+                  widget.setParentState((){});
+                }
+              }
+        );
     }
   }
 

@@ -36,12 +36,9 @@ class _ItemDialogState extends State<ItemDialog>{
   Widget build(BuildContext context) {
     _items = widget.items;
 
-    return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: AlertDialog(
-            title: const Text('Create a new Splizz', style: TextStyle(color: Colors.white),),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            backgroundColor: const Color(0xFF2B2B2B),
+    return UIElements.dialog(
+            title: 'Create a new Splizz',
+            context: context,
             content: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: SizedBox(
@@ -80,9 +77,7 @@ class _ItemDialogState extends State<ItemDialog>{
                 ),
               ),
             ),
-            actions: UIElements.dialogButtons(
-                context: context,
-                callback: (){
+            onConfirmed:  (){
                   List<Member> members = [];
                   for(String name in member){
                     if(name != ''){
@@ -96,8 +91,7 @@ class _ItemDialogState extends State<ItemDialog>{
                     });
                   }
                 }
-            )
-        ));
+            );
   }
 
   void _imagePicker(){
@@ -109,7 +103,9 @@ class _ItemDialogState extends State<ItemDialog>{
         context: context,
         builder: (BuildContext context){
           Color defaultColor = cm[i-1];
-          return AlertDialog(
+          return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: AlertDialog(
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
               backgroundColor: const Color(0xFF303030),
               insetPadding: EdgeInsets.zero,
@@ -133,7 +129,7 @@ class _ItemDialogState extends State<ItemDialog>{
                         );
                         Navigator.of(context).pop();
                       })
-              ));
+              )));
         });
   }
 

@@ -44,12 +44,9 @@ class _TransactionDialogState extends State<TransactionDialog>{
   Widget build(BuildContext context) {
     _init();
     
-    return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: AlertDialog(
-      title: const Text('Add new Transaction', style: TextStyle(color: Colors.white),),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-      backgroundColor: const Color(0xFF2B2B2B),
+    return UIElements.dialog(
+      title: 'Add new Transaction',
+      context: context,
       content: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: SizedBox(
@@ -124,9 +121,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
               )
           )
       ),
-      actions: UIElements.dialogButtons(
-          context: context,
-          callback: () {
+      onConfirmed: () {
             if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && _selection!=-1) {
               widget.setParentState(() {
                 int associatedId = _item.members[_selection].id!;
@@ -138,7 +133,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 _selection=-1;
               });
             }
-          }),
-    ));
+          }
+    );
   }
 }

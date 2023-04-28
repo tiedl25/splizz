@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Views/settingsview.dart';
@@ -8,7 +7,7 @@ import 'package:splizz/Views/settingsview.dart';
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
 import '../Helper/database.dart';
-import '../Helper/filehandle.dart';
+import '../Helper/uielements.dart';
 
 class MasterView extends StatefulWidget{
   const MasterView({Key? key}) : super(key: key);
@@ -116,6 +115,19 @@ class _MasterViewState extends State<MasterView>{
         setState(() {
           DatabaseHelper.instance.remove(item.id!);
         });
+      },
+      confirmDismiss: (direction){
+        return showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return UIElements.dialog(
+                title: 'Confirm Dismiss',
+                content: const Text('Do you really want to remove this Item', style: TextStyle(color: Colors.white, fontSize: 20),),
+                context: context,
+                onConfirmed: (){}
+            );
+          },
+        );
       },
       background: Container(
         margin: const EdgeInsets.symmetric(vertical: 2),

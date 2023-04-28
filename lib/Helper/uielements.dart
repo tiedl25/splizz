@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +35,22 @@ class UIElements {
     );
   }
 
+  static BackdropFilter dialog({required String title, required Widget content, required BuildContext context, required Function onConfirmed}) {
+    return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: AlertDialog(
+          title: Text(title, style: const TextStyle(color: Colors.white),),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+          backgroundColor: const Color(0xFF2B2B2B),
+          content: content,
+          actions: UIElements.dialogButtons(
+            context: context,
+            callback: onConfirmed,
+          ),
+        )
+    );
+  }
+
   static List<Widget> dialogButtons({required BuildContext context, required Function callback, String leftText='Discard', String rightText='Apply'}){
     return <Widget>[
       const Divider(
@@ -47,7 +65,7 @@ class UIElements {
                   padding: const EdgeInsets.symmetric(vertical: 0),
                   child: Text(leftText),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop(false);
                   },
                 )
             ),
@@ -60,7 +78,7 @@ class UIElements {
                   child: Text(rightText),
                   onPressed: () {
                     callback();
-                    Navigator.pop(context);
+                    Navigator.of(context).pop(true);
                   }
               ),
             )

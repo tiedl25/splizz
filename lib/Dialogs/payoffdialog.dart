@@ -31,12 +31,9 @@ class _PayoffDialogState extends State<PayoffDialog>{
   Widget build(BuildContext context) {
     _item = widget.item;
     var paymap = _item.calculatePayoff();
-    return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: AlertDialog(
-      title: const Text('Payoff', style: TextStyle(color: Colors.white),),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-      backgroundColor: const Color(0xFF2B2B2B),
+    return UIElements.dialog(
+      title: 'Payoff',
+      context: context,
       content: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: SizedBox(
@@ -52,16 +49,13 @@ class _PayoffDialogState extends State<PayoffDialog>{
             ),
         ),
       ),
-      actions: UIElements.dialogButtons(
-        context: context,
-        callback: (){
+      onConfirmed: (){
           widget.setParentState(() {
             _item.payoff();
             DatabaseHelper.instance.update(_item);
           });
         }
-      ),
-    ));
+    );
   }
 
   Widget _listElement(Member m, List<Member> paylist){
