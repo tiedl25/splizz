@@ -143,11 +143,23 @@ class GoogleDrive {
     return 'false';
   }
 
-  Future<List> getFilenames() async {
+  Future<List> getFilenames({owner=false}) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
     String? folderId = await _getFolderId(drive);
-    var response = (await drive.files.list(q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents', supportsAllDrives: true, includeItemsFromAllDrives: true)).files;
+    List<gd.File>? response;
+    if (owner) {
+      response = (await drive.files.list(
+          q: 'trashed=false and "$folderId" in parents',
+          supportsAllDrives: true,
+          includeItemsFromAllDrives: true)).files;
+    } else {
+      response = (await drive.files.list(
+          q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents',
+          supportsAllDrives: true,
+          includeItemsFromAllDrives: true)).files;
+    }
+
     var itemlist = [];
     for (var file in response!){
       if((file.name)!.startsWith('item') && await DatabaseHelper.instance.checkSharedId(file.id!)){

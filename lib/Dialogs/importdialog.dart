@@ -21,9 +21,11 @@ class ImportDialog extends StatefulWidget {
 }
 
 class _ImportDialogState extends State<ImportDialog>{
-  List _itemlist = [];
+  List _sharedList = [];
+  List _savedList = [];
   final List<bool> _isSelected = [];
-  int _selection = -1;
+  final List<bool> _isSelected2 = [];
+  List _selection = [-1, false]; //true means items is in shared list, false means in saved list
 
   @override
   void initState(){
@@ -32,17 +34,21 @@ class _ImportDialogState extends State<ImportDialog>{
   }
 
   Future<void> _fetchData() async {
-    _itemlist = await GoogleDrive.instance.getFilenames();
+    _sharedList = await GoogleDrive.instance.getFilenames();
+    _savedList = await GoogleDrive.instance.getFilenames(owner: true);
     setState((){});
   }
 
   @override
   Widget build(BuildContext context) {
-    for (var _ in _itemlist){
+    for (var i=0; i<_sharedList.length; i++){
       _isSelected.add(false);
     }
+    for (var i=0; i<_savedList.length; i++){
+      _isSelected2.add(false);
+    }
 
-    if(_itemlist.isEmpty){
+    if(_sharedList.isEmpty){
       return UIElements.dialog(
         title: 'Import Splizz',
         context: context,
@@ -59,15 +65,16 @@ class _ImportDialogState extends State<ImportDialog>{
             physics: const BouncingScrollPhysics(),
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/4,
+              height: MediaQuery.of(context).size.height/2,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  _sharedList.isNotEmpty ? const Text('Shared with me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
                   SizedBox(
-                      height: MediaQuery.of(context).size.height/4,
+                      height: MediaQuery.of(context).size.height/5,
                       child: ListView.builder(
                           physics: const BouncingScrollPhysics(),
-                          itemCount: _itemlist.length,
+                          itemCount: _sharedList.length,
                           itemBuilder: (context, i) {
                             return Container(
                               padding: const EdgeInsets.symmetric(vertical: 2),
@@ -76,7 +83,7 @@ class _ImportDialogState extends State<ImportDialog>{
                                 shape: const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(Radius.circular(10)),
                                 ),
-                                title: Text(_itemlist[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                title: Text(_sharedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
                                 tileColor: const Color(0xFF383838),
                                 selected: _isSelected[i],
                                 selectedTileColor: Colors.blue,
@@ -84,8 +91,41 @@ class _ImportDialogState extends State<ImportDialog>{
                                   setState(() {
                                     var selected = _isSelected[i];
                                     _isSelected.fillRange(0, _isSelected.length, false);
+                                    _isSelected2.fillRange(0, _isSelected2.length, false);
                                     _isSelected[i] = !selected;
-                                    _selection = i;
+                                    _selection = [i, true];
+                                  });
+                                },
+                              ),
+                            );
+                          }
+                      )
+                  ),
+                  _savedList.isNotEmpty ? const Text('Saved by me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height/5,
+                      child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _savedList.length,
+                          itemBuilder: (context, i) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                ),
+                                title: Text(_savedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                tileColor: const Color(0xFF383838),
+                                selected: _isSelected2[i],
+                                selectedTileColor: Colors.blue,
+                                onTap: (){
+                                  setState(() {
+                                    var selected = _isSelected2[i];
+                                    _isSelected2.fillRange(0, _isSelected2.length, false);
+                                    _isSelected.fillRange(0, _isSelected.length, false);
+                                    _isSelected2[i] = !selected;
+                                    _selection = [i, false];
                                   });
                                 },
                               ),
@@ -98,9 +138,17 @@ class _ImportDialogState extends State<ImportDialog>{
             ),
           ),
           onConfirmed: () async {
-                if (_selection != -1){
-                  File file = await GoogleDrive.instance.downloadFile(_itemlist[_selection][1], _itemlist[_selection][0]);
-                  DatabaseHelper.instance.import(file.path, _itemlist[_selection][1]);
+            var selection = _selection[0];
+                if (selection != -1){
+                  File file;
+                  if (_selection[1]) {
+                    file = await GoogleDrive.instance.downloadFile(_sharedList[selection][1], _sharedList[selection][0]);
+                    DatabaseHelper.instance.import(file.path, _sharedList[selection][1]);
+                  } else {
+                    file = await GoogleDrive.instance.downloadFile(_savedList[selection][1], _savedList[selection][0]);
+                    DatabaseHelper.instance.import(file.path, _savedList[selection][1]);
+                  }
+
                   //GoogleDrive.instance.addParents(file, item.sharedId);
                   FileHandler.instance.deleteFile(file.path);
                   widget.setParentState((){});
