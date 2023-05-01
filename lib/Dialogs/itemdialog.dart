@@ -39,43 +39,33 @@ class _ItemDialogState extends State<ItemDialog>{
     return UIElements.dialog(
             title: 'Create a new Splizz',
             context: context,
-            content: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: SizedBox(
+            content: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height/4,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height/4,
-                        child: ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: count,
-                            itemBuilder: (context, i) {
-                              if(i == 0) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
-                                  child: TextField(
-                                    onChanged: (value) {
-                                      setState(() {
-                                        title = value;
-                                      });
-                                    },
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: UIElements.tfDecoration(
-                                        title: 'Title',
-                                        icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
-                                  ),
-                                );
-                              }
-                              return _textField(i);
-                            }
-                        )
-                    )
-                  ],
-                ),
-              ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: count,
+                  itemBuilder: (context, i) {
+                    if(i == 0) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: TextField(
+                          onChanged: (value) {
+                            setState(() {
+                              title = value;
+                            });
+                          },
+                          style: const TextStyle(color: Colors.white),
+                          decoration: UIElements.tfDecoration(
+                              title: 'Title',
+                              icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
+                        ),
+                      );
+                    }
+                    return _textField(i);
+                  }
+              )
             ),
             onConfirmed:  (){
                   List<Member> members = [];

@@ -151,11 +151,8 @@ class _DetailViewState extends State<DetailView>{
             itemBuilder: (context, i) {
               Transaction transaction = item.history[item.history.length-1-i];
               if (transaction.description == 'payoff'){
-                return Column(
-                    children: [
-                      const Divider(color: Colors.grey, thickness: 2,),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -163,10 +160,7 @@ class _DetailViewState extends State<DetailView>{
                             Text(transaction.date(), style: const TextStyle(color: Colors.white),)
                           ],
                         ),
-                      ),
-                      const Divider(color: Colors.grey, thickness: 2,),
-                    ],
-                );
+                      );
               } else {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 5),

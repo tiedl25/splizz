@@ -30,8 +30,8 @@ class UIElements {
   static BoxDecoration boxDecoration() {
     return BoxDecoration(
         color: const Color(0xFF383838),
-        border: Border.all(color: Color(0xFF383838)),
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+        border: Border.all(color: const Color(0xFF383838)),
+        borderRadius: const BorderRadius.all(Radius.circular(15)),
     );
   }
 
@@ -39,6 +39,7 @@ class UIElements {
     return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: AlertDialog(
+          scrollable: true,
           title: Text(title, style: const TextStyle(color: Colors.white),),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
           backgroundColor: const Color(0xFF2B2B2B),
