@@ -63,74 +63,78 @@ class _ImportDialogState extends State<ImportDialog>{
           context: context,
           content: SizedBox(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/2,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _sharedList.isNotEmpty ? const Text('Shared with me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
-                    ListView.builder(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _sharedList.length,
-                        itemBuilder: (context, i) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
+              height: MediaQuery.of(context).size.height/4,
+              child: Material(
+                color: const Color(0xFF2B2B2B),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _sharedList.isNotEmpty ? const Text('Shared with me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
+                      ListView.builder(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _sharedList.length,
+                          itemBuilder: (context, i) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                ),
+                                title: Text(_sharedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                tileColor: const Color(0xFF383838),
+                                selected: _isSelected[i],
+                                selectedTileColor: Colors.blue,
+                                onTap: (){
+                                  setState(() {
+                                    var selected = _isSelected[i];
+                                    _isSelected.fillRange(0, _isSelected.length, false);
+                                    _isSelected2.fillRange(0, _isSelected2.length, false);
+                                    _isSelected[i] = !selected;
+                                    _selection = [i, true];
+                                  });
+                                },
                               ),
-                              title: Text(_sharedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                              tileColor: const Color(0xFF383838),
-                              selected: _isSelected[i],
-                              selectedTileColor: Colors.blue,
-                              onTap: (){
-                                setState(() {
-                                  var selected = _isSelected[i];
-                                  _isSelected.fillRange(0, _isSelected.length, false);
-                                  _isSelected2.fillRange(0, _isSelected2.length, false);
-                                  _isSelected[i] = !selected;
-                                  _selection = [i, true];
-                                });
-                              },
-                            ),
-                          );
-                        }
-                    ),
-                    _savedList.isNotEmpty && _sharedList.isNotEmpty ? Container(height: 20,) : Container(),
-                    _savedList.isNotEmpty ? const Text('Saved by me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
-                    ListView.builder(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _savedList.length,
-                        itemBuilder: (context, i) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                            );
+                          }
+                      ),
+                      _savedList.isNotEmpty && _sharedList.isNotEmpty ? Container(height: 20,) : Container(),
+                      _savedList.isNotEmpty ? const Text('Saved by me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
+                      ListView.builder(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _savedList.length,
+                          itemBuilder: (context, i) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                ),
+                                title: Text(_savedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
+                                tileColor: const Color(0xFF383838),
+                                selected: _isSelected2[i],
+                                selectedTileColor: Colors.blue,
+                                onTap: (){
+                                  setState(() {
+                                    var selected = _isSelected2[i];
+                                    _isSelected2.fillRange(0, _isSelected2.length, false);
+                                    _isSelected.fillRange(0, _isSelected.length, false);
+                                    _isSelected2[i] = !selected;
+                                    _selection = [i, false];
+                                  });
+                                },
                               ),
-                              title: Text(_savedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                              tileColor: const Color(0xFF383838),
-                              selected: _isSelected2[i],
-                              selectedTileColor: Colors.blue,
-                              onTap: (){
-                                setState(() {
-                                  var selected = _isSelected2[i];
-                                  _isSelected2.fillRange(0, _isSelected2.length, false);
-                                  _isSelected.fillRange(0, _isSelected.length, false);
-                                  _isSelected2[i] = !selected;
-                                  _selection = [i, false];
-                                });
-                              },
-                            ),
-                          );
-                        }
-                    )
+                            );
+                          }
+                      )
 
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
