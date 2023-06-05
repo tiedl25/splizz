@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #Tue Jun 06 00:06:12 CEST 2023
+=======
+#Tue May 02 22:32:37 CEST 2023
+>>>>>>> 81d8ec64e5aaab0230e5a71d01e71209bd640769
 base.0=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeLibDexDebug/0/classes.dex
 base.2=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex

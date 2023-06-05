@@ -142,49 +142,51 @@ class _DetailViewState extends State<DetailView>{
             borderRadius: const BorderRadius.all(Radius.circular(15)),
           ),
           margin: const EdgeInsets.all(5),
-          child:
-          ListView.builder(
-            padding: const EdgeInsets.all(10),
-            physics: const BouncingScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: item.history.length,
-            itemBuilder: (context, i) {
-              Transaction transaction = item.history[item.history.length-1-i];
-              if (transaction.description == 'payoff'){
-                return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Payoff', style: TextStyle(color: Colors.white),),
-                            Text(transaction.date(), style: const TextStyle(color: Colors.white),)
-                          ],
-                        ),
-                      );
-              } else {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 5),
-                  decoration: BoxDecoration(
-                      color: item.members[memberMap[transaction.memberId]!].color,
-                      borderRadius: const BorderRadius.all(Radius.circular(10))
-                  ),
-                  child: ExpansionTile(
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 10),
-                    childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                    title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
-                    subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
-                    children: [
-                      ListTile(
-                        tileColor: item.members[memberMap[transaction.memberId]!].color,
-                        title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
-                        subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
-                      )
-                    ],
-                  ),
-                );
-              }
+          child: Material(
+            color: const Color(0xFF2B2B2B),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(10),
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: item.history.length,
+              itemBuilder: (context, i) {
+                Transaction transaction = item.history[item.history.length-1-i];
+                if (transaction.description == 'payoff'){
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Payoff', style: TextStyle(color: Colors.white),),
+                        Text(transaction.date(), style: const TextStyle(color: Colors.white),)
+                      ],
+                    ),
+                  );
+                } else {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 5),
+                    decoration: BoxDecoration(
+                        color: item.members[memberMap[transaction.memberId]!].color,
+                        borderRadius: const BorderRadius.all(Radius.circular(10))
+                    ),
+                    child: ExpansionTile(
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+                      childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                      title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+                      subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
+                      children: [
+                        ListTile(
+                          tileColor: item.members[memberMap[transaction.memberId]!].color,
+                          title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
+                          subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
+                        )
+                      ],
+                    ),
+                  );
+                }
 
-            },
+              },
+            ),
           )
       ),
     );
