@@ -129,7 +129,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
 
                 _item.addTransaction(_selection, tract);
                 DatabaseHelper.instance.addTransaction(tract, _item.id!, associatedId);
-                DatabaseHelper.instance.update(_item);
+                //DatabaseHelper.instance.update(_item);
                 _selection=-1;
               });
             }

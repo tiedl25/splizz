@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Helper/filehandle.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 
 import '../Models/item.dart';
@@ -19,6 +20,8 @@ class DatabaseHelper {
 
   static Database? _database;
   Future<Database> get database async => _database ??= await _initDatabase();
+
+  static var lock = Lock();
 
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -110,39 +113,42 @@ class DatabaseHelper {
 
   Future<Item> getItem(int id) async {
     Database db = await instance.database;
-    var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
-    Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
+    Item item = Item('tmp');
+    await lock.synchronized(() async{
+      var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
+      item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
 
-    item.members = await getMembers(id);
-    item.history = await getUniqueTransactions(id);
-
+      item.members = await getMembers(id);
+      item.history = await getUniqueTransactions(id);
+    });
     return item;
   }
 
   Future<Item> itemSync(Item item) async {
-    if (item.sharedId == '') return item;
+    await lock.synchronized(() async{
+      if (item.sharedId != '')
+      {
+        // download item from GoogleDrive and import it
+        String filename = FileHandler.instance.filename(item);
+        File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+        Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
+        driveItem.sharedId = item.sharedId;
 
-    String filename = FileHandler.instance.filename(item);
-    File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+        var history = item.history;
+        //assure that history contains all transactions not only the unique ones
+        item.history = await getTransactions(item.id!);
 
-    Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
-    driveItem.sharedId = item.sharedId;
+        if (listEquals(item.history, driveItem.history)) {
+          FileHandler.instance.deleteFile(file.path);
+          item.history = history;
+        } else {
+          item = await conflictManagement(item, driveItem);
 
-    var history = item.history;
-    //assure that history contains all transactions not only the unique ones
-    item.history = await getTransactions(item.id!);
-
-    if (listEquals(item.history, driveItem.history)) {
-      FileHandler.instance.deleteFile(file.path);
-      item.history = history;
-      return item;
-    }
-    item = await conflictManagement(item, driveItem);
-
-    export(item.id!);
-    GoogleDrive.instance.updateFile(file, item.sharedId);
-    FileHandler.instance.deleteFile(file.path);
-
+          await export(item.id!);
+          GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => FileHandler.instance.deleteFile(file.path));
+        }
+      }
+    });
     return item;
   }
 
@@ -165,7 +171,7 @@ class DatabaseHelper {
       }
     }
 
-    update(item);
+    //update(item);
     item.history = await getUniqueTransactions(item.id!);
 
     return item;
@@ -220,7 +226,17 @@ class DatabaseHelper {
   Future<int> addTransaction(Transaction transaction, int itemId, [int? memberId]) async {
     Database db = await instance.database;
     var map = transaction.toMap();
-    map.addAll({'itemId' : itemId, 'memberId' : memberId});
+
+    await lock.synchronized(() async {
+      map.addAll({'itemId' : itemId, 'memberId' : memberId});
+
+      await db.rawUpdate('UPDATE item_members SET total = total + ${transaction.value} WHERE id = $memberId');
+      await db.rawUpdate('UPDATE item_members SET balance = balance + ${transaction.value} WHERE id = $memberId');
+      int len = (await getMembers(itemId)).length;
+      double val = transaction.value/len;
+      await db.rawUpdate('UPDATE item_members SET balance = balance - $val WHERE itemId = $itemId');
+    });
+
     return await db.insert('item_transactions', map);
   }
 
