@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 
 import '../Models/item.dart';
-import '../Models/transaction.dart';
 import '../Models/member.dart';
 import '../Helper/uielements.dart';
 
@@ -50,9 +49,11 @@ class _PayoffDialogState extends State<PayoffDialog>{
         ),
       ),
       onConfirmed: (){
+        var timestamp = DateTime.now();
           widget.setParentState(() {
-            _item.payoff();
-            DatabaseHelper.instance.update(_item);
+            DatabaseHelper.instance.payoff(_item, timestamp).then((value) => _item.payoff(timestamp));
+
+            //DatabaseHelper.instance.update(_item);
           });
         }
     );

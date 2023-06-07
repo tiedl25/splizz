@@ -128,7 +128,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, memberId: associatedId);
 
                 _item.addTransaction(_selection, tract);
-                DatabaseHelper.instance.addTransaction(tract, _item.id!, associatedId);
+                DatabaseHelper.instance.addTransactionCalculate(tract, _item.id!, associatedId);
                 //DatabaseHelper.instance.update(_item);
                 _selection=-1;
               });

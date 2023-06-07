@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
@@ -65,13 +64,11 @@ class Item{
     history.add(t);
   }
 
-  void payoff(){
-    var timestamp = DateTime.now();
+  void payoff(DateTime timestamp){
     for(Member e in _members){
       Transaction t = Transaction.payoff(-e.balance, memberId: e.id, timestamp: timestamp);
       history.add(t);
       e.payoff(t);
-      DatabaseHelper.instance.addTransaction(t, id!, e.id);
     }
   }
 
