@@ -51,12 +51,21 @@ class Item{
   ];
 
   void addTransaction(int associatedId, Transaction t){
-    _members[associatedId].add(t);
+    _members[associatedId].addTransaction(t);
     history.add(t);
     double val = t.value/_members.length;
     for(int i=0; i<_members.length; i++){
       _members[i].sub(val);
     }
+  }
+
+  void deleteTransaction(int associatedId, Transaction t){
+    _members[associatedId].deleteTransaction(t);
+    double val = t.value/_members.length;
+    for(int i=0; i<_members.length; i++){
+      _members[i].add(val);
+    }
+    t.delete();
   }
 
   void addPayoff(int associatedId, Transaction t){

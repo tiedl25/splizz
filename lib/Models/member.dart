@@ -8,6 +8,7 @@ class Member{
   late double _total = 0;
   late double _balance = 0;
   late Color _color;
+  bool _active = true;
   late List<Transaction> _history = [];
 
 //Getter
@@ -16,6 +17,7 @@ class Member{
   double get total => _total;
   double get balance => _balance;
   Color get color => _color;
+  bool get active => _active;
   List<Transaction> get history => _history;
 
   //Setter
@@ -26,8 +28,12 @@ class Member{
     _history = value;
   }
 
+  set active(bool value) {
+    _active = value;
+  }
+
   //Constructor
-  Member(this._name, this._color, {id, total, balance, history}): _id=id{
+  Member(this._name, this._color, {id, total, balance, history, active}): _id=id{
     if (total==null) {
       _total=0;
     } else {
@@ -38,6 +44,11 @@ class Member{
     } else {
       _balance=balance.toDouble();
     }
+    if (active==null) {
+      _active=true;
+    } else {
+      _active=active;
+    }
   }
 
   factory Member.fromMember(Member m, [int? id]){
@@ -47,16 +58,26 @@ class Member{
         id: id ?? m.id,
         total: m.total,
         balance: m.balance,
-        history: m.history
+        history: m.history,
+        active: m.active
     );
   }
 
   //Methods
 
-  void add(Transaction t){
+  void addTransaction(Transaction t){
     history.add(t);
     _total += t.value;
     _balance += t.value;
+  }
+
+  void deleteTransaction(Transaction t){
+    _total -= t.value;
+    _balance -= t.value;
+  }
+
+  void add(double d){
+    _balance += d;
   }
 
   void sub(double d){
@@ -78,6 +99,7 @@ class Member{
     'color': color.value,
     'total': total,
     'balance': balance,
+    'active': active,
   };
 
   factory Member.fromMap(Map<String, dynamic> map) {
@@ -87,6 +109,7 @@ class Member{
       id: map['id'],
       total: map['total'],
       balance: map['balance'],
+      active: map['active'] == 1 ? true : false
     );
   }
 
@@ -97,7 +120,8 @@ class Member{
         Color(data['color']),
         total: data['total'],
         balance: data['balance'],
-        history: historyData.map((d) => Transaction.fromJson(d)).toList()
+        history: historyData.map((d) => Transaction.fromJson(d)).toList(),
+        active: data['active'] == 1 ? true : false
     );
   }
 
@@ -118,5 +142,7 @@ class Member{
       'total': total,
       'balance': balance,
       'history': history.map((transaction) => transaction.toJson()).toList(),
-      'color': color.value};
+      'color': color.value,
+      'active': active
+  };
 }

@@ -49,6 +49,7 @@ class DatabaseHelper {
         color INTEGER,
         total INTEGER,
         balance INTEGER,        
+        active INTEGER,
         
         itemId INTEGER,
         FOREIGN KEY (itemId) REFERENCES splizz_items (id)
@@ -60,6 +61,7 @@ class DatabaseHelper {
         description TEXT,
         timestamp TEXT,
         value REAL,
+        deleted INTEGER,
         
         itemId INTEGER,
         memberId INTEGER,

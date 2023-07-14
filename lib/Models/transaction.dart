@@ -5,6 +5,7 @@ class Transaction{
   late String _description;
   late DateTime _timestamp;
   late double _value;
+  bool _deleted = false;
 
   //Getter
   int? get id => _id;
@@ -12,17 +13,23 @@ class Transaction{
   String get description => _description;
   DateTime get timestamp => _timestamp;
   double get value => _value;
+  bool get deleted => _deleted;
 
   //Setter
   set memberId(int? memberId) {_memberId=memberId;}
 
   //Constructor
-  Transaction(this._description, this._value, {id, memberId, timestamp}): _id=id, _memberId=memberId{
+  Transaction(this._description, this._value, {id, memberId, timestamp, deleted}): _id=id, _memberId=memberId{
     if (timestamp == null){
       _timestamp = DateTime.now();
     }
     else {
       _timestamp = timestamp;
+    }
+    if (deleted == null) {
+      _deleted = false;
+    } else {
+      _deleted = deleted;
     }
   }
 
@@ -34,6 +41,10 @@ class Transaction{
       memberId: memberId,
       timestamp: timestamp,
     );
+  }
+
+  void delete(){
+    _deleted = true;
   }
 
   //Operator
@@ -53,6 +64,7 @@ class Transaction{
     'memberId': memberId,
     'timestamp': timestamp.toString(),
     'value': value,
+    'deleted': deleted
   };
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
@@ -62,6 +74,7 @@ class Transaction{
       id: map['id'],
       memberId: map['memberId'],
       timestamp: DateTime.parse(map['timestamp']),
+      deleted: map['deleted'] == 1 ? true : false
     );
   }
 
@@ -71,6 +84,7 @@ class Transaction{
         data['value'],
         memberId: data['associated'],
         timestamp: DateTime.parse(data['timestamp']),
+        deleted: data['deleted'] == 1 ? true : false
     );
   }
 
@@ -88,6 +102,7 @@ class Transaction{
     'associated': memberId,
     'description': description,
     'timestamp': '$timestamp',
-    'value': value
+    'value': value,
+    'deleted': deleted
   };
 }

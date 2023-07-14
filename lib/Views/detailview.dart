@@ -4,6 +4,7 @@ import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
 import '../Helper/database.dart';
+import '../Helper/uielements.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -163,26 +164,9 @@ class _DetailViewState extends State<DetailView>{
                     ),
                   );
                 } else {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 5),
-                    decoration: BoxDecoration(
-                        color: item.members[memberMap[transaction.memberId]!].color,
-                        borderRadius: const BorderRadius.all(Radius.circular(10))
-                    ),
-                    child: ExpansionTile(
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 10),
-                      childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                      title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
-                      subtitle: Text('${transaction.value.toString()}€', style: const TextStyle(color: Colors.black),),
-                      children: [
-                        ListTile(
-                          tileColor: item.members[memberMap[transaction.memberId]!].color,
-                          title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
-                          subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
-                        )
-                      ],
-                    ),
-                  );
+                  return transaction.deleted ?
+                    _expansionTile(transaction, memberMap) :
+                    _dismissibleTile(transaction, memberMap);
                 }
 
               },
@@ -192,8 +176,72 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  reload() async {
+  Widget _dismissibleTile(Transaction transaction, Map <int, int> memberMap) {
+    return Dismissible(
+      key: UniqueKey(),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction){
+        return showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return UIElements.dialog(
+                title: 'Confirm Dismiss',
+                content: const Text('Do you really want to remove this Item', style: TextStyle(color: Colors.white, fontSize: 20),),
+                context: context,
+                onConfirmed: (){
+                  setState(() {
+                    item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
+                    DatabaseHelper.instance.update(item);
+                  });
 
+                }
+            );
+          },
+        );
+      },
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 5),
+        decoration: const BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+      child: _expansionTile(transaction, memberMap)
+    );
+  }
+
+  Widget _expansionTile(Transaction transaction, Map <int, int> memberMap){
+    return Container(
+      foregroundDecoration: transaction.deleted ? const BoxDecoration(
+          color: Color(0x99000000),
+          backgroundBlendMode: BlendMode.darken,
+          borderRadius: BorderRadius.all(Radius.circular(10))
+      ) : null,
+      margin: const EdgeInsets.only(bottom: 5),
+      decoration: BoxDecoration(
+          color: item.members[memberMap[transaction.memberId]!].color,
+          borderRadius: const BorderRadius.all(Radius.circular(10))
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 10),
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+        title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+        subtitle: Text('${transaction.value.toString()}€', style: TextStyle(
+            decoration: transaction.deleted ? TextDecoration.lineThrough : null,
+            color: Colors.black),),
+        children: [
+          ListTile(
+            title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
+            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildBody() {
