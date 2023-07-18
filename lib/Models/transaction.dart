@@ -52,7 +52,14 @@ class Transaction{
   bool operator ==(dynamic other) =>
       other.description == description &&
           other.timestamp == timestamp &&
-          other.value == value;
+          other.value == value &&
+          other.deleted == deleted;
+
+  bool isSimilar(dynamic other) =>
+      other.description == description &&
+          other.timestamp == timestamp &&
+          other.value == value &&
+          other.deleted != deleted;
 
   String date(){
     return '${_timestamp.day}.${_timestamp.month}.${_timestamp.year}';
@@ -84,7 +91,7 @@ class Transaction{
         data['value'],
         memberId: data['associated'],
         timestamp: DateTime.parse(data['timestamp']),
-        deleted: data['deleted'] == 1 ? true : false
+        deleted: data['deleted']
     );
   }
 

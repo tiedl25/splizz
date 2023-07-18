@@ -50,6 +50,7 @@ class Item{
     Colors.lime.shade400,
   ];
 
+  // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t){
     _members[associatedId].addTransaction(t);
     history.add(t);
@@ -59,6 +60,7 @@ class Item{
     }
   }
 
+  // Mark transaction as deleted, while also updating total and balance of all members
   void deleteTransaction(int associatedId, Transaction t){
     _members[associatedId].deleteTransaction(t);
     double val = t.value/_members.length;
@@ -66,6 +68,12 @@ class Item{
       _members[i].add(val);
     }
     t.delete();
+  }
+
+  // Add new transaction to history and member history without updating total/balance of members
+  void pushTransaction(int associatedId, Transaction t){
+    _members[associatedId].pushTransaction(t);
+    history.add(t);
   }
 
   void addPayoff(int associatedId, Transaction t){

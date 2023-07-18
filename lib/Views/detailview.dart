@@ -191,9 +191,8 @@ class _DetailViewState extends State<DetailView>{
                 onConfirmed: (){
                   setState(() {
                     item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
-                    DatabaseHelper.instance.update(item);
+                    DatabaseHelper.instance.deleteTransactionCalculate(transaction, item.id!);
                   });
-
                 }
             );
           },

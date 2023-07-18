@@ -71,6 +71,10 @@ class Member{
     _balance += t.value;
   }
 
+  void pushTransaction(Transaction t){
+    history.add(t);
+  }
+
   void deleteTransaction(Transaction t){
     _total -= t.value;
     _balance -= t.value;
@@ -121,7 +125,7 @@ class Member{
         total: data['total'],
         balance: data['balance'],
         history: historyData.map((d) => Transaction.fromJson(d)).toList(),
-        active: data['active'] == 1 ? true : false
+        active: data['active']
     );
   }
 
