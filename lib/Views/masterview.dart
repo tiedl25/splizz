@@ -94,14 +94,22 @@ class _MasterViewState extends State<MasterView>{
           }
           return snapshot.data!.isEmpty ?
               const Center(child: Text('No items in list', style: TextStyle(fontSize: 20, color: Colors.white),),)
-              : ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, i) {
-                return _buildDismissible(snapshot.data![i]);
-              }
-          );
+              : RefreshIndicator(
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                  //physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, i) {
+                    return _buildDismissible(snapshot.data![i]);
+                  }
+              ),
+              onRefresh: (){
+                setState(() {
+
+                });
+                return Future(() => null);
+              });
         }
       ),
     );

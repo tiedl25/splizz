@@ -145,31 +145,39 @@ class _DetailViewState extends State<DetailView>{
           margin: const EdgeInsets.all(5),
           child: Material(
             color: const Color(0xFF2B2B2B),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(10),
-              physics: const BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: item.history.length,
-              itemBuilder: (context, i) {
-                Transaction transaction = item.history[item.history.length-1-i];
-                if (transaction.description == 'payoff'){
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Payoff', style: TextStyle(color: Colors.white),),
-                        Text(transaction.date(), style: const TextStyle(color: Colors.white),)
-                      ],
-                    ),
-                  );
-                } else {
-                  return transaction.deleted ?
+            child: RefreshIndicator(
+              onRefresh: (){
+                setState(() {
+
+                });
+                return Future(() => null);
+              },
+              child: ListView.builder(
+                padding: const EdgeInsets.all(10),
+                physics: const AlwaysScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: item.history.length,
+                itemBuilder: (context, i) {
+                  Transaction transaction = item.history[item.history.length-1-i];
+                  if (transaction.description == 'payoff'){
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Payoff', style: TextStyle(color: Colors.white),),
+                          Text(transaction.date(), style: const TextStyle(color: Colors.white),)
+                        ],
+                      ),
+                    );
+                  } else {
+                    return transaction.deleted ?
                     _expansionTile(transaction, memberMap) :
                     _dismissibleTile(transaction, memberMap);
-                }
+                  }
 
-              },
+                },
+              ),
             ),
           )
       ),
@@ -254,7 +262,7 @@ class _DetailViewState extends State<DetailView>{
             item = snapshot.data!;
             unbalanced = _checkBalances();
             return FutureBuilder<Item>(
-              future: DatabaseHelper.instance.itemSync(item),
+                future: DatabaseHelper.instance.itemSync(item),
                 builder: (BuildContext context, AsyncSnapshot<Item> syncSnapshot) {
                   if (syncSnapshot.hasData) {
                     item = syncSnapshot.data!;
