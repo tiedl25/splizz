@@ -154,7 +154,7 @@ class _DetailViewState extends State<DetailView>{
               },
               child: ListView.builder(
                 padding: const EdgeInsets.all(10),
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 shrinkWrap: true,
                 itemCount: item.history.length,
                 itemBuilder: (context, i) {
@@ -277,7 +277,7 @@ class _DetailViewState extends State<DetailView>{
                               borderRadius: const BorderRadius.vertical(
                                   bottom: Radius.circular(20)),
                               child: Image(
-                                  image: const AssetImage('images/default_blue.jpg'),
+                                  image: AssetImage('images/image_${item.image}.jpg'),
                                   width: MediaQuery
                                       .of(context)
                                       .size

@@ -10,14 +10,16 @@ class Item{
   bool _owner;
   List<Member> _members = [];
   List<Transaction> _history = [];
+  int _image;
 
-  //Getter
+   //Getter
   int? get id => _id;
   String get name => _name;
   String get sharedId => _sharedId;
   bool get owner => _owner;
   List<Member> get members => _members;
   List<Transaction> get history => _history;
+  int get image => _image;
 
   //Setter
   set members(List<Member> members) {_members = members;}
@@ -26,7 +28,7 @@ class Item{
   set owner(bool owner) {_owner = owner;}
 
   //Constructor
-  Item(this._name, {id, sharedId='', owner=true, members, history}): _id=id, _sharedId=sharedId, _owner=owner {
+  Item(this._name, {id, sharedId='', owner=true, members, history, image=1}): _id=id, _sharedId=sharedId, _owner=owner, _image=image {
     if(members!=null){
       _members=members;
     }
@@ -143,6 +145,7 @@ class Item{
     'id': id,
     'sharedId': sharedId,
     'owner': owner,
+    'image': image,
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
@@ -151,8 +154,17 @@ class Item{
       id: map['id'],
       sharedId: map['sharedId'],
       owner: map['owner'] == 1 ? true : false,
+      image: map['image']
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'id': id,
+    'member': members.map((m) => m.toJson()).toList(),
+    'history': history.map((transaction) => transaction.toJson()).toList(),
+    'image': image
+  };
 
   factory Item.fromJson(Map<String, dynamic> data) {
     final historyData = data['history'] as List<dynamic>;
@@ -161,7 +173,8 @@ class Item{
         data['name'],
         owner: false,
         members: memberData.map((d) => Member.fromJson(d)).toList(),
-        history: historyData.map((d) => Transaction.fromJson(d)).toList()
+        history: historyData.map((d) => Transaction.fromJson(d)).toList(),
+        image: data['image']
     );
   }
 
@@ -175,11 +188,4 @@ class Item{
         history: historyData.map((d) => Transaction.fromOld(d)).toList()
     );
   }
-
-  Map<String, dynamic> toJson() => {
-    'name': name,
-    'id': id,
-    'member': members.map((m) => m.toJson()).toList(),
-    'history': history.map((transaction) => transaction.toJson()).toList()
-  };
 }

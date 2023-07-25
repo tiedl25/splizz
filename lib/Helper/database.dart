@@ -39,7 +39,9 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY,
         name TEXT,
         sharedId TEXT,
-        owner INTEGER
+        owner INTEGER,
+        image INTEGER,
+        timestamp TEXT
       )
     ''');
     await db.execute('''
@@ -50,6 +52,7 @@ class DatabaseHelper {
         total INTEGER,
         balance INTEGER,        
         active INTEGER,
+        timestamp TEXT,
         
         itemId INTEGER,
         FOREIGN KEY (itemId) REFERENCES splizz_items (id)
@@ -60,6 +63,7 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY,
         description TEXT,
         timestamp TEXT,
+        date TEXT,  
         value REAL,
         deleted INTEGER,
         

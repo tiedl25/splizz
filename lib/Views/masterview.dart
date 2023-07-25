@@ -87,17 +87,13 @@ class _MasterViewState extends State<MasterView>{
         future: DatabaseHelper.instance.getItems(),
         builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
           if (!snapshot.hasData){
-            //DatabaseHelper.instance.migrate('item_3.json');
-            //DatabaseHelper.instance.import('item{relationship stuff}', '1hoCvDgWZS-vdPiEcFMV79vb6Y3xwQa-J');
-            //DatabaseHelper.instance.import('item{Test}', '1jKwF-EyOwkqXWpziiMYwNdcBvsoRc7Tk');
             return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
           }
           return snapshot.data!.isEmpty ?
               const Center(child: Text('No items in list', style: TextStyle(fontSize: 20, color: Colors.white),),)
               : RefreshIndicator(
               child: ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                  //physics: const BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
                   padding: const EdgeInsets.all(16),
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, i) {

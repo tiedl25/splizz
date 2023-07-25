@@ -31,6 +31,7 @@ class _ItemDialogState extends State<ItemDialog>{
   List<String> member = [];
   var cm = List<Color>.from(Item.colormap);
   int count = 2;
+  int image = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +77,7 @@ class _ItemDialogState extends State<ItemDialog>{
                   }
                   if(title != '' && members.length > 1) {
                     widget.setParentState(() {
-                      Item newItem = Item(title, members: members);
+                      Item newItem = Item(title, members: members, image: image);
                       DatabaseHelper.instance.add(newItem);
                     });
                   }
@@ -85,7 +86,47 @@ class _ItemDialogState extends State<ItemDialog>{
   }
 
   void _imagePicker(){
-
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: AlertDialog(
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+                  backgroundColor: const Color(0xFF303030),
+                  insetPadding: EdgeInsets.zero,
+                  content: SizedBox(
+                      width: MediaQuery.of(context).size.width/2,
+                      height: MediaQuery.of(context).size.height/3,
+                      child: GridView.count(
+                        childAspectRatio: 1.5,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 20,
+                        physics: const BouncingScrollPhysics(),
+                        crossAxisCount: 2,
+                        children: List.generate(6, (index){
+                          return GestureDetector(
+                            onTap: (){
+                              setState((){
+                                image = index+1;
+                                Navigator.of(context).pop();
+                              });
+                              },
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(Radius.circular(15)),
+                              child: Image(
+                                  fit: BoxFit.cover,
+                                  image: AssetImage('images/image_${index+1}.jpg')
+                              ),
+                            ),
+                          );
+                      },
+                      )
+                  )
+                  )
+              )
+          );
+        });
   }
 
   void _colorPicker(int i){
