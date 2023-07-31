@@ -1,3 +1,5 @@
+import 'operation.dart';
+
 class Transaction{
   //Private Variables
   final int? _id;
@@ -6,6 +8,7 @@ class Transaction{
   late DateTime _timestamp;
   late double _value;
   bool _deleted = false;
+  late List<Operation> operations;
 
   //Getter
   int? get id => _id;
@@ -19,7 +22,7 @@ class Transaction{
   set memberId(int? memberId) {_memberId=memberId;}
 
   //Constructor
-  Transaction(this._description, this._value, {id, memberId, timestamp, deleted}): _id=id, _memberId=memberId{
+  Transaction(this._description, this._value, {id, memberId, timestamp, deleted, operations}): _id=id, _memberId=memberId{
     if (timestamp == null){
       _timestamp = DateTime.now();
     }
@@ -31,20 +34,22 @@ class Transaction{
     } else {
       _deleted = deleted;
     }
+    if (operations == null){
+      this.operations = [];
+    } else {
+      this.operations = operations;
+    }
   }
 
-  factory Transaction.payoff(value, {id, memberId, timestamp}){
+  factory Transaction.payoff(value, {id, memberId, timestamp, operations}){
     return Transaction(
       'payoff',
       value,
       id: id,
       memberId: memberId,
       timestamp: timestamp,
+      operations: operations,
     );
-  }
-
-  void delete(){
-    _deleted = true;
   }
 
   //Operator
@@ -61,8 +66,13 @@ class Transaction{
           other.value == value &&
           other.deleted != deleted;
 
+  //Methods
   String date(){
     return '${_timestamp.day}.${_timestamp.month}.${_timestamp.year}';
+  }
+
+  void delete(){
+    _deleted = true;
   }
 
   Map<String, dynamic> toMap() => {
@@ -85,31 +95,24 @@ class Transaction{
     );
   }
 
-  factory Transaction.fromJson(Map<String, dynamic> data) {
-    return Transaction(
-        data['description'],
-        data['value'],
-        memberId: data['associated'],
-        timestamp: DateTime.parse(data['timestamp']),
-        deleted: data['deleted']
-    );
-  }
-
-  factory Transaction.fromOld(Map<String, dynamic> data) {
-    return Transaction(
-      data['description'],
-      data['value'],
-      memberId: data['associated']['id'],
-      timestamp: DateTime.parse(data['_timestamp']),
-    );
-  }
-
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'associated': memberId,
+    'memberId': memberId,
     'description': description,
     'timestamp': '$timestamp',
     'value': value,
-    'deleted': deleted
+    'deleted': deleted,
+    'operations': operations.map((operation) => operation.toJson()).toList(),
   };
+
+  factory Transaction.fromJson(Map<String, dynamic> data) {
+    final operationsData = data['operations'] as List<dynamic>;
+    return Transaction(
+        data['description'],
+        data['value'],
+        memberId: data['memberId'],
+        timestamp: DateTime.parse(data['timestamp']),
+        deleted: data['deleted'],
+        operations: operationsData.map((d) => Operation.fromJson(d)).toList(),
+    );
+  }
 }

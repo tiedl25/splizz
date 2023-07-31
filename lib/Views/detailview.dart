@@ -198,8 +198,9 @@ class _DetailViewState extends State<DetailView>{
                 context: context,
                 onConfirmed: (){
                   setState(() {
-                    item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
-                    DatabaseHelper.instance.deleteTransactionCalculate(transaction, item.id!);
+                    // Todo item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
+                    transaction.delete();
+                    DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
                   });
                 }
             );

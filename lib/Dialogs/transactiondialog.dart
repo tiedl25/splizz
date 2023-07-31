@@ -126,9 +126,11 @@ class _TransactionDialogState extends State<TransactionDialog>{
               widget.setParentState(() {
                 int associatedId = _item.members[_selection].id!;
                 Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, memberId: associatedId);
+                List<int> involvedMembersListIds = List.generate(_item.members.length, (index) => index);
+                List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
 
-                _item.addTransaction(_selection, tract);
-                DatabaseHelper.instance.addTransactionCalculate(tract, _item.id!, associatedId);
+                _item.addTransaction(_selection, tract, involvedMembersListIds);
+                DatabaseHelper.instance.addTransactionCalculate(tract, _item.id!, associatedId, involvedMembersDbIds);
                 //DatabaseHelper.instance.update(_item);
                 _selection=-1;
               });

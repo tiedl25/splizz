@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
+import 'operation.dart';
+
 class Item{
   //Private Variables
   final int? _id;
@@ -53,40 +55,35 @@ class Item{
   ];
 
   // Add new transaction to history and member history, while also updating total and balance of all members
-  void addTransaction(int associatedId, Transaction t){
+  void addTransaction(int associatedId, Transaction t, List<int> involvedMembers){
     _members[associatedId].addTransaction(t);
     history.add(t);
-    double val = t.value/_members.length;
-    for(int i=0; i<_members.length; i++){
-      _members[i].sub(val);
+
+    if(!t.deleted)
+    {
+      double val = t.value/involvedMembers.length;
+
+      for(int i in involvedMembers){
+        _members[i].sub(val);
+      }
     }
   }
 
   // Mark transaction as deleted, while also updating total and balance of all members
   void deleteTransaction(int associatedId, Transaction t){
     _members[associatedId].deleteTransaction(t);
-    double val = t.value/_members.length;
-    for(int i=0; i<_members.length; i++){
-      _members[i].add(val);
+
+    for(Operation o in t.operations){
+      // Todo
+      //_members[i].add(val);
     }
     t.delete();
   }
 
-  // Add new transaction to history and member history without updating total/balance of members
-  void pushTransaction(int associatedId, Transaction t){
-    _members[associatedId].pushTransaction(t);
-    history.add(t);
-  }
-
-  void addPayoff(int associatedId, Transaction t){
-    _members[associatedId].payoff(t);
-    history.add(t);
-  }
-
   void payoff(DateTime timestamp){
+    Transaction t = Transaction.payoff(0.0, memberId: -1, timestamp: timestamp);
+    history.add(t);
     for(Member e in _members){
-      Transaction t = Transaction.payoff(-e.balance, memberId: e.id, timestamp: timestamp);
-      history.add(t);
       e.payoff(t);
     }
   }
@@ -160,7 +157,6 @@ class Item{
 
   Map<String, dynamic> toJson() => {
     'name': name,
-    'id': id,
     'member': members.map((m) => m.toJson()).toList(),
     'history': history.map((transaction) => transaction.toJson()).toList(),
     'image': image
@@ -175,17 +171,6 @@ class Item{
         members: memberData.map((d) => Member.fromJson(d)).toList(),
         history: historyData.map((d) => Transaction.fromJson(d)).toList(),
         image: data['image']
-    );
-  }
-
-  factory Item.fromOld(Map<String, dynamic> data) {
-    final historyData = data['history'] as List<dynamic>;
-    final memberData = data['member'] as List<dynamic>;
-
-    return Item(
-        data['name'],
-        members: memberData.map((d) => Member.fromOld(d)).toList(),
-        history: historyData.map((d) => Transaction.fromOld(d)).toList()
     );
   }
 }

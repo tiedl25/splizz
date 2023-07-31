@@ -51,8 +51,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
       onConfirmed: (){
         var timestamp = DateTime.now();
           widget.setParentState(() {
-            DatabaseHelper.instance.payoff(_item, timestamp).then((value) => _item.payoff(timestamp));
-
+            DatabaseHelper.instance.payoff(_item, timestamp); //Todo .then((value) => _item.payoff(timestamp));
             //DatabaseHelper.instance.update(_item);
           });
         }
