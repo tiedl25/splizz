@@ -4,7 +4,7 @@ import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/transaction.dart';
-import 'package:splizz/Helper/uielements.dart';
+import 'package:splizz/Helper/ui_model.dart';
 
 import '../Models/item.dart';
 import '../Models/member.dart';
@@ -44,9 +44,8 @@ class _TransactionDialogState extends State<TransactionDialog>{
   Widget build(BuildContext context) {
     _init();
     
-    return UIElements.dialog(
+    return DialogModel(
       title: 'Add new Transaction',
-      context: context,
       content: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: SizedBox(
@@ -63,8 +62,27 @@ class _TransactionDialogState extends State<TransactionDialog>{
                               style: const TextStyle(
                                   color: Colors.white
                               ),
-                              decoration: UIElements.tfDecoration(title: 'Add a description')
+                              decoration: TfDecorationModel(context: context, title: 'Add a description')
                             ),
+                            /*ToggleButtons(
+                              direction: Axis.horizontal,
+                              isSelected: _isSelected,
+                              onPressed: (int index){
+                                for (int i=0; i < _item.members.length; ++i){
+                                  _isSelected[i] = i == index;
+                                }
+                              },
+                              children: _item.members.map((Member m){
+                                return Container(
+                                    decoration: BoxDecoration(
+                                      //color: _isSelected ? _item.members[i].color : Theme.of(context).colorScheme.surface,
+                                      border: Border.all(style: BorderStyle.none, width: 0),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                    ),
+                                  child: Text(m.name),
+                                );
+                              }).toList(),
+                            ),*/
                             SizedBox(
                               height: MediaQuery.of(context).size.height/12,
                               child: ListView.builder(
@@ -77,14 +95,13 @@ class _TransactionDialogState extends State<TransactionDialog>{
                                   return Container(
                                     alignment: Alignment.center,
                                       decoration: BoxDecoration(
-                                      color: _isSelected[i] ? _item.members[i].color : const Color(0xFF282828),
-                                      border: Border.all(color: const Color(0xFF343434)),
+                                      color: _isSelected[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface,
+                                      border: Border.all(style: BorderStyle.none, width: 0),
                                       borderRadius: const BorderRadius.all(Radius.circular(20)),
                                       ),
                                       padding: const EdgeInsets.symmetric(horizontal: 5),
                                       margin: const EdgeInsets.all(2),
                                       child: TextButton(
-                                        child: Text(_item.members[i].name, style: const TextStyle(fontSize: 20, color: Colors.white),),
                                         onPressed: (){
                                           setState(() {
                                             var selected = _isSelected[i];
@@ -93,6 +110,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                                             _selection = i;
                                           });
                                         },
+                                        child: Text(_item.members[i].name, style: const TextStyle(fontSize: 20),),
                                     ),
                                   );
                                 },
@@ -107,13 +125,14 @@ class _TransactionDialogState extends State<TransactionDialog>{
                               setState(() {
                               });
                               },
-                              decoration: UIElements.tfDecoration(
+                              decoration: TfDecorationModel(
+                                context: context,
                                 title: '0,00',
                                 icon: IconButton(
                                   onPressed: (){setState(() {
                                     currency = !currency;
                                   });},
-                                  icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money), color: Colors.white
+                                  icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
                                 )
                               )
                             )

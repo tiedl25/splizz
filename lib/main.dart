@@ -1,27 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Helper/filehandle.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Views/masterview.dart';
-
-import 'Models/item.dart';
+import 'package:splizz/theme/dark_theme.dart';
+import 'package:splizz/theme/light_theme.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp>{
+  bool _systemThemeToggle=true;
+  bool _darkModeToggle=false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSwitchValue(); // Load the switch value from SharedPreferences
+  }
+
+  Future<void> loadSwitchValue() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _systemThemeToggle = prefs.getBool('systemTheme') ?? false;
+      _darkModeToggle = prefs.getBool('darkMode') ?? false;
+    });
+  }
 
   // This widget is the root of your application.
   // It contains everything to run the application, nothing more
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    //loadSwitchValue();
+
+    return MaterialApp(
       title: 'Splizz',
-      home: MasterView(),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
+      home: MasterView(updateTheme: loadSwitchValue,),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

@@ -7,10 +7,15 @@ import 'package:splizz/Views/settingsview.dart';
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
 import '../Helper/database.dart';
-import '../Helper/uielements.dart';
+import '../Helper/ui_model.dart';
 
 class MasterView extends StatefulWidget{
-  const MasterView({Key? key}) : super(key: key);
+  final Function updateTheme;
+
+  const MasterView({
+    super.key,
+    required this.updateTheme,
+  });
 
   @override
   State<StatefulWidget> createState() => _MasterViewState();
@@ -41,7 +46,7 @@ class _MasterViewState extends State<MasterView>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2B2B2B),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: const Text('Splizz'),
         actions: [
@@ -51,13 +56,14 @@ class _MasterViewState extends State<MasterView>{
               )
           )
         ],
-        backgroundColor: Colors.transparent,
       ),
       body: _buildBody(),
       floatingActionButton: SpeedDial(
         spacing: 5,
         animatedIcon: AnimatedIcons.menu_close,
         animatedIconTheme: const IconThemeData(size: 22.0),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         curve: Curves.bounceIn,
         overlayColor: Colors.black,
         overlayOpacity: 0.5,
@@ -76,7 +82,6 @@ class _MasterViewState extends State<MasterView>{
           ),
           // add more options as needed
         ],
-        child: const Icon(Icons.add),
       )
     );
   }
@@ -87,10 +92,10 @@ class _MasterViewState extends State<MasterView>{
         future: DatabaseHelper.instance.getItems(),
         builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
           if (!snapshot.hasData){
-            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
+            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20),),);
           }
           return snapshot.data!.isEmpty ?
-              const Center(child: Text('No items in list', style: TextStyle(fontSize: 20, color: Colors.white),),)
+              const Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)
               : RefreshIndicator(
               child: ListView.builder(
                 physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
@@ -124,10 +129,9 @@ class _MasterViewState extends State<MasterView>{
         return showDialog(
           context: context,
           builder: (BuildContext context) {
-            return UIElements.dialog(
+            return DialogModel(
                 title: 'Confirm Dismiss',
-                content: const Text('Do you really want to remove this Item', style: TextStyle(color: Colors.white, fontSize: 20),),
-                context: context,
+                content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
                 onConfirmed: (){}
             );
           },
@@ -142,7 +146,6 @@ class _MasterViewState extends State<MasterView>{
         alignment: Alignment.centerRight,
         child: const Icon(
           Icons.delete,
-          color: Colors.white,
         ),
       ),
       child: _buildRow(item),
@@ -157,8 +160,8 @@ class _MasterViewState extends State<MasterView>{
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
-          tileColor: const Color(0xFF383838),
-          title: Text(item.name, style: const TextStyle(fontSize: 20, color: Colors.white),),
+          tileColor: Theme.of(context).colorScheme.surface,
+          title: Text(item.name, style: const TextStyle(fontSize: 20),),
           onTap: () {
             _pushDetailView(item);
           },
@@ -171,7 +174,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView(setParentState: setState);
+          return SettingsView(setParentState: setState, updateTheme: widget.updateTheme,);
         },
       ),
     );

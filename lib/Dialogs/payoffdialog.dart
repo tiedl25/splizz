@@ -5,7 +5,7 @@ import 'package:splizz/Helper/database.dart';
 
 import '../Models/item.dart';
 import '../Models/member.dart';
-import '../Helper/uielements.dart';
+import '../Helper/ui_model.dart';
 
 class PayoffDialog extends StatefulWidget {
   final Item item;
@@ -30,9 +30,8 @@ class _PayoffDialogState extends State<PayoffDialog>{
   Widget build(BuildContext context) {
     _item = widget.item;
     var paymap = _item.calculatePayoff();
-    return UIElements.dialog(
+    return DialogModel(
       title: 'Payoff',
-      context: context,
       content: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: SizedBox(

@@ -4,7 +4,7 @@ import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
 import '../Helper/database.dart';
-import '../Helper/uielements.dart';
+import '../Helper/ui_model.dart';
 import '../Models/item.dart';
 import '../Models/member.dart';
 
@@ -30,16 +30,10 @@ class _DetailViewState extends State<DetailView>{
       li.add(
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [element.color, element.color.withOpacity(1), element.color.withOpacity(1)]
-              ),
               color: element.color,
-              border: Border.all(color: const Color(0xFF343434)),
+              border: Border.all(style: BorderStyle.none, width: 0),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
-            //padding: const EdgeInsets.symmetric(horizontal: 5),
             margin: const EdgeInsets.all(2),
             child: Column(
               children: [
@@ -47,10 +41,9 @@ class _DetailViewState extends State<DetailView>{
                 Container(
                   decoration: const BoxDecoration(
                     color: Color(0xAAD5D5D5),
-
                     borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(
                     children: [
                       Icon(
@@ -138,13 +131,11 @@ class _DetailViewState extends State<DetailView>{
       flex: 50,
       child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF282828),
-            border: Border.all(color: const Color(0xFF303030)),
+            color: Theme.of(context).colorScheme.surface,
+            border: Border.all(style: BorderStyle.none),
             borderRadius: const BorderRadius.all(Radius.circular(15)),
           ),
           margin: const EdgeInsets.all(5),
-          child: Material(
-            color: const Color(0xFF2B2B2B),
             child: RefreshIndicator(
               onRefresh: (){
                 setState(() {
@@ -165,8 +156,8 @@ class _DetailViewState extends State<DetailView>{
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Payoff', style: TextStyle(color: Colors.white),),
-                          Text(transaction.date(), style: const TextStyle(color: Colors.white),)
+                          const Text('Payoff'),
+                          Text(transaction.date())
                         ],
                       ),
                     );
@@ -178,8 +169,7 @@ class _DetailViewState extends State<DetailView>{
 
                 },
               ),
-            ),
-          )
+            )
       ),
     );
   }
@@ -192,10 +182,9 @@ class _DetailViewState extends State<DetailView>{
         return showDialog(
           context: context,
           builder: (BuildContext context) {
-            return UIElements.dialog(
+            return DialogModel(
                 title: 'Confirm Dismiss',
                 content: const Text('Do you really want to remove this Item', style: TextStyle(color: Colors.white, fontSize: 20),),
-                context: context,
                 onConfirmed: (){
                   setState(() {
                     // Todo item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
@@ -332,7 +321,7 @@ class _DetailViewState extends State<DetailView>{
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: const Color(0xFF2B2B2B),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: Text(item.name),
         actions: [
@@ -341,12 +330,13 @@ class _DetailViewState extends State<DetailView>{
               icon: const Icon(Icons.share)
           )
         ],
-        backgroundColor: const Color(0x882B2B2B),
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
         tooltip: 'Add Transaction',
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );

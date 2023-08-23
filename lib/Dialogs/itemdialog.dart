@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:splizz/Helper/uielements.dart';
+import 'package:splizz/Helper/ui_model.dart';
 
 import '../Helper/database.dart';
 import '../Models/item.dart';
@@ -37,9 +37,8 @@ class _ItemDialogState extends State<ItemDialog>{
   Widget build(BuildContext context) {
     _items = widget.items;
 
-    return UIElements.dialog(
+    return DialogModel(
             title: 'Create a new Splizz',
-            context: context,
             content: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height/4,
@@ -58,7 +57,8 @@ class _ItemDialogState extends State<ItemDialog>{
                             });
                           },
                           style: const TextStyle(color: Colors.white),
-                          decoration: UIElements.tfDecoration(
+                          decoration: TfDecorationModel(
+                            context: context,
                               title: 'Title',
                               icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
                         ),
@@ -93,7 +93,7 @@ class _ItemDialogState extends State<ItemDialog>{
               filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
               child: AlertDialog(
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-                  backgroundColor: const Color(0xFF303030),
+                  backgroundColor: Theme.of(context).colorScheme.background,
                   insetPadding: EdgeInsets.zero,
                   content: SizedBox(
                       width: MediaQuery.of(context).size.width/2,
@@ -138,7 +138,7 @@ class _ItemDialogState extends State<ItemDialog>{
               filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
               child: AlertDialog(
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-              backgroundColor: const Color(0xFF303030),
+              backgroundColor: Theme.of(context).colorScheme.background,
               insetPadding: EdgeInsets.zero,
               content: SizedBox(
                   width: MediaQuery.of(context).size.width/2,
@@ -181,7 +181,8 @@ class _ItemDialogState extends State<ItemDialog>{
             });
           },
           style: const TextStyle(color: Colors.white),
-          decoration: UIElements.tfDecoration(
+          decoration: TfDecorationModel(
+            context: context,
               title: 'Member $i',
               icon: IconButton(icon: const Icon(Icons.color_lens), color: cm[i-1], onPressed: () { _colorPicker(i); })
           )

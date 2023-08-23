@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/filehandle.dart';
-import 'package:splizz/Helper/uielements.dart';
+import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/drive.dart';
 
 class ImportDialog extends StatefulWidget {
@@ -49,23 +49,21 @@ class _ImportDialogState extends State<ImportDialog>{
     }
 
     if(_sharedList.isEmpty){
-      return UIElements.dialog(
+      return DialogModel(
         title: 'Import Splizz',
-        context: context,
         content: const Text('No items available. Make sure that there are items shared with you.', style: TextStyle(fontSize: 20, color: Colors.white)),
         onConfirmed: (){
           setState((){});
         }
         );
     } else {
-      return UIElements.dialog(
+      return DialogModel(
           title: 'Import Splizz',
-          context: context,
           content: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height/4,
               child: Material(
-                color: const Color(0xFF2B2B2B),
+                color: Theme.of(context).colorScheme.background,
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Column(

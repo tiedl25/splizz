@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/filehandle.dart';
-import 'package:splizz/Helper/uielements.dart';
+import 'package:splizz/Helper/ui_model.dart';
 
 import '../Helper/drive.dart';
 import '../Models/item.dart';
@@ -36,10 +36,9 @@ class _ShareDialogState extends State<ShareDialog>{
 
   @override
   Widget build(BuildContext context) {
-    return UIElements.dialog(
+    return DialogModel(
           title: 'Share Splizz',
           content: const Text('Do you really want to share this item', style: TextStyle(color: Colors.white, fontSize: 20),),
-          context: context,
           onConfirmed: (){
             setState(() {
               _upload();
@@ -107,16 +106,14 @@ class _ManageDialogState extends State<ManageDialog>{
       future: _fetchData(),
         builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
           if(!snapshot.hasData) {
-            return UIElements.dialog(
+            return DialogModel(
               title: 'Manage Access',
               content: const Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white)),
-              context: context,
               onConfirmed: (){}
             );
           }
-          return UIElements.dialog(
+          return DialogModel(
               title: 'Manage Access',
-              context: context,
               content: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: SizedBox(
@@ -131,7 +128,8 @@ class _ManageDialogState extends State<ManageDialog>{
                           controller: tc,
                           //contextMenuBuilder: , Todo
                           style: const TextStyle(color: Colors.white),
-                          decoration: UIElements.tfDecoration(
+                          decoration: TfDecorationModel(
+                            context: context,
                               title: 'E-Mail Address',
                               icon: IconButton(
                                   onPressed: () {
@@ -169,10 +167,9 @@ class _ManageDialogState extends State<ManageDialog>{
                                       return showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
-                                          return UIElements.dialog(
+                                          return DialogModel(
                                               title: 'Confirm Dismiss',
                                               content: const Text('Do you really want to remove this Person', style: TextStyle(color: Colors.white, fontSize: 20),),
-                                              context: context,
                                               onConfirmed: (){}
                                           );
                                         },
@@ -186,7 +183,7 @@ class _ManageDialogState extends State<ManageDialog>{
                                     child: Container(
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                      decoration: UIElements.boxDecoration(),
+                                      decoration: BoxDecorationModel(),
                                       child: Text("${_people[i]['name']}", style: const TextStyle(fontSize: 20, color: Colors.white),),
                                     )
                                 ),

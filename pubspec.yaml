@@ -49,6 +49,7 @@ dependencies:
   flutter_speed_dial:
   sqflite:
   synchronized:
+  shared_preferences:
 
 dev_dependencies:
   flutter_test:
