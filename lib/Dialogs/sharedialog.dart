@@ -118,7 +118,7 @@ class _ManageDialogState extends State<ManageDialog>{
                 physics: const BouncingScrollPhysics(),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height/4,
+                  //height: MediaQuery.of(context).size.height/4,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -140,57 +140,59 @@ class _ManageDialogState extends State<ManageDialog>{
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height/6,
-                        child:
-                        ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _people.length,
-                            itemBuilder: (context, i) {
-                              return Container(
-                                margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                                ),
-                                child: Dismissible(
-                                    key: UniqueKey(),
-                                    direction: DismissDirection.endToStart,
-                                    onDismissed: (context) async {
-                                      GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
-                                      _fetchData().then(
-                                              (_) => setState(() {})
-
-                                      );
-                                    },
-                                    confirmDismiss: (direction){
-                                      return showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return DialogModel(
-                                              title: 'Confirm Dismiss',
-                                              content: const Text('Do you really want to remove this Person', style: TextStyle(color: Colors.white, fontSize: 20),),
-                                              onConfirmed: (){}
-                                          );
-                                        },
-                                      );
-                                    },
-                                    background: Container(
-                                      alignment: Alignment.centerRight,
-                                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                      child: const Icon(Icons.delete, color: Colors.white),
-                                    ),
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                                      decoration: BoxDecorationModel(),
-                                      child: Text("${_people[i]['name']}", style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                    )
-                                ),
-                              );
-                            }
+                      SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          children: List.generate(
+                              _people.length,
+                                  (i) {
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 5),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                  ),
+                                  child: Dismissible(
+                                      key: UniqueKey(),
+                                      direction: DismissDirection.endToStart,
+                                      onDismissed: (context) async {
+                                        GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
+                                        _fetchData().then(
+                                                (_) => setState(() {})
+                                        );
+                                      },
+                                      confirmDismiss: (direction){
+                                        return showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return DialogModel(
+                                                title: 'Confirm Dismiss',
+                                                content: const Text('Do you really want to remove this Person', style: TextStyle(color: Colors.white, fontSize: 20),),
+                                                onConfirmed: (){}
+                                            );
+                                          },
+                                        );
+                                      },
+                                      background: Container(
+                                        alignment: Alignment.centerRight,
+                                        child: const Icon(Icons.delete, color: Colors.white),
+                                      ),
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.surface,
+                                          border: Border.all(style: BorderStyle.none),
+                                          borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                        ),
+                                        child: Text("${_people[i]['name']}", style: const TextStyle(fontSize: 20),),
+                                      )
+                                  ),
+                                );
+                              }
+                          ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),

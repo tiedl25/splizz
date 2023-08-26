@@ -3,10 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/Helper/colormap.dart';
 
-import '../Helper/database.dart';
-import '../Models/item.dart';
-import '../Models/member.dart';
+import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Models/item.dart';
+import 'package:splizz/Models/member.dart';
 
 class ItemDialog extends StatefulWidget {
   final List<Item> items;
@@ -25,54 +26,51 @@ class ItemDialog extends StatefulWidget {
 }
 
 class _ItemDialogState extends State<ItemDialog>{
-  late List<Item> _items;
-
   String title = '';
   List<String> member = [];
-  var cm = List<Color>.from(Item.colormap);
   int count = 2;
   int image = 1;
 
   @override
   Widget build(BuildContext context) {
-    _items = widget.items;
-
     return DialogModel(
             title: 'Create a new Splizz',
             content: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height/4,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: count,
-                  itemBuilder: (context, i) {
-                    if(i == 0) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: TextField(
-                          onChanged: (value) {
-                            setState(() {
-                              title = value;
-                            });
-                          },
-                          style: const TextStyle(color: Colors.white),
-                          decoration: TfDecorationModel(
-                            context: context,
-                              title: 'Title',
-                              icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
-                        ),
-                      );
-                    }
-                    return _textField(i);
-                  }
-              )
+              width: MediaQuery.of(context).size.width,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: List.generate(
+                      count,
+                          (i) {
+                        if(i == 0) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  title = value;
+                                });
+                              },
+                              style: const TextStyle(color: Colors.white),
+                              decoration: TfDecorationModel(
+                                  context: context,
+                                  title: 'Title',
+                                  icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
+                            ),
+                          );
+                        }
+                        return _textField(i);
+                      }
+                  ),
+                ),
+              ),
             ),
             onConfirmed:  (){
                   List<Member> members = [];
                   for(String name in member){
                     if(name != ''){
-                      members.add(Member(name, cm[members.length]));
+                      members.add(Member(name, colormap[members.length]));
                     }
                   }
                   if(title != '' && members.length > 1) {
@@ -133,7 +131,7 @@ class _ItemDialogState extends State<ItemDialog>{
     showDialog(
         context: context,
         builder: (BuildContext context){
-          Color defaultColor = cm[i-1];
+          Color defaultColor = colormap[i-1];
           return BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
               child: AlertDialog(
@@ -144,16 +142,16 @@ class _ItemDialogState extends State<ItemDialog>{
                   width: MediaQuery.of(context).size.width/2,
                   height: MediaQuery.of(context).size.height/3,
                   child: BlockPicker(
-                      availableColors: cm,
+                      availableColors: colormap,
                       pickerColor: defaultColor,
                       onColorChanged: (Color color){
                         setState(() {
                           //cm[i-1] = color;
-                          for(int a=0; a<cm.length; a++){
-                            if(cm[a] == color){
-                              Color tmp = cm[i-1];
-                              cm[i-1] = cm[a];
-                              cm[a] = tmp;
+                          for(int a=0; a<colormap.length; a++){
+                            if(colormap[a] == color){
+                              Color tmp = colormap[i-1];
+                              colormap[i-1] = colormap[a];
+                              colormap[a] = tmp;
                             }
                           }
                         }
@@ -184,7 +182,7 @@ class _ItemDialogState extends State<ItemDialog>{
           decoration: TfDecorationModel(
             context: context,
               title: 'Member $i',
-              icon: IconButton(icon: const Icon(Icons.color_lens), color: cm[i-1], onPressed: () { _colorPicker(i); })
+              icon: IconButton(icon: const Icon(Icons.color_lens), color: colormap[i-1], onPressed: () { _colorPicker(i); })
           )
       ),
     );

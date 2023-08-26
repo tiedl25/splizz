@@ -62,20 +62,19 @@ class _MasterViewState extends State<MasterView>{
         spacing: 5,
         animatedIcon: AnimatedIcons.menu_close,
         animatedIconTheme: const IconThemeData(size: 22.0),
-        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         curve: Curves.bounceIn,
         overlayColor: Colors.black,
         overlayOpacity: 0.5,
         children: [
           SpeedDialChild(
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.purple,
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),
             onTap: _showAddDialog,
           ),
           SpeedDialChild(
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.purple,
             foregroundColor: Colors.white,
             child: const Icon(Icons.import_export),
             onTap: _showImportDialog,
@@ -117,48 +116,56 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget _buildDismissible(Item item){
-    return Dismissible(
-      key: UniqueKey(),
-      direction: DismissDirection.endToStart,
-      onDismissed: (context) async {
-        setState(() {
-          DatabaseHelper.instance.remove(item.id!);
-        });
-      },
-      confirmDismiss: (direction){
-        return showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return DialogModel(
-                title: 'Confirm Dismiss',
-                content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
-                onConfirmed: (){}
-            );
-          },
-        );
-      },
-      background: Container(
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        decoration: const BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        alignment: Alignment.centerRight,
-        child: const Icon(
-          Icons.delete,
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.all(Radius.circular(15)),
       ),
-      child: _buildRow(item),
+      child: Dismissible(
+        key: UniqueKey(),
+        direction: DismissDirection.endToStart,
+        onDismissed: (context) async {
+          setState(() {
+            DatabaseHelper.instance.remove(item.id!);
+          });
+        },
+        confirmDismiss: (direction){
+          return showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return DialogModel(
+                  title: 'Confirm Dismiss',
+                  content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
+                  onConfirmed: (){}
+              );
+            },
+          );
+        },
+        background: Container(
+          padding: const EdgeInsets.only(right: 20),
+          alignment: Alignment.centerRight,
+          child: const Icon(
+            Icons.delete,
+          ),
+        ),
+        child: _buildRow(item),
+      ),
     );
   }
 
   Widget _buildRow(Item item) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border.all(style: BorderStyle.none),
+        borderRadius: const BorderRadius.all(Radius.circular(15)),
+      ),
       child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: BorderRadius.all(Radius.circular(15)),
           ),
           tileColor: Theme.of(context).colorScheme.surface,
           title: Text(item.name, style: const TextStyle(fontSize: 20),),

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0x886E6E6E),
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
       elevation: 0
   ),
   colorScheme: const ColorScheme.light(
@@ -15,5 +16,8 @@ ThemeData lightTheme = ThemeData(
         style: TextButton.styleFrom(
             foregroundColor: Colors.black
         )
+    ),
+    textTheme: const TextTheme(
+        labelLarge: TextStyle(color: Colors.black)
     )
 );

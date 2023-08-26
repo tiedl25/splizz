@@ -1,9 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0x522B2B2B),
+    backgroundColor: Colors.transparent,
     elevation: 0,
   ),
   colorScheme: const ColorScheme.dark(
@@ -13,7 +14,10 @@ ThemeData darkTheme = ThemeData(
   dividerColor: Colors.white54,
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      foregroundColor: Colors.white
+      foregroundColor: Colors.white,
     )
   ),
+  textTheme: const TextTheme(
+    labelLarge: TextStyle(color: Colors.white)
+  )
 );

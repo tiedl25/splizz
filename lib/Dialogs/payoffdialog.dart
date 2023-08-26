@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 
@@ -32,19 +30,24 @@ class _PayoffDialogState extends State<PayoffDialog>{
     var paymap = _item.calculatePayoff();
     return DialogModel(
       title: 'Payoff',
-      content: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height/4,
-          child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                itemCount: paymap.length,
-                itemBuilder: (context, i) {
-                  Member m = paymap.keys.toList()[i];
-                  return _listElement(m, paymap[m]!);
-                }
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: List.generate(
+                //physics: const BouncingScrollPhysics(),
+                  paymap.length,
+                      (i) {
+                    Member m = paymap.keys.toList()[i];
+                    return _listElement(m, paymap[m]!);
+                  }
+              ),
             ),
+          ),
         ),
       ),
       onConfirmed: (){
@@ -58,13 +61,10 @@ class _PayoffDialogState extends State<PayoffDialog>{
   }
 
   Widget _listElement(Member m, List<Member> paylist){
-      return SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        child: Container(
+      return Container(
           margin: const EdgeInsets.symmetric(vertical: 5),
           decoration: BoxDecoration(
-            color: const Color(0xFF444444),
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -80,8 +80,8 @@ class _PayoffDialogState extends State<PayoffDialog>{
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(m.name),
-                    const Icon(Icons.arrow_forward),
+                    Text(m.name, style: const TextStyle(color: Colors.black),),
+                    const Icon(Icons.arrow_forward, color: Colors.black,),
                     Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -93,45 +93,38 @@ class _PayoffDialogState extends State<PayoffDialog>{
                 ),
               ),
               Column(
-                children: _buildPayoffRelation(paylist),
+                children: List.generate(
+                    paylist.length,
+                    (index) {
+                      final e = paylist[index];
+                      return Container(
+                        padding: const EdgeInsets.only(right: 10),
+                        margin: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: e.color,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: Colors.white54
+                                ),
+                                child: Text('${e.balance.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.green.shade700))),
+                            const Icon(Icons.arrow_forward, color: Colors.black,),
+                            Text(e.name, style: const TextStyle(color: Colors.black),),
+
+                          ],
+                        ),
+                      );
+                    }
+                )
               )
             ],
           ),
-        )
       );
-  }
-  
-  List<Widget> _buildPayoffRelation(List<Member> paylist){
-    List<Container> payoffRelation = [];
-    
-    for(var e in paylist){
-      payoffRelation.add(
-        Container(
-          padding: const EdgeInsets.only(right: 10),
-          margin: const EdgeInsets.all(5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: e.color,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white54
-                ),
-                child: Text('${e.balance.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.green.shade700))),
-              const Icon(Icons.arrow_forward),
-              Text(e.name),
-
-            ],
-          ),
-        )
-      );
-    }
-    
-    return payoffRelation;
   }
 }

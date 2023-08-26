@@ -92,14 +92,16 @@ class DatabaseHelper {
   Future<List<Operation>> getTransactionOperations(int itemId, int transactionId, [Database? db]) async {
     db = db ?? await instance.database;
     var operations = await db.query('transaction_operations', orderBy: 'id', where: 'itemId = ? and transactionId = ?', whereArgs: [itemId, transactionId]);
-    List<Operation> operationList = operations.isNotEmpty ? operations.map((e) => Operation.fromMap(e)).toList() : [];
+    //List<Operation> operationList = operations.isNotEmpty ? operations.map((e) => Operation.fromMap(e)).toList() : [];
+    List<Operation> operationList = operations.isNotEmpty ? List.generate(operations.length, (index) => Operation.fromMap(operations[index], index)) : [];
     return operationList;
   }
 
   Future<List<Operation>> getOperations(int id, [Database? db]) async {
     db = db ?? await instance.database;
     var operations = await db.query('transaction_operations', orderBy: 'id', where: 'itemId = ?', whereArgs: [id]);
-    List<Operation> operationList = operations.isNotEmpty ? operations.map((e) => Operation.fromMap(e)).toList() : [];
+    //List<Operation> operationList = operations.isNotEmpty ? operations.map((e) => Operation.fromMap(e)).toList() : [];
+    List<Operation> operationList = operations.isNotEmpty ? List.generate(operations.length, (index) => Operation.fromMap(operations[index], index)) : [];
     return operationList;
   }
 

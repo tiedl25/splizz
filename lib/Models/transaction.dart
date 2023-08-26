@@ -3,7 +3,7 @@ import 'operation.dart';
 class Transaction{
   //Private Variables
   final int? _id;
-  int? _memberId;
+  int? memberId;
   late String _description;
   late DateTime _timestamp;
   late double _value;
@@ -12,17 +12,13 @@ class Transaction{
 
   //Getter
   int? get id => _id;
-  int? get memberId => _memberId;
   String get description => _description;
   DateTime get timestamp => _timestamp;
   double get value => _value;
   bool get deleted => _deleted;
 
-  //Setter
-  set memberId(int? memberId) {_memberId=memberId;}
-
   //Constructor
-  Transaction(this._description, this._value, {id, memberId, timestamp, deleted, operations}): _id=id, _memberId=memberId{
+  Transaction(this._description, this._value, {id, this.memberId, timestamp, deleted, operations}): _id=id{
     if (timestamp == null){
       _timestamp = DateTime.now();
     }

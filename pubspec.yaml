@@ -50,6 +50,7 @@ dependencies:
   sqflite:
   synchronized:
   shared_preferences:
+  multi_dropdown: ^2.0.1
 
 dev_dependencies:
   flutter_test:

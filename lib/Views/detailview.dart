@@ -35,28 +35,34 @@ class _DetailViewState extends State<DetailView>{
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
             margin: const EdgeInsets.all(2),
-            child: Column(
-              children: [
-                Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xAAD5D5D5),
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
+            child: IntrinsicWidth(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    children: [
-                      Icon(
-                          element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                          color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
-                      Text(
-                          '${element.balance.abs().toStringAsFixed(2)}€',
-                          style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
-                    ],
-                  ),
-                )
+                  Container(
+                    decoration: const BoxDecoration(
+                        color: Color(0xAAD5D5D5),
+                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                            element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                            color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                        Text(
+                            '${element.balance.abs().toStringAsFixed(2)}€',
+                            style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
+                      ],
+                    ),
+                  )
 
-              ],
+                ],
+              ),
             )
           )
       );
@@ -152,7 +158,7 @@ class _DetailViewState extends State<DetailView>{
                   Transaction transaction = item.history[item.history.length-1-i];
                   if (transaction.description == 'payoff'){
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      padding: const EdgeInsets.all(10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -163,7 +169,10 @@ class _DetailViewState extends State<DetailView>{
                     );
                   } else {
                     return transaction.deleted ?
-                    _expansionTile(transaction, memberMap) :
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      child: _expansionTile(transaction, memberMap),
+                    ) :
                     _dismissibleTile(transaction, memberMap);
                   }
 
@@ -175,40 +184,42 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Widget _dismissibleTile(Transaction transaction, Map <int, int> memberMap) {
-    return Dismissible(
-      key: UniqueKey(),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction){
-        return showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return DialogModel(
-                title: 'Confirm Dismiss',
-                content: const Text('Do you really want to remove this Item', style: TextStyle(color: Colors.white, fontSize: 20),),
-                onConfirmed: (){
-                  setState(() {
-                    // Todo item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
-                    transaction.delete();
-                    DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
-                  });
-                }
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(15)),
+        color: Colors.red,
+      ),
+      child: Dismissible(
+          key: UniqueKey(),
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (direction){
+            return showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return DialogModel(
+                    title: 'Confirm Dismiss',
+                    content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
+                    onConfirmed: (){
+                      setState(() {
+                        // Todo item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
+                        transaction.delete();
+                        DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
+                      });
+                    }
+                );
+              },
             );
           },
-        );
-      },
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 5),
-        decoration: const BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        alignment: Alignment.centerRight,
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+          background: Container(
+            padding: const EdgeInsets.only(right: 20),
+            alignment: Alignment.centerRight,
+            child: const Icon(
+              Icons.delete,
+            ),
+          ),
+          child: _expansionTile(transaction, memberMap)
       ),
-      child: _expansionTile(transaction, memberMap)
     );
   }
 
@@ -217,24 +228,72 @@ class _DetailViewState extends State<DetailView>{
       foregroundDecoration: transaction.deleted ? const BoxDecoration(
           color: Color(0x99000000),
           backgroundBlendMode: BlendMode.darken,
-          borderRadius: BorderRadius.all(Radius.circular(10))
+          borderRadius: BorderRadius.all(Radius.circular(15))
       ) : null,
-      margin: const EdgeInsets.only(bottom: 5),
       decoration: BoxDecoration(
           color: item.members[memberMap[transaction.memberId]!].color,
-          borderRadius: const BorderRadius.all(Radius.circular(10))
+          borderRadius: const BorderRadius.all(Radius.circular(15))
       ),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 10),
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+        //expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        expandedAlignment: Alignment.centerLeft,
+        shape: const Border(),
+        collapsedIconColor: Colors.black,
+        iconColor: Colors.black,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 15),
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 15),
         title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
-        subtitle: Text('${transaction.value.toString()}€', style: TextStyle(
-            decoration: transaction.deleted ? TextDecoration.lineThrough : null,
-            color: Colors.black),),
+        subtitle: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('${transaction.value.toString()}€', style: TextStyle(
+                decoration: transaction.deleted ? TextDecoration.lineThrough : null,
+                color: Colors.black),
+            ),
+            Text(transaction.date(), style: const TextStyle(color: Colors.black),)
+          ],
+        ),
         children: [
-          ListTile(
+          /*ListTile(
             title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
             subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
+          ),*/
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Container(
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xAAD5D5D5),
+                    border: Border.all(style: BorderStyle.none, width: 0),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  ),
+                  child: Row(
+                    children: List.generate(
+                        transaction.operations.length,
+                            (index) {
+                          if(index==0){
+                            return Container(
+                              padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
+                              margin: const EdgeInsets.all(2),
+                              child:Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
+                            );
+                          }
+                          Member m = item.members.singleWhere((Member m) => m.id == transaction.operations[index-1].memberId );
+                          return Container(
+                            padding: const EdgeInsets.all(5),
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: m.color,
+                              border: Border.all(style: BorderStyle.none, width: 0),
+                              borderRadius: const BorderRadius.all(Radius.circular(20)),
+                            ),
+                            child: Text(m.name, style: const TextStyle(color: Colors.black),),
+                          );
+                        }),
+                  ),
+                ),
           )
         ],
       ),
@@ -323,19 +382,19 @@ class _DetailViewState extends State<DetailView>{
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: Colors.black26,
         title: Text(item.name),
         actions: [
           IconButton(
               onPressed: _showShareDialog,
               icon: const Icon(Icons.share)
-          )
+          ),
         ],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
         tooltip: 'Add Transaction',
-        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),

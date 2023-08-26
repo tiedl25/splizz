@@ -58,7 +58,7 @@ class _SettingsViewState extends State<SettingsView>{
             SwitchListTile(
                 title: const Text("Dark Mode"),
                 value: _darkModeToggle,
-                tileColor: _systemThemeToggle ? Colors.grey : null,
+                tileColor: _systemThemeToggle ? Theme.of(context).colorScheme.surface : null,
                 onChanged: _systemThemeToggle ? null : (bool value) async {
                   SharedPreferences prefs = await SharedPreferences.getInstance();
                   setState(() {

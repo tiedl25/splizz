@@ -10,13 +10,22 @@ class DialogModel extends StatelessWidget {
   final String leftText;
   final String rightText;
 
-  const DialogModel({super.key, required this.title, required this.content, required this.onConfirmed, this.leftText='Discard', this.rightText='Apply'});
+  const DialogModel({
+    super.key,
+    required this.title,
+    required this.content,
+    required this.onConfirmed,
+    this.leftText='Cancel',
+    this.rightText='OK'
+  });
 
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: AlertDialog(
+          alignment: Alignment.bottomCenter,
+          insetPadding: const EdgeInsets.all(15),
           scrollable: true,
           title: Text(title),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
@@ -33,7 +42,7 @@ class DialogModel extends StatelessWidget {
                   Expanded(
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(leftText),
+                        child: Text(leftText, style: Theme.of(context).textTheme.labelLarge,),
                         onPressed: () {
                           Navigator.of(context).pop(false);
                         },
@@ -43,7 +52,7 @@ class DialogModel extends StatelessWidget {
                   Expanded(
                     child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(rightText),
+                        child: Text(rightText, style: Theme.of(context).textTheme.labelLarge,),
                         onPressed: () {
                           onConfirmed();
                           Navigator.of(context).pop(true);
@@ -77,13 +86,5 @@ class TfDecorationModel extends InputDecoration {
           borderRadius: BorderRadius.all(Radius.circular(15)),
           borderSide: BorderSide(color: Colors.red)
       )
-  );
-}
-
-class BoxDecorationModel extends BoxDecoration {
-  BoxDecorationModel() : super(
-    color: const Color(0xFF383838),
-    border: Border.all(color: const Color(0xFF383838)),
-    borderRadius: const BorderRadius.all(Radius.circular(15)),
   );
 }

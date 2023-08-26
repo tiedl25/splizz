@@ -1,62 +1,37 @@
-import 'package:flutter/material.dart';
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
+import '../Helper/colormap.dart';
 import 'operation.dart';
 
 class Item{
   //Private Variables
   final int? _id;
   String _name;
-  String _sharedId;
-  bool _owner;
-  List<Member> _members = [];
-  List<Transaction> _history = [];
+  String sharedId;
+  bool owner;
+  List<Member> members = [];
+  List<Transaction> history = [];
   int _image;
 
    //Getter
   int? get id => _id;
   String get name => _name;
-  String get sharedId => _sharedId;
-  bool get owner => _owner;
-  List<Member> get members => _members;
-  List<Transaction> get history => _history;
   int get image => _image;
 
-  //Setter
-  set members(List<Member> members) {_members = members;}
-  set history(List<Transaction> history) {_history = history;}
-  set sharedId(String sharedId) {_sharedId = sharedId;}
-  set owner(bool owner) {_owner = owner;}
-
   //Constructor
-  Item(this._name, {id, sharedId='', owner=true, members, history, image=1}): _id=id, _sharedId=sharedId, _owner=owner, _image=image {
+  Item(this._name, {id, this.sharedId='', this.owner=true, members, history, image=1}): _id=id, _image=image {
     if(members!=null){
-      _members=members;
+      this.members=members;
     }
     if(history!=null){
-      _history=history;
+      this.history=history;
     }
   }
 
-  static List<Color> colormap = [
-    Colors.blue.shade400,
-    Colors.red.shade400,
-    Colors.green.shade400,
-    Colors.yellow.shade400,
-    Colors.orange.shade400,
-    Colors.purple.shade400,
-    Colors.pink.shade400,
-    Colors.grey.shade400,
-    Colors.teal.shade400,
-    Colors.amber.shade400,
-    Colors.indigo.shade400,
-    Colors.lime.shade400,
-  ];
-
   // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t, List<int> involvedMembers){
-    _members[associatedId].addTransaction(t);
+    members[associatedId].addTransaction(t);
     history.add(t);
 
     if(!t.deleted)
@@ -64,18 +39,18 @@ class Item{
       double val = t.value/involvedMembers.length;
 
       for(int i in involvedMembers){
-        _members[i].sub(val);
+        members[i].sub(val);
       }
     }
   }
 
   // Mark transaction as deleted, while also updating total and balance of all members
   void deleteTransaction(int associatedId, Transaction t){
-    _members[associatedId].deleteTransaction(t);
+    members[associatedId].deleteTransaction(t);
 
     for(Operation o in t.operations){
       // Todo
-      //_members[i].add(val);
+      //this.members[i].add(val);
     }
     t.delete();
   }
@@ -83,14 +58,14 @@ class Item{
   void payoff(DateTime timestamp){
     Transaction t = Transaction.payoff(0.0, memberId: -1, timestamp: timestamp);
     history.add(t);
-    for(Member e in _members){
+    for(Member e in members){
       e.payoff(t);
     }
   }
 
   Map<Member, List<Member>> calculatePayoff(){
     List<Member> payer = [];
-    for(Member e in _members){
+    for(Member e in members){
       Member a = Member.fromMember(e);
       a.compensate();
       payer.add(a);
@@ -131,7 +106,7 @@ class Item{
   }
   
   void addMember(String name){
-    _members.add(Member(name, colormap[id!]));
+    members.add(Member(name, colormap[id!]));
   }
 
   @override
