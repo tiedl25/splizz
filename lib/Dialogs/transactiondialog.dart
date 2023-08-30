@@ -1,6 +1,5 @@
 import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/transaction.dart';
 import 'package:splizz/Helper/ui_model.dart';
@@ -31,16 +30,149 @@ class _TransactionDialogState extends State<TransactionDialog>{
   bool currency = false;
   late final List<bool> _payerSelection;
   late final List<bool> _memberSelection;
+  List<String> date = ["Today", "Yesterday"];
   int _selection = -1;
-
-  int? _dateSelection = 0;
+  int _dateSelection = 0;
 
   @override void initState() {
     _item = widget.item;
     _memberSelection = _item.members.map((Member m) => m.active).toList();
     _payerSelection = List.filled(_item.members.length, false);
+    DateTime today = DateTime.now();
+    date.add('${today.day}.${today.month}.${today.year}');
 
     super.initState();
+  }
+
+  Widget payerBar(){
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      physics: const BouncingScrollPhysics(),
+      itemCount: _item.members.length,
+      itemBuilder: (context, i) {
+        Color color = _payerSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border.all(style: BorderStyle.none, width: 0),
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          margin: const EdgeInsets.all(2),
+          child: TextButton(
+            onPressed: (){
+              setState(() {
+                var selected = _payerSelection[i];
+                if(_selection!=-1) _payerSelection[_selection] = false;
+                _payerSelection[i] = !selected;
+                _selection = i;
+              });
+            },
+            child: Text(_item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget memberBar(){
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      physics: const BouncingScrollPhysics(),
+      itemCount: _item.members.length,
+      itemBuilder: (context, i) {
+        Color color = _memberSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border.all(style: BorderStyle.none, width: 0),
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          margin: const EdgeInsets.all(2),
+          child: TextButton(
+            onPressed: (){
+              setState(() {
+                var selected = _memberSelection[i];
+                _memberSelection[i] = !selected;
+              });
+            },
+            child: Text(_item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
+          ),
+        );
+      },
+    );
+  }
+
+  Future _showDateSelection(int i, DateTime day){
+    return showDialog(context: context, builder: (BuildContext context) {
+      DateTime? pickedDate=day;
+      return DialogModel(
+        contentPadding: const EdgeInsets.only(bottom: 0),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: CalendarDatePicker(
+            initialDate: day,
+            firstDate: day.subtract(const Duration(days: 60)),
+            lastDate: day,
+            onDateChanged: (DateTime value) { pickedDate=value; },
+          ),
+        ),
+        onConfirmed: (){
+          if(pickedDate != null){
+            setState(() {
+              date[i] = '${pickedDate?.day}.${pickedDate?.month}.${pickedDate?.year}';
+            });
+          }
+        },
+      );
+    },);
+  }
+
+  Widget dateBar(){
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      physics: const BouncingScrollPhysics(),
+      itemCount: 3,
+      itemBuilder: (context, i) {
+        Color color = _dateSelection==i ? Theme.of(context).colorScheme.surfaceTint : Theme.of(context).colorScheme.surface;
+        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border.all(style: BorderStyle.none, width: 0),
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          margin: const EdgeInsets.all(2),
+          child: TextButton(
+            onPressed: (){
+              DateTime day = DateTime.now().subtract(Duration(days: i));
+              if(i==2){
+                _showDateSelection(i, day);
+              } else {
+                date[2] = '${day.day}.${day.month}.${day.year}';
+              }
+              setState(() {
+                _dateSelection = i;
+              });
+            },
+            child: Text(date[i], style: TextStyle(color: textColor ,fontSize: 20),),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -69,36 +201,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                       ),
                       SizedBox(
                           height: 60,//MediaQuery.of(context).size.height/14,
-                          child: ListView.builder(
-                            //shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _item.members.length,
-                            itemBuilder: (context, i) {
-                              return Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: _payerSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface,
-                                  border: Border.all(style: BorderStyle.none, width: 0),
-                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 5),
-                                margin: const EdgeInsets.all(2),
-                                child: TextButton(
-                                  onPressed: (){
-                                    setState(() {
-                                      var selected = _payerSelection[i];
-                                      if(_selection!=-1) _payerSelection[_selection] = false;
-                                      _payerSelection[i] = !selected;
-                                      _selection = i;
-                                    });
-                                  },
-                                  child: Text(_item.members[i].name, style: const TextStyle(fontSize: 20),),
-                                ),
-                              );
-                            },
-                          )
+                          child: payerBar()
                       ),
                       TextField(
                           controller: currencyController,
@@ -124,79 +227,12 @@ class _TransactionDialogState extends State<TransactionDialog>{
                       ),
                       SizedBox(
                           height: 60,
-                          child: ListView.builder(
-                            //shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _item.members.length,
-                            itemBuilder: (context, i) {
-                              return Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: _memberSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface,
-                                  border: Border.all(style: BorderStyle.none, width: 0),
-                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 5),
-                                margin: const EdgeInsets.all(2),
-                                child: TextButton(
-                                  onPressed: (){
-                                    setState(() {
-                                      var selected = _memberSelection[i];
-                                      _memberSelection[i] = !selected;
-                                    });
-                                  },
-                                  child: Text(_item.members[i].name, style: const TextStyle(fontSize: 20),),
-                                ),
-                              );
-                            },
-                          )
+                          child: memberBar()
                       ),
-                        /*MultiSelectDropDown(
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        borderWidth: 0,
-                        borderRadius: 15,
-                        borderColor: Colors.transparent,
-                        hint: "All members selected",
-                        hintStyle: const TextStyle(color: Colors.white, fontSize: 16),
-                        onOptionSelected: (List<ValueItem> selectedOptions) {  },
-                        options: _item.members.map((Member m) => ValueItem(label: m.name,
-                        )).toList(),
-                        optionsBackgroundColor: Theme.of(context).colorScheme.surface,
-                        selectedOptionBackgroundColor: Theme.of(context).colorScheme.surface,
-                        optionTextStyle: const TextStyle(color: Colors.white, fontSize: 16),
-                        inputDecoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(15))
-                        ),
-                      ),
-                      )*/
-                      /*Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("Choose a date", ),
-                            Wrap(
-                              spacing: 5.0,
-                              children: List.generate(
-                                  3,
-                                  (index) {
-                                return ChoiceChip(
-                                    label: Text('Date $index'),
-                                    selected: _dateSelection == index,
-                                    onSelected: (bool selected){
-                                      if(index==3){
-
-                                      }
-                                      setState(() {
-                                        _dateSelection = selected ? index : null;
-                                      });
-                                    }
-                                    );
-                              })
-                            )
-                          ]
-                      ),*/
+                      SizedBox(
+                        height: 60,
+                        child: dateBar(),
+                      )
                     ]
                 ),
           )
@@ -205,7 +241,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
             if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && _selection!=-1 && _memberSelection.contains(true)) {
               widget.setParentState(() {
                 int associatedId = _item.members[_selection].id!;
-                Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, memberId: associatedId);
+                Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId);
                 List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
                 //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
 

@@ -6,6 +6,7 @@ class Transaction{
   int? memberId;
   late String _description;
   late DateTime _timestamp;
+  late String _date;
   late double _value;
   bool _deleted = false;
   late List<Operation> operations;
@@ -16,9 +17,10 @@ class Transaction{
   DateTime get timestamp => _timestamp;
   double get value => _value;
   bool get deleted => _deleted;
+  String get date => _date;
 
   //Constructor
-  Transaction(this._description, this._value, {id, this.memberId, timestamp, deleted, operations}): _id=id{
+  Transaction(this._description, this._value, this._date, {id, this.memberId, timestamp, deleted, operations}): _id=id{
     if (timestamp == null){
       _timestamp = DateTime.now();
     }
@@ -37,10 +39,11 @@ class Transaction{
     }
   }
 
-  factory Transaction.payoff(value, {id, memberId, timestamp, operations}){
+  factory Transaction.payoff(value, {date, id, memberId, timestamp, operations}){
     return Transaction(
       'payoff',
       value,
+      date ?? '${timestamp.day}.${timestamp.month}.${timestamp.year}',
       id: id,
       memberId: memberId,
       timestamp: timestamp,
@@ -63,7 +66,7 @@ class Transaction{
           other.deleted != deleted;
 
   //Methods
-  String date(){
+  String formatDate(){
     return '${_timestamp.day}.${_timestamp.month}.${_timestamp.year}';
   }
 
@@ -77,13 +80,15 @@ class Transaction{
     'memberId': memberId,
     'timestamp': timestamp.toString(),
     'value': value,
-    'deleted': deleted
+    'deleted': deleted,
+    'date': date
   };
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
       map['description'],
       map['value'],
+      map['date'],
       id: map['id'],
       memberId: map['memberId'],
       timestamp: DateTime.parse(map['timestamp']),
@@ -96,6 +101,7 @@ class Transaction{
     'description': description,
     'timestamp': '$timestamp',
     'value': value,
+    'date': date,
     'deleted': deleted,
     'operations': operations.map((operation) => operation.toJson()).toList(),
   };
@@ -105,6 +111,7 @@ class Transaction{
     return Transaction(
         data['description'],
         data['value'],
+        data['date'],
         memberId: data['memberId'],
         timestamp: DateTime.parse(data['timestamp']),
         deleted: data['deleted'],

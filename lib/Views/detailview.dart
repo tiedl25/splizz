@@ -19,58 +19,89 @@ class DetailView extends StatefulWidget{
 class _DetailViewState extends State<DetailView>{
   late Item item;
   bool unbalanced = false;
-  bool synced = false;
 
-  List<Container> memberBar = <Container>[];
-  List<ListTile> historyList = <ListTile>[];
-
-  List<Container> _buildMemberBar(){
-    List<Container> li = <Container>[];
-    for (var element in item.members) {
-      li.add(
-          Container(
-            decoration: BoxDecoration(
-              color: element.color,
-              border: Border.all(style: BorderStyle.none, width: 0),
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
-            ),
-            margin: const EdgeInsets.all(2),
-            child: IntrinsicWidth(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(element.name, style: const TextStyle(fontSize: 20, color: Colors.black),),
-                  ),
-                  Container(
-                    decoration: const BoxDecoration(
-                        color: Color(0xAAD5D5D5),
-                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                            element.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                            color: element.balance >= 0 ? Colors.green[700] : Colors.red[700]),
-                        Text(
-                            '${element.balance.abs().toStringAsFixed(2)}€',
-                            style: TextStyle(fontSize: 20, color: element.balance >= 0 ? Colors.green[700] : Colors.red[700])),
-                      ],
-                    ),
-                  )
-
-                ],
-              ),
-            )
-          )
-      );
+  // Important to grey out payoff button
+  bool _checkBalances(){
+    for(var m in item.members){
+      if(m.balance > 1e-6 || m.balance < -1e-6){//!= 0){
+        return true;
+      }
     }
-    return li;
+    return false;
   }
 
-  Widget _payoffButton() {
+  // Show Dialog Methods
+  
+  void _showAddDialog() {
+    showDialog(
+      context: context, barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        return TransactionDialog(item: item, setParentState: setState);
+      },
+    );
+  }
+
+  void _showShareDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return item.sharedId=='' ? ShareDialog(item: item, setParentState: setState) : ManageDialog(item: item, setParentState: setState);
+      },
+    );
+  }
+  
+  //Custom Widgets
+
+  List<Container> memberBar(){
+
+
+    return List.generate(
+        item.members.length,
+        (index) {
+          Member m = item.members[index];
+          Color textColor = m.color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
+          return Container(
+              decoration: BoxDecoration(
+                color: m.color,
+                border: Border.all(style: BorderStyle.none, width: 0),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              margin: const EdgeInsets.all(5),
+              child: IntrinsicWidth(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(m.name, style: TextStyle(fontSize: 20, color: textColor),),
+                    ),
+                    Container(
+                      decoration: const BoxDecoration(
+                          color: Color(0xAAD5D5D5),
+                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                              m.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                              color: m.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                          Text(
+                              '${m.balance.abs().toStringAsFixed(2)}€',
+                              style: TextStyle(fontSize: 20, color: m.balance >= 0 ? Colors.green[700] : Colors.red[700])),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+        }
+    );
+  }
+
+  Widget payoffButton() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -106,25 +137,7 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  void _showAddDialog() {
-    showDialog(
-      context: context, barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return TransactionDialog(item: item, setParentState: setState);
-      },
-    );
-  }
-
-  void _showShareDialog() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return item.sharedId=='' ? ShareDialog(item: item, setParentState: setState) : ManageDialog(item: item, setParentState: setState);
-      },
-    );
-  }
-
-  Widget _transactionList() {
+  Widget transactionList() {
     Map <int, int> memberMap = {};
 
     int a=0;
@@ -141,51 +154,54 @@ class _DetailViewState extends State<DetailView>{
             border: Border.all(style: BorderStyle.none),
             borderRadius: const BorderRadius.all(Radius.circular(15)),
           ),
-          margin: const EdgeInsets.all(5),
-            child: RefreshIndicator(
-              onRefresh: (){
-                setState(() {
-
-                });
-                return Future(() => null);
+          margin: const EdgeInsets.all(10),
+          child: RefreshIndicator(
+            onRefresh: (){
+              setState(() {});
+              return Future(() => null);
+            },
+            child: item.history.isEmpty ?
+            ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height/4),
+              children: const [Center(child: Text("No transactions in list", style: TextStyle(fontSize: 20),),),]
+            ) :
+            ListView.builder(
+              padding: const EdgeInsets.all(10),
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              shrinkWrap: false,
+              itemCount: item.history.length,
+              itemBuilder: (context, i) {
+                Transaction transaction = item.history[item.history.length-1-i];
+                if (transaction.description == 'payoff'){
+                  return Container(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Payoff'),
+                        Text(transaction.formatDate())
+                      ],
+                    ),
+                  );
+                } else {
+                  return transaction.deleted ?
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 5),
+                    child: expansionTile(transaction, memberMap),
+                  ) :
+                  dismissibleTile(transaction, memberMap);
+                }
               },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(10),
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                shrinkWrap: true,
-                itemCount: item.history.length,
-                itemBuilder: (context, i) {
-                  Transaction transaction = item.history[item.history.length-1-i];
-                  if (transaction.description == 'payoff'){
-                    return Container(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Payoff'),
-                          Text(transaction.date())
-                        ],
-                      ),
-                    );
-                  } else {
-                    return transaction.deleted ?
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      child: _expansionTile(transaction, memberMap),
-                    ) :
-                    _dismissibleTile(transaction, memberMap);
-                  }
-
-                },
-              ),
-            )
+            ),
+          )
       ),
     );
   }
 
-  Widget _dismissibleTile(Transaction transaction, Map <int, int> memberMap) {
+  Widget dismissibleTile(Transaction transaction, Map <int, int> memberMap) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(15)),
         color: Colors.red,
@@ -218,12 +234,15 @@ class _DetailViewState extends State<DetailView>{
               Icons.delete,
             ),
           ),
-          child: _expansionTile(transaction, memberMap)
+          child: expansionTile(transaction, memberMap)
       ),
     );
   }
 
-  Widget _expansionTile(Transaction transaction, Map <int, int> memberMap){
+  Widget expansionTile(Transaction transaction, Map <int, int> memberMap){
+    Color color = item.members[memberMap[transaction.memberId]!].color;
+    Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
     return Container(
       foregroundDecoration: transaction.deleted ? const BoxDecoration(
           color: Color(0x99000000),
@@ -231,7 +250,7 @@ class _DetailViewState extends State<DetailView>{
           borderRadius: BorderRadius.all(Radius.circular(15))
       ) : null,
       decoration: BoxDecoration(
-          color: item.members[memberMap[transaction.memberId]!].color,
+          color: color,
           borderRadius: const BorderRadius.all(Radius.circular(15))
       ),
       child: ExpansionTile(
@@ -242,15 +261,15 @@ class _DetailViewState extends State<DetailView>{
         iconColor: Colors.black,
         tilePadding: const EdgeInsets.symmetric(horizontal: 15),
         childrenPadding: const EdgeInsets.symmetric(horizontal: 15),
-        title: Text(transaction.description, style: const TextStyle(color: Colors.black),),
+        title: Text(transaction.description, style: TextStyle(color: textColor),),
         subtitle: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('${transaction.value.toString()}€', style: TextStyle(
                 decoration: transaction.deleted ? TextDecoration.lineThrough : null,
-                color: Colors.black),
+                color: textColor),
             ),
-            Text(transaction.date(), style: const TextStyle(color: Colors.black),)
+            Text(transaction.date, style: TextStyle(color: textColor),)
           ],
         ),
         children: [
@@ -271,7 +290,7 @@ class _DetailViewState extends State<DetailView>{
                   ),
                   child: Row(
                     children: List.generate(
-                        transaction.operations.length,
+                        transaction.operations.length+1,
                             (index) {
                           if(index==0){
                             return Container(
@@ -279,6 +298,10 @@ class _DetailViewState extends State<DetailView>{
                               margin: const EdgeInsets.all(2),
                               child:Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
                             );
+                          }
+                          // if payer is not in involved in transactions except for paying
+                          if(transaction.value == transaction.operations[index-1].value){
+                            return Container();
                           }
                           Member m = item.members.singleWhere((Member m) => m.id == transaction.operations[index-1].memberId );
                           return Container(
@@ -300,7 +323,7 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  Widget _buildBody() {
+  Widget body() {
     return Center(
       child: FutureBuilder<Item>(
         future: DatabaseHelper.instance.getItem(item.id!),
@@ -327,14 +350,8 @@ class _DetailViewState extends State<DetailView>{
                                   bottom: Radius.circular(20)),
                               child: Image(
                                   image: AssetImage('images/image_${item.image}.jpg'),
-                                  width: MediaQuery
-                                      .of(context)
-                                      .size
-                                      .width,
-                                  height: MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height / 5,
+                                  width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height/5,
                                   fit: BoxFit.fill
                               ),
                             )
@@ -346,13 +363,13 @@ class _DetailViewState extends State<DetailView>{
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: _buildMemberBar(),
+                            children: memberBar(),
                           )
                       ),
                       const Spacer(flex: 5,),
-                      _payoffButton(),
+                      payoffButton(),
                       const Spacer(),
-                      _transactionList(),
+                      transactionList(),
                     ],
                   );
                 }
@@ -363,15 +380,6 @@ class _DetailViewState extends State<DetailView>{
         }
       ),
     );
-  }
-
-  bool _checkBalances(){
-    for(var m in item.members){
-      if(m.balance != 0){
-        return true;
-      }
-    }
-    return false;
   }
 
   @override
@@ -391,7 +399,7 @@ class _DetailViewState extends State<DetailView>{
           ),
         ],
       ),
-      body: _buildBody(),
+      body: body(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDialog,
         tooltip: 'Add Transaction',

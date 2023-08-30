@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/Helper/ui_model.dart';
@@ -56,11 +54,11 @@ class _ItemDialogState extends State<ItemDialog>{
                               decoration: TfDecorationModel(
                                   context: context,
                                   title: 'Title',
-                                  icon: IconButton(onPressed: _imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
+                                  icon: IconButton(onPressed: imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
                             ),
                           );
                         }
-                        return _textField(i);
+                        return textField(i);
                       }
                   ),
                 ),
@@ -83,86 +81,92 @@ class _ItemDialogState extends State<ItemDialog>{
             );
   }
 
-  void _imagePicker(){
+  void imagePicker(){
     showDialog(
         context: context,
         builder: (BuildContext context){
-          return BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: AlertDialog(
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-                  backgroundColor: Theme.of(context).colorScheme.background,
-                  insetPadding: EdgeInsets.zero,
+          return StatefulBuilder(
+              builder: (context, setState){
+                return DialogModel(
                   content: SizedBox(
-                      width: MediaQuery.of(context).size.width/2,
+                      width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height/3,
-                      child: GridView.count(
-                        childAspectRatio: 1.5,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 20,
+                      child: GridView.builder(
                         physics: const BouncingScrollPhysics(),
-                        crossAxisCount: 2,
-                        children: List.generate(6, (index){
+                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 200,
+                          childAspectRatio: 1.5,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 20,
+                        ),
+                        itemCount: 6,
+                        itemBuilder: (BuildContext context, int index) {
                           return GestureDetector(
-                            onTap: (){
-                              setState((){
-                                image = index+1;
-                                Navigator.of(context).pop();
-                              });
+                              onTap: (){
+                                setState((){
+                                  image = index;
+                                  //Navigator.of(context).pop();
+                                });
                               },
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(Radius.circular(15)),
-                              child: Image(
-                                  fit: BoxFit.cover,
-                                  image: AssetImage('images/image_${index+1}.jpg')
-                              ),
-                            ),
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                    border: image==index ? Border.all(color: Colors.red, width: 3) : Border.all(style: BorderStyle.none),
+                                    borderRadius: const BorderRadius.all(Radius.circular(17)),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                    child: Image(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage('images/image_${index+1}.jpg')
+                                    ),
+                                  )
+                              )
                           );
-                      },
+                        },
                       )
-                  )
-                  )
-              )
+                  ),
+                  onConfirmed: (){},
+                );
+              }
           );
         });
   }
 
-  void _colorPicker(int i){
+  void colorPicker(int i){
     showDialog(
         context: context,
-        builder: (BuildContext context){
-          Color defaultColor = colormap[i-1];
-          return BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: AlertDialog(
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-              backgroundColor: Theme.of(context).colorScheme.background,
-              insetPadding: EdgeInsets.zero,
-              content: SizedBox(
-                  width: MediaQuery.of(context).size.width/2,
-                  height: MediaQuery.of(context).size.height/3,
-                  child: BlockPicker(
-                      availableColors: colormap,
-                      pickerColor: defaultColor,
-                      onColorChanged: (Color color){
-                        setState(() {
-                          //cm[i-1] = color;
-                          for(int a=0; a<colormap.length; a++){
-                            if(colormap[a] == color){
-                              Color tmp = colormap[i-1];
-                              colormap[i-1] = colormap[a];
-                              colormap[a] = tmp;
-                            }
+        builder: (BuildContext context) {
+          Color defaultColor = colormap[i - 1];
+          return DialogModel(
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: BlockPicker(
+                    availableColors: colormap,
+                    pickerColor: defaultColor,
+                    onColorChanged: (Color color) {
+                      setState(() {
+                        //cm[i-1] = color;
+                        for (int a = 0; a < colormap.length; a++) {
+                          if (colormap[a] == color) {
+                            Color tmp = colormap[i - 1];
+                            colormap[i - 1] = colormap[a];
+                            colormap[a] = tmp;
                           }
                         }
-                        );
-                        Navigator.of(context).pop();
-                      })
-              )));
-        });
+                      });
+                      Navigator.of(context).pop();
+                    }),
+              ),
+            ),
+            onConfirmed: null,
+          );
+        }
+    );
   }
 
-  Container _textField(int i){
+  Container textField(int i){
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: TextField(
@@ -182,7 +186,7 @@ class _ItemDialogState extends State<ItemDialog>{
           decoration: TfDecorationModel(
             context: context,
               title: 'Member $i',
-              icon: IconButton(icon: const Icon(Icons.color_lens), color: colormap[i-1], onPressed: () { _colorPicker(i); })
+              icon: IconButton(icon: const Icon(Icons.color_lens), color: colormap[i-1], onPressed: () { colorPicker(i); })
           )
       ),
     );

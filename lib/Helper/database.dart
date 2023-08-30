@@ -214,11 +214,11 @@ class DatabaseHelper {
 
         if(t.description != 'payoff') {
           int memberId = item.members[t.memberId!].id!; //Get correct memberId because in the exported json file the memberIds are set from 0 to n-1
-          tNew = Transaction(t.description, t.value, memberId: memberId, timestamp: t.timestamp, deleted: t.deleted, operations: t.operations);
+          tNew = Transaction(t.description, t.value, t.date, memberId: memberId, timestamp: t.timestamp, deleted: t.deleted, operations: t.operations);
           //Todo item.addTransaction(t.memberId!, tNew);
           addTransaction(tNew, item.members, item.id!, memberId);
         } else {
-          tNew = Transaction.payoff(t.value, timestamp: t.timestamp, operations: t.operations);
+          tNew = Transaction.payoff(t.value, date: t.date, timestamp: t.timestamp, operations: t.operations);
           addTransaction(tNew, item.members, item.id!, t.memberId!);
           //Todo item.addPayoff(t.memberId!, tNew);
           //addPayoff(tNew, item.id!, memberId);

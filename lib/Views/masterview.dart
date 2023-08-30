@@ -93,21 +93,23 @@ class _MasterViewState extends State<MasterView>{
           if (!snapshot.hasData){
             return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20),),);
           }
-          return snapshot.data!.isEmpty ?
-              const Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)
-              : RefreshIndicator(
-              child: ListView.builder(
+          return RefreshIndicator(
+              child: snapshot.data!.isEmpty ?
+              ListView(
                 physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, i) {
-                    return _buildDismissible(snapshot.data![i]);
-                  }
+                padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height/2.5),
+                children: const [Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)],
+              )
+                  : ListView.builder(
+                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.all(16),
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, i) {
+                  return _buildDismissible(snapshot.data![i]);
+                }
               ),
               onRefresh: (){
-                setState(() {
-
-                });
+                setState(() {});
                 return Future(() => null);
               });
         }
@@ -117,7 +119,7 @@ class _MasterViewState extends State<MasterView>{
 
   Widget _buildDismissible(Item item){
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
         color: Colors.red,
         borderRadius: BorderRadius.all(Radius.circular(15)),

@@ -4,19 +4,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class DialogModel extends StatelessWidget {
-  final String title;
+  final String? title;
   final Widget content;
-  final Function onConfirmed;
+  final Function? onConfirmed;
   final String leftText;
   final String rightText;
+  final EdgeInsets insetPadding;
+  final EdgeInsets contentPadding;
 
   const DialogModel({
     super.key,
-    required this.title,
+    this.title,
     required this.content,
-    required this.onConfirmed,
+    this.onConfirmed,
     this.leftText='Cancel',
-    this.rightText='OK'
+    this.rightText='OK',
+    this.insetPadding=const EdgeInsets.all(15),
+    this.contentPadding=const EdgeInsets.all(20)
   });
 
   @override
@@ -25,13 +29,14 @@ class DialogModel extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: AlertDialog(
           alignment: Alignment.bottomCenter,
-          insetPadding: const EdgeInsets.all(15),
+          insetPadding: insetPadding,
+          contentPadding: contentPadding,
           scrollable: true,
-          title: Text(title),
+          title: title != null ? Text(title!) : null,
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
           backgroundColor: Theme.of(context).colorScheme.background,
           content: content,
-          actions: [
+          actions: onConfirmed != null ? [
             const Divider(
               thickness: 0.5,
             ),
@@ -54,7 +59,7 @@ class DialogModel extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 0),
                         child: Text(rightText, style: Theme.of(context).textTheme.labelLarge,),
                         onPressed: () {
-                          onConfirmed();
+                          onConfirmed!();
                           Navigator.of(context).pop(true);
                         }
                     ),
@@ -62,7 +67,7 @@ class DialogModel extends StatelessWidget {
                 ],
               ),
             ),
-          ]
+          ] : null
         )
     );
   }
@@ -88,3 +93,23 @@ class TfDecorationModel extends InputDecoration {
       )
   );
 }
+
+class SelectionBar extends StatelessWidget {
+  final Color selectedColor;
+  final Function onPressed;
+  final int itemCount;
+
+
+  const SelectionBar({
+    super.key,
+    this.selectedColor=Colors.white38,
+    required this.onPressed,
+    required this.itemCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+

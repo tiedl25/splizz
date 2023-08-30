@@ -1,4 +1,4 @@
-#Sat Aug 26 13:06:40 CEST 2023
+#Wed Aug 30 11:03:14 CEST 2023
 base.0=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeLibDexDebug/0/classes.dex
 base.2=/home/tiedl25/StudioProjects/splizz/build/app/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex

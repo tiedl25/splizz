@@ -40,35 +40,49 @@ class _SettingsViewState extends State<SettingsView>{
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SwitchListTile(
-                title: const Text("Use system theme"),
-                 value: _systemThemeToggle,
-                 onChanged: (bool value) async {
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                  setState(() {
-                    prefs.setBool('systemTheme', value);
-                    _systemThemeToggle = value;
-                  });
-                  widget.updateTheme();
-                 }
-             ),
-            SwitchListTile(
-                title: const Text("Dark Mode"),
-                value: _darkModeToggle,
-                tileColor: _systemThemeToggle ? Theme.of(context).colorScheme.surface : null,
-                onChanged: _systemThemeToggle ? null : (bool value) async {
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                  setState(() {
-                    prefs.setBool('darkMode', value);
-                    _darkModeToggle = value;
-                  });
-                  widget.updateTheme();
-                }
-            )
-          ],
+      body: Container(
+        margin: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(style: BorderStyle.none, ),
+          borderRadius: BorderRadius.circular(20)
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SwitchListTile(
+                  title: const Text("Use system theme"),
+                  value: _systemThemeToggle,
+                  onChanged: (bool value) async {
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    setState(() {
+                      prefs.setBool('systemTheme', value);
+                      _systemThemeToggle = value;
+                    });
+                    widget.updateTheme();
+                  }
+              ),
+              const Divider(
+                thickness: 0.2,
+                indent: 15,
+                endIndent: 15,
+              ),
+              SwitchListTile(
+                  title: const Text("Dark Mode"),
+                  value: _darkModeToggle,
+                  tileColor: _systemThemeToggle ? Theme.of(context).colorScheme.surface : null,
+                  onChanged: _systemThemeToggle ? null : (bool value) async {
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    setState(() {
+                      prefs.setBool('darkMode', value);
+                      _darkModeToggle = value;
+                    });
+                    widget.updateTheme();
+                  }
+              )
+            ],
+          ),
         ),
       ),
     );
