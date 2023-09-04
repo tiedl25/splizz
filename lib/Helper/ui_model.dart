@@ -28,6 +28,7 @@ class DialogModel extends StatelessWidget {
     return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: AlertDialog(
+          elevation: 0,
           alignment: Alignment.bottomCenter,
           insetPadding: insetPadding,
           contentPadding: contentPadding,
@@ -39,6 +40,8 @@ class DialogModel extends StatelessWidget {
           actions: onConfirmed != null ? [
             const Divider(
               thickness: 0.5,
+              indent: 15,
+              endIndent: 15,
             ),
             IntrinsicHeight(
               child: Row(
@@ -53,7 +56,10 @@ class DialogModel extends StatelessWidget {
                         },
                       )
                   ),
-                  const VerticalDivider(),
+                  const VerticalDivider(
+                    indent: 5,
+                    endIndent: 5,
+                  ),
                   Expanded(
                     child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
@@ -94,22 +100,29 @@ class TfDecorationModel extends InputDecoration {
   );
 }
 
-class SelectionBar extends StatelessWidget {
-  final Color selectedColor;
-  final Function onPressed;
-  final int itemCount;
+class PillModel extends StatelessWidget{
+  final Color color;
+  final Widget child;
 
-
-  const SelectionBar({
+  const PillModel({
     super.key,
-    this.selectedColor=Colors.white38,
-    required this.onPressed,
-    required this.itemCount,
+    required this.color,
+    required this.child
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container();
+  Widget build(BuildContext context){
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(style: BorderStyle.none, width: 0),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      margin: const EdgeInsets.all(2),
+      child: child
+    );
   }
 }
 

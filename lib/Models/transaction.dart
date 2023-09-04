@@ -6,7 +6,7 @@ class Transaction{
   int? memberId;
   late String _description;
   late DateTime _timestamp;
-  late String _date;
+  late DateTime _date;
   late double _value;
   bool _deleted = false;
   late List<Operation> operations;
@@ -17,7 +17,7 @@ class Transaction{
   DateTime get timestamp => _timestamp;
   double get value => _value;
   bool get deleted => _deleted;
-  String get date => _date;
+  DateTime get date => _date;
 
   //Constructor
   Transaction(this._description, this._value, this._date, {id, this.memberId, timestamp, deleted, operations}): _id=id{
@@ -43,7 +43,7 @@ class Transaction{
     return Transaction(
       'payoff',
       value,
-      date ?? '${timestamp.day}.${timestamp.month}.${timestamp.year}',
+      date ?? timestamp,
       id: id,
       memberId: memberId,
       timestamp: timestamp,
@@ -67,7 +67,7 @@ class Transaction{
 
   //Methods
   String formatDate(){
-    return '${_timestamp.day}.${_timestamp.month}.${_timestamp.year}';
+    return '${_date.day}.${_date.month}.${_date.year}';
   }
 
   void delete(){
@@ -81,14 +81,14 @@ class Transaction{
     'timestamp': timestamp.toString(),
     'value': value,
     'deleted': deleted,
-    'date': date
+    'date': date.toString()
   };
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
       map['description'],
       map['value'],
-      map['date'],
+      DateTime.parse(map['date']),
       id: map['id'],
       memberId: map['memberId'],
       timestamp: DateTime.parse(map['timestamp']),
@@ -99,9 +99,9 @@ class Transaction{
   Map<String, dynamic> toJson() => {
     'memberId': memberId,
     'description': description,
-    'timestamp': '$timestamp',
+    'timestamp': timestamp.toString(),
     'value': value,
-    'date': date,
+    'date': date.toString(),
     'deleted': deleted,
     'operations': operations.map((operation) => operation.toJson()).toList(),
   };
@@ -111,7 +111,7 @@ class Transaction{
     return Transaction(
         data['description'],
         data['value'],
-        data['date'],
+        DateTime.parse(data['date']),
         memberId: data['memberId'],
         timestamp: DateTime.parse(data['timestamp']),
         deleted: data['deleted'],

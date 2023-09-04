@@ -1,7 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
 
-import '../Helper/colormap.dart';
 import 'operation.dart';
 
 class Item{
@@ -9,18 +10,20 @@ class Item{
   final int? _id;
   String _name;
   String sharedId;
+  String imageSharedId;
   bool owner;
   List<Member> members = [];
   List<Transaction> history = [];
-  int _image;
+  late DateTime _timestamp;
+  Uint8List? image;
 
    //Getter
   int? get id => _id;
   String get name => _name;
-  int get image => _image;
+  DateTime get timestamp => _timestamp;
 
   //Constructor
-  Item(this._name, {id, this.sharedId='', this.owner=true, members, history, image=1}): _id=id, _image=image {
+  Item(this._name, {id, this.sharedId='', this.owner=true, this.imageSharedId='', members, history, this.image, timestamp}): _id=id, _timestamp = timestamp ?? DateTime.now() {
     if(members!=null){
       this.members=members;
     }
@@ -104,10 +107,6 @@ class Item{
     }
     return payMap;
   }
-  
-  void addMember(String name){
-    members.add(Member(name, colormap[id!]));
-  }
 
   @override
   String toString() => 'Item(id: $id, name: $name)';
@@ -116,8 +115,10 @@ class Item{
     'name': name,
     'id': id,
     'sharedId': sharedId,
+    'imageSharedId': imageSharedId,
     'owner': owner,
     'image': image,
+    'timestamp': timestamp.toString(),
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
@@ -125,8 +126,10 @@ class Item{
       map['name'],
       id: map['id'],
       sharedId: map['sharedId'],
+      imageSharedId: map['imageSharedId'],
       owner: map['owner'] == 1 ? true : false,
-      image: map['image']
+      image: map['image'],
+      timestamp: DateTime.parse(map['timestamp']),
     );
   }
 
@@ -134,7 +137,7 @@ class Item{
     'name': name,
     'member': members.map((m) => m.toJson()).toList(),
     'history': history.map((transaction) => transaction.toJson()).toList(),
-    'image': image
+    'timestamp': timestamp.toString(),
   };
 
   factory Item.fromJson(Map<String, dynamic> data) {
@@ -145,7 +148,7 @@ class Item{
         owner: false,
         members: memberData.map((d) => Member.fromJson(d)).toList(),
         history: historyData.map((d) => Transaction.fromJson(d)).toList(),
-        image: data['image']
+        timestamp: DateTime.parse(data['timestamp']),
     );
   }
 }

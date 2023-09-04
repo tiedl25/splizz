@@ -1,4 +1,8 @@
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
@@ -6,8 +10,10 @@ import 'package:splizz/Views/settingsview.dart';
 
 import '../Dialogs/importdialog.dart';
 import '../Dialogs/itemdialog.dart';
+import '../Helper/colormap.dart';
 import '../Helper/database.dart';
 import '../Helper/ui_model.dart';
+import '../Models/member.dart';
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;
@@ -79,10 +85,29 @@ class _MasterViewState extends State<MasterView>{
             child: const Icon(Icons.import_export),
             onTap: _showImportDialog,
           ),
+          if(kDebugMode) SpeedDialChild(
+            child: const Icon(Icons.bug_report),
+            onTap: () async {
+              List<Member> members = [];
+              for(int i=0; i<Random().nextInt(6)+2; ++i){
+                members.add(Member(names[Random().nextInt(100)], colormap[Random().nextInt(16)]));
+              }
+
+              saveItem(members);
+            }
+          )
           // add more options as needed
         ],
       )
     );
+  }
+
+  Future<void> saveItem(members) async {
+    ByteData data = await rootBundle.load('images/image_${Random().nextInt(6)+1}.jpg');
+    var imageBytes = data.buffer.asUint8List();
+
+    Item newItem = Item('Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
+    DatabaseHelper.instance.add(newItem);
   }
 
   Widget _buildBody() {
@@ -91,7 +116,7 @@ class _MasterViewState extends State<MasterView>{
         future: DatabaseHelper.instance.getItems(),
         builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
           if (!snapshot.hasData){
-            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20),),);
+            return const Center(child: CircularProgressIndicator());
           }
           return RefreshIndicator(
               child: snapshot.data!.isEmpty ?

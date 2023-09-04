@@ -28,18 +28,16 @@ class _TransactionDialogState extends State<TransactionDialog>{
   CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',');
   TextEditingController descriptionController = TextEditingController();
   bool currency = false;
-  late final List<bool> _payerSelection;
+  //late final List<bool> _payerSelection;
   late final List<bool> _memberSelection;
-  List<String> date = ["Today", "Yesterday"];
+  List<dynamic> date = ["Today", "Yesterday"];
   int _selection = -1;
   int _dateSelection = 0;
 
   @override void initState() {
     _item = widget.item;
     _memberSelection = _item.members.map((Member m) => m.active).toList();
-    _payerSelection = List.filled(_item.members.length, false);
-    DateTime today = DateTime.now();
-    date.add('${today.day}.${today.month}.${today.year}');
+    date.add(DateTime.now());
 
     super.initState();
   }
@@ -51,24 +49,14 @@ class _TransactionDialogState extends State<TransactionDialog>{
       physics: const BouncingScrollPhysics(),
       itemCount: _item.members.length,
       itemBuilder: (context, i) {
-        Color color = _payerSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface;
-        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+        Color color = _selection==i ? _item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
-        return Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border.all(style: BorderStyle.none, width: 0),
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          margin: const EdgeInsets.all(2),
+        return PillModel(
+          color: color,
           child: TextButton(
             onPressed: (){
               setState(() {
-                var selected = _payerSelection[i];
-                if(_selection!=-1) _payerSelection[_selection] = false;
-                _payerSelection[i] = !selected;
                 _selection = i;
               });
             },
@@ -87,22 +75,12 @@ class _TransactionDialogState extends State<TransactionDialog>{
       itemCount: _item.members.length,
       itemBuilder: (context, i) {
         Color color = _memberSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface;
-        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+        Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
-        return Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border.all(style: BorderStyle.none, width: 0),
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          margin: const EdgeInsets.all(2),
-          child: TextButton(
+        return PillModel(color: color, child: TextButton(
             onPressed: (){
               setState(() {
-                var selected = _memberSelection[i];
-                _memberSelection[i] = !selected;
+                _memberSelection[i] = !_memberSelection[i];
               });
             },
             child: Text(_item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
@@ -112,7 +90,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
     );
   }
 
-  Future _showDateSelection(int i, DateTime day){
+  Future _showDateSelection(DateTime day){
     return showDialog(context: context, builder: (BuildContext context) {
       DateTime? pickedDate=day;
       return DialogModel(
@@ -129,7 +107,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
         onConfirmed: (){
           if(pickedDate != null){
             setState(() {
-              date[i] = '${pickedDate?.day}.${pickedDate?.month}.${pickedDate?.year}';
+              date[2] = pickedDate;
             });
           }
         },
@@ -145,30 +123,23 @@ class _TransactionDialogState extends State<TransactionDialog>{
       itemCount: 3,
       itemBuilder: (context, i) {
         Color color = _dateSelection==i ? Theme.of(context).colorScheme.surfaceTint : Theme.of(context).colorScheme.surface;
-        Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+        Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
-        return Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
+        return PillModel(
             color: color,
-            border: Border.all(style: BorderStyle.none, width: 0),
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          margin: const EdgeInsets.all(2),
-          child: TextButton(
+            child: TextButton(
             onPressed: (){
               DateTime day = DateTime.now().subtract(Duration(days: i));
               if(i==2){
-                _showDateSelection(i, day);
+                _showDateSelection(day);
               } else {
-                date[2] = '${day.day}.${day.month}.${day.year}';
+                date[2] = day;
               }
               setState(() {
                 _dateSelection = i;
               });
             },
-            child: Text(date[i], style: TextStyle(color: textColor ,fontSize: 20),),
+            child: Text(i==2 ? '${date[2].day}.${date[2].month}.${date[2].year}' : date[i], style: TextStyle(color: textColor ,fontSize: 20),),
           ),
         );
       },

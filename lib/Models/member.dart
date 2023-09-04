@@ -9,6 +9,7 @@ class Member{
   late double _balance = 0;
   late Color _color;
   bool _active = true;
+  late DateTime _timestamp;
   late List<Transaction> history = [];
 
 //Getter
@@ -17,6 +18,7 @@ class Member{
   double get balance => _balance;
   Color get color => _color;
   bool get active => _active;
+  DateTime get timestamp => _timestamp;
 
   //Setter
   set balance(double value) {
@@ -28,7 +30,7 @@ class Member{
   }
 
   //Constructor
-  Member(this._name, this._color, {this.id, total, balance, history, active}){
+  Member(this._name, this._color, {this.id, total, balance, history, active, timestamp}){
     if (total==null) {
       _total=0;
     } else {
@@ -49,19 +51,33 @@ class Member{
     } else {
       this.history = history;
     }
+    if (timestamp == null){
+      _timestamp = DateTime.now();
+    }
+    else {
+      _timestamp = timestamp;
+    }
   }
 
-  factory Member.fromMember(Member m, [int? id]){
+  factory Member.fromMember(Member m, {name, color, id, total, balance, history, active, timestamp}){
     return Member(
-        m.name,
-        m.color,
+        name ?? m.name,
+        color ?? m.color,
         id: id ?? m.id,
-        total: m.total,
-        balance: m.balance,
-        history: m.history,
-        active: m.active
+        total: total ?? m.total,
+        balance: balance ?? m.balance,
+        history: history ?? m.history,
+        active: active ?? m.active,
+        timestamp: timestamp ?? m.timestamp
     );
   }
+
+  @override
+  bool operator ==(dynamic other) =>
+      other.name == name &&
+      other.timestamp == timestamp &&
+      other.active == active &&
+      other.color == color;
 
   //Methods
   void addTransaction(Transaction t){
@@ -103,6 +119,7 @@ class Member{
     'total': total,
     'balance': balance,
     'active': active,
+    'timestamp': timestamp.toString()
   };
 
   factory Member.fromMap(Map<String, dynamic> map) {
@@ -112,7 +129,8 @@ class Member{
       id: map['id'],
       total: map['total'],
       balance: map['balance'],
-      active: map['active'] == 1 ? true : false
+      active: map['active'] == 1 ? true : false,
+      timestamp: DateTime.parse(map['timestamp'])
     );
   }
 
@@ -121,7 +139,8 @@ class Member{
     'total': total,
     'balance': balance,
     'color': color.value,
-    'active': active
+    'active': active,
+    'timestamp': timestamp.toString()
   };
 
   factory Member.fromJson(Map<String, dynamic> data){
@@ -130,7 +149,8 @@ class Member{
         Color(data['color']),
         total: data['total'],
         balance: data['balance'],
-        active: data['active']
+        active: data['active'],
+        timestamp: DateTime.parse(data['timestamp'])
     );
   }
 }

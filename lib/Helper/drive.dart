@@ -5,7 +5,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as gd;
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/filehandle.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -143,7 +143,8 @@ class GoogleDrive {
     return 'false';
   }
 
-  Future<List> getFilenames({owner=false}) async {
+  // return all filenames that are related to splizz items
+  Future<List<Map>> getFilenames({owner=false}) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
     String? folderId = await _getFolderId(drive);
@@ -152,21 +153,20 @@ class GoogleDrive {
       response = (await drive.files.list(
           q: 'trashed=false and "$folderId" in parents',
           supportsAllDrives: true,
-          includeItemsFromAllDrives: true)).files;
+          includeItemsFromAllDrives: true,
+          $fields: "*")).files;
     } else {
       response = (await drive.files.list(
           q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents',
           supportsAllDrives: true,
-          includeItemsFromAllDrives: true)).files;
+          includeItemsFromAllDrives: true,
+          $fields: "*")).files;
     }
 
-    var itemlist = [];
+    List<Map> itemlist = [];
     for (var file in response!){
-      if((file.name)!.startsWith('item') && await DatabaseHelper.instance.checkSharedId(file.id!)){
-        final startIndex = file.name?.indexOf('{');
-        final endIndex = file.name?.lastIndexOf('}');
-        final substring = file.name?.substring(startIndex!+1, endIndex!);
-        itemlist.add([file.name, file.id, substring]);
+      if((file.name)!.startsWith('splizz_item') && await DatabaseHelper.instance.checkSharedId(file.id!)){
+        itemlist.add({'path' : file.name, 'id' : file.id, 'name' : file.properties?['itemName'], 'imageId' : file.properties?['imageId']});
       }
     }
     return itemlist;
@@ -234,7 +234,7 @@ class GoogleDrive {
     if(folderId == null){
       print("Sign-in first Error");
     }else {
-      final updatedFile = gd.File(name: p.basename(file.absolute.path));
+      final updatedFile = gd.File(name: path.basename(file.absolute.path));
       var response = await drive.files.update(
         updatedFile,
         id,
@@ -251,10 +251,7 @@ class GoogleDrive {
     if(folderId == null){
       print("Sign-in first Error");
     }else {
-      print(id);
-      var f = await drive.files.get(id);
-      var updatedFile = gd.File()..name = p.basename(file.absolute.path);
-      var a = gd.File(name: p.basename(file.absolute.path), parents: [folderId]);
+      var a = gd.File(name: path.basename(file.absolute.path), parents: [folderId]);
       var response = await drive.files.update(
         a,
         id,
@@ -264,7 +261,7 @@ class GoogleDrive {
     }
   }
 
-  Future<String?> uploadFile(File file) async {
+  Future<String?> uploadFile(File file, [String? itemName, String? imageId]) async {
     var client = await getHttpClient();
     var drive = gd.DriveApi(client);
 
@@ -275,14 +272,24 @@ class GoogleDrive {
     }else {
       gd.File fileToUpload = gd.File();
       fileToUpload.parents = [folderId];
-      fileToUpload.name = p.basename(file.absolute.path);
+      fileToUpload.name = path.basename(file.absolute.path);
+      fileToUpload.properties = {};
+      if(itemName != null) fileToUpload.properties?.addAll({'itemName' : itemName});
+      if(imageId != null) fileToUpload.properties?.addAll({'imageId' : imageId});
       var response = await drive.files.create(
         fileToUpload,
         uploadMedia: gd.Media(file.openRead(), file.lengthSync()),
       );
-      print(response);
       return response.id;
     }
+  }
+
+  Future<bool> lastModifiedByMe(String fileId) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    gd.File file = (await drive.files.get(fileId, $fields: "lastModifyingUser")) as gd.File;
+    return file.lastModifyingUser?.me ?? false;
   }
 
   Future<bool> checkOwner(String fileId) async {

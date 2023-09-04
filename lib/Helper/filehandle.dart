@@ -28,7 +28,11 @@ class FileHandler{
   }
 
   String filename(Item item){
-    return 'item{${item.name}}';
+    return 'splizz_item{${item.name}}';
+  }
+
+  String imageFilename(Item item){
+    return "splizz_image";
   }
 
   Future<String> readTextFile(String name) async {
@@ -59,6 +63,17 @@ class FileHandler{
     return json.decode(content);
   }
 
+  Future<Uint8List> readImageFile(String name, [String? path]) async {
+    File file;
+    if (path == null) {
+      file = await _file(name);
+    } else {
+      file = File('$path/$name');
+    }
+    Uint8List content = await file.readAsBytes();
+    return content;
+  }
+
   Future<File> writeTextFile(String name, var data) async {
     File file = await _file(name);
     file.writeAsString(data);
@@ -68,6 +83,12 @@ class FileHandler{
   Future<File> writeJsonFile(String name, Map<String, dynamic> data) async {
     File file = await _file(name);
     await file.writeAsString(json.encode(data));
+    return file;
+  }
+
+  Future<File> writeImageFile(String name, Uint8List data) async {
+    File file = await _file(name);
+    await file.writeAsBytes(data);
     return file;
   }
 

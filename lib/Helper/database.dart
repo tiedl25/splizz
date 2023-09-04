@@ -40,8 +40,9 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY,
         name TEXT,
         sharedId TEXT,
+        imageSharedId TEXT,
         owner INTEGER,
-        image INTEGER,
+        image BLOB,
         timestamp TEXT
       )
     ''');
@@ -174,7 +175,7 @@ class DatabaseHelper {
   // Synchronize a given item with it's corresponding json-file in GoogleDrive
   Future<Item> itemSync(Item item) async {
     await lock.synchronized(() async{
-      if (item.sharedId != '')
+      if (item.sharedId != '' && !(await GoogleDrive.instance.lastModifiedByMe(item.sharedId)))
       {
         // download item from GoogleDrive and import it
         String filename = FileHandler.instance.filename(item);
@@ -186,16 +187,21 @@ class DatabaseHelper {
         //assure that history contains all transactions not only the unique ones
         item.history = await getTransactions(item.id!);
 
-        if (listEquals(item.history, driveItem.history)) {
+        bool equalHistory = listEquals(item.history, driveItem.history);
+        bool equalMembers = listEquals(item.members, driveItem.members);
+
+        if (equalHistory && equalMembers) {
+
           FileHandler.instance.deleteFile(file.path);
           item.history = history;
         } else {
-          item = await conflictManagement(item, driveItem);
+          if(!equalHistory) item = await conflictManagement(item, driveItem);
+          if(!equalMembers) item = await memberConflict(item, driveItem);
           //update(item);
 
           // item history contains all transactions/deletions that appeared in the conflict management --> upload it also to GoogleDrive
-          File file2 = await export(item.id!);
-          GoogleDrive.instance.updateFile(file2, item.sharedId).then((value) => FileHandler.instance.deleteFile(file2.path));
+          File file = (await export(item.id!, image: false)).first;
+          GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => FileHandler.instance.deleteFile(file.path));
         }
       }
     });
@@ -237,6 +243,24 @@ class DatabaseHelper {
     return item;
   }
 
+  memberConflict(Item item, Item driveItem) async {
+    List<Member> members = item.members.where((element) => !driveItem.members.contains(element)).toList();
+    
+    for(int i=0; i<item.members.length; ++i){
+      Member m1 = driveItem.members[i];
+      Member m2 = item.members[i];
+      if(m1.active != m2.active){
+        bool upToDate = m1.timestamp.compareTo(m2.timestamp) <= 0; //
+        m2 = Member.fromMember(m2,
+            timestamp: upToDate ? m2.timestamp : m1.timestamp,
+            active: upToDate ? m2.active : m1.active);
+        await updateMember(m2);
+      }
+    }
+
+    return item;
+  }
+
   add(Item item) async {
     Database db = await instance.database;
 
@@ -246,7 +270,7 @@ class DatabaseHelper {
       for (int i=0; i<item.members.length; i++) {
         Member m = item.members[i];
         int memberId = await addMember(m, itemId);
-        item.members[i] = Member.fromMember(m, memberId);
+        item.members[i] = Member.fromMember(m, id: memberId);
       }
 
       for (Transaction transaction in item.history) {
@@ -259,7 +283,8 @@ class DatabaseHelper {
       }
     });
   }
-  
+
+  // Check if the given sharedId already exists in the database
   Future<bool> checkSharedId(String sharedId) async {
     Database db = await instance.database;
 
@@ -453,20 +478,17 @@ class DatabaseHelper {
   }
 
   // directly import a GoogleDrive item
-  import(String path, String sharedId) async {
+  import(String path, String sharedId, String imagePath, String imageSharedId) async {
     Item item = Item.fromJson(await FileHandler.instance.readJsonFile(basename(path)));
     item.sharedId = sharedId;
+    item.imageSharedId = imageSharedId;
     item.owner = await GoogleDrive.instance.checkOwner(sharedId);
+    item.image = await FileHandler.instance.readImageFile(basename(imagePath));
     add(item);
   }
 
-  Future<File> export(int id) async {
+  Future<List<File>> export(int id, {image=true}) async {
     Database db = await instance.database;
-
-    //var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
-    //Item? item = Item.fromMap(response[0]);
-    //item.members = await getMembers(item.id!);
-    //item.history = await getTransactions(item.id!);
 
     Item? item = await getItem(id);
 
@@ -478,21 +500,18 @@ class DatabaseHelper {
       }
     }
 
-    //Map the memberId to a value between 0 and the count of the members so that in another database each transaction can be correctly mapped
-    //The memberId is database specific
-    //Map<int, int> map = {};
-    //for (int i = 0; i < item.members.length; i++) {
-    //  map.addAll({item.members[i].id!: i});
-    //}
-    //for (int i = 0; i < item.history.length; i++) {
-    //  item.history[i].memberId = map[item.history[i].memberId];
-    //}
-
     //Todo same for TransactionOperations
 
     String filename = FileHandler.instance.filename(item);
-
     File file = await FileHandler.instance.writeJsonFile(filename, item.toJson());
-    return file;
+
+
+    if(image){
+      String imageFilename = FileHandler.instance.imageFilename(item);
+      File imageFile = await FileHandler.instance.writeImageFile(imageFilename, item.image!);
+      return [file, imageFile];
+    }
+
+    return [file];
   }
 }

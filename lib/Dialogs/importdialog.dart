@@ -21,140 +21,105 @@ class ImportDialog extends StatefulWidget {
 }
 
 class _ImportDialogState extends State<ImportDialog>{
-  List _sharedList = [];
-  List _savedList = [];
-  final List<bool> _isSelected = [];
-  final List<bool> _isSelected2 = [];
-  List _selection = [-1, false]; //true means items is in shared list, false means in saved list
+  final List<Map> _filenameList = [];
+  int _selection = -1; //true means items is in shared list, false means in saved list
 
   @override
   void initState(){
     super.initState();
-    _fetchData();
   }
 
-  Future<void> _fetchData() async {
-    _sharedList = await GoogleDrive.instance.getFilenames();
-    _savedList = await GoogleDrive.instance.getFilenames(owner: true);
-    setState((){});
+  Future<List<Map>> _fetchData() async {
+    List<Map> sharedList = await GoogleDrive.instance.getFilenames();
+    List<Map> savedList = await GoogleDrive.instance.getFilenames(owner: true);
+
+    if(sharedList.isNotEmpty){
+      _filenameList.add({'name' : "Shared with me"});
+      _filenameList.addAll(sharedList);
+    }
+    if(savedList.isNotEmpty){
+      _filenameList.add({'name' : "Saved by me"});
+      _filenameList.addAll(savedList);
+    }
+    return _filenameList;
   }
 
   @override
   Widget build(BuildContext context) {
-    for (var i=0; i<_sharedList.length; i++){
-      _isSelected.add(false);
-    }
-    for (var i=0; i<_savedList.length; i++){
-      _isSelected2.add(false);
-    }
-
-    if(_sharedList.isEmpty){
-      return DialogModel(
-        title: 'Import Splizz',
-        content: const Text('No items available. Make sure that there are items shared with you.', style: TextStyle(fontSize: 20, color: Colors.white)),
-        onConfirmed: (){
-          setState((){});
-        }
-        );
-    } else {
       return DialogModel(
           title: 'Import Splizz',
           content: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/4,
-              child: Material(
-                color: Theme.of(context).colorScheme.background,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _sharedList.isNotEmpty ? const Text('Shared with me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
-                      ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _sharedList.length,
-                          itemBuilder: (context, i) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                ),
-                                title: Text(_sharedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                tileColor: const Color(0xFF383838),
-                                selected: _isSelected[i],
-                                selectedTileColor: Colors.blue,
-                                onTap: (){
-                                  setState(() {
-                                    var selected = _isSelected[i];
-                                    _isSelected.fillRange(0, _isSelected.length, false);
-                                    _isSelected2.fillRange(0, _isSelected2.length, false);
-                                    _isSelected[i] = !selected;
-                                    _selection = [i, true];
-                                  });
-                                },
-                              ),
-                            );
-                          }
-                      ),
-                      _savedList.isNotEmpty && _sharedList.isNotEmpty ? Container(height: 20,) : Container(),
-                      _savedList.isNotEmpty ? const Text('Saved by me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
-                      ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _savedList.length,
-                          itemBuilder: (context, i) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                ),
-                                title: Text(_savedList[i][2], style: const TextStyle(fontSize: 20, color: Colors.white),),
-                                tileColor: const Color(0xFF383838),
-                                selected: _isSelected2[i],
-                                selectedTileColor: Colors.blue,
-                                onTap: (){
-                                  setState(() {
-                                    var selected = _isSelected2[i];
-                                    _isSelected2.fillRange(0, _isSelected2.length, false);
-                                    _isSelected.fillRange(0, _isSelected.length, false);
-                                    _isSelected2[i] = !selected;
-                                    _selection = [i, false];
-                                  });
-                                },
-                              ),
-                            );
-                          }
-                      )
-
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          onConfirmed: () async {
-            var selection = _selection[0];
-                if (selection != -1){
-                  File file;
-                  if (_selection[1]) {
-                    file = await GoogleDrive.instance.downloadFile(_sharedList[selection][1], _sharedList[selection][0]);
-                    DatabaseHelper.instance.import(file.path, _sharedList[selection][1]);
-                  } else {
-                    file = await GoogleDrive.instance.downloadFile(_savedList[selection][1], _savedList[selection][0]);
-                    DatabaseHelper.instance.import(file.path, _savedList[selection][1]);
-                  }
-
-                  //GoogleDrive.instance.addParents(file, item.sharedId);
-                  FileHandler.instance.deleteFile(file.path);
-                  widget.setParentState((){});
+            width: MediaQuery.of(context).size.width,
+            child: FutureBuilder(
+              future: _fetchData(),
+              builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
+                if (!snapshot.hasData){
+                  return const Center(
+                      child: CircularProgressIndicator(),
+                  );
                 }
-              }
+                else {
+                  return snapshot.data!.isEmpty ?
+                  Container(
+                    margin: const EdgeInsets.all(5),
+                    child: const Text('No items available. Make sure that there are items shared with you.', style: TextStyle(fontSize: 20)),
+                  ) :
+                  SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children:
+                        //_sharedList.isNotEmpty ? const Text('Shared with me', style: TextStyle(color: Colors.white, fontSize: 20),) : const Text(''),
+                        List.generate(
+                            _filenameList.length,
+                                (i) {
+                              Color color = _selection==i ? Theme.of(context).colorScheme.surfaceTint : Theme.of(context).colorScheme.surface;
+                              Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+
+                              if(!_filenameList[i].containsKey('path')){
+                                return Container(
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(_filenameList[i]['name'] ,style: const TextStyle(fontSize: 20),),
+                                );
+                              }
+                              return Container(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                  ),
+                                  title: Text(_filenameList[i]['name'], style: TextStyle(fontSize: 20, color: textColor),),
+                                  tileColor: Theme.of(context).colorScheme.surface,
+                                  selected: _selection==i,//_isSelected[i],
+                                  selectedTileColor: Theme.of(context).colorScheme.surfaceTint,
+                                  onTap: (){
+                                    setState(() {
+                                      _selection = i;
+                                    });
+                                  },
+                                ),
+                              );
+                            }
+                        ),
+                      ),
+                    );
+                }
+              },
+            ),
+          ),
+          onConfirmed: () async {
+            var f = _filenameList[_selection];
+            File file = await GoogleDrive.instance.downloadFile(f['id'], f['path']);
+            File imageFile = await GoogleDrive.instance.downloadFile(f['imageId'], '${f['path']}_image');
+            await DatabaseHelper.instance.import(file.path, f['id'], imageFile.path, f['imageId']);
+
+            //GoogleDrive.instance.addParents(file, item.sharedId);
+            FileHandler.instance.deleteFile(file.path);
+            FileHandler.instance.deleteFile(imageFile.path);
+            widget.setParentState(() {});
+          }
         );
     }
-  }
-
 }

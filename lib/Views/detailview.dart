@@ -31,7 +31,7 @@ class _DetailViewState extends State<DetailView>{
   }
 
   // Show Dialog Methods
-  
+
   void _showAddDialog() {
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
@@ -53,48 +53,113 @@ class _DetailViewState extends State<DetailView>{
   //Custom Widgets
 
   List<Container> memberBar(){
-
-
     return List.generate(
         item.members.length,
         (index) {
           Member m = item.members[index];
-          Color textColor = m.color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+          Color textColor = m.color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
           return Container(
+              foregroundDecoration: !m.active ? const BoxDecoration(
+                  color: Color(0x99000000),
+                  backgroundBlendMode: BlendMode.darken,
+                  borderRadius: BorderRadius.all(Radius.circular(20))
+              ) : null,
               decoration: BoxDecoration(
                 color: m.color,
                 border: Border.all(style: BorderStyle.none, width: 0),
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
-              margin: const EdgeInsets.all(5),
+              margin: const EdgeInsets.all(2),
               child: IntrinsicWidth(
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(m.name, style: TextStyle(fontSize: 20, color: textColor),),
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                          color: Color(0xAAD5D5D5),
-                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
+                child: GestureDetector(
+                  onTap: (){
+                    showDialog(context: context, builder: (BuildContext context){
+                      final Function setParentState = setState;
+                      return StatefulBuilder(builder: (context, setState){
+                        return DialogModel(
+                            content: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(15),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text('Name'),
+                                          Text(m.name)
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(15),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text('Total'),
+                                          Text(m.total.toString())
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(15),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text('Balance'),
+                                          Text(m.balance.toString())
+                                        ],
+                                      ),
+                                    ),
+                                    SwitchListTile(
+                                      title: const Text("Active"),
+                                      value: m.active,
+                                      onChanged: (bool value) {
+                                        setState(() {
+                                          m = Member.fromMember(m, active: value, timestamp: DateTime.now());
+                                          DatabaseHelper.instance.updateMember(m);
+                                          setParentState((){});
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        );
+                      });
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(m.name, style: TextStyle(fontSize: 20, color: textColor),),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                              m.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                              color: m.balance >= 0 ? Colors.green[700] : Colors.red[700]),
-                          Text(
-                              '${m.balance.abs().toStringAsFixed(2)}€',
-                              style: TextStyle(fontSize: 20, color: m.balance >= 0 ? Colors.green[700] : Colors.red[700])),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
+                      Container(
+                        decoration: const BoxDecoration(
+                            color: Color(0xAAD5D5D5),
+                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                                m.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                                color: m.balance >= 0 ? Colors.green[700] : Colors.red[700]),
+                            Text(
+                                '${m.balance.abs().toStringAsFixed(2)}€',
+                                style: TextStyle(fontSize: 20, color: m.balance >= 0 ? Colors.green[700] : Colors.red[700])),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )
               )
           );
         }
@@ -109,13 +174,13 @@ class _DetailViewState extends State<DetailView>{
         children: [
           const Text(
               'Transactions',
-              style: TextStyle(fontSize: 30, color: Colors.white),
+              style: TextStyle(fontSize: 30),
               textAlign: TextAlign.center
             ),
           Container(
             decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: unbalanced ? Colors.green : const Color(0x00000000)
+                color: unbalanced ? Colors.green : Theme.of(context).colorScheme.surface
             ),
             child: IconButton(
               splashRadius: 25,
@@ -241,7 +306,7 @@ class _DetailViewState extends State<DetailView>{
 
   Widget expansionTile(Transaction transaction, Map <int, int> memberMap){
     Color color = item.members[memberMap[transaction.memberId]!].color;
-    Color textColor = color.computeLuminance() > 0.3 ? Colors.black : Colors.white;
+    Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
     return Container(
       foregroundDecoration: transaction.deleted ? const BoxDecoration(
@@ -269,7 +334,7 @@ class _DetailViewState extends State<DetailView>{
                 decoration: transaction.deleted ? TextDecoration.lineThrough : null,
                 color: textColor),
             ),
-            Text(transaction.date, style: TextStyle(color: textColor),)
+            Text(transaction.formatDate(), style: TextStyle(color: textColor),)
           ],
         ),
         children: [
@@ -329,7 +394,7 @@ class _DetailViewState extends State<DetailView>{
         future: DatabaseHelper.instance.getItem(item.id!),
         builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: Text('Loading...', style: TextStyle(fontSize: 20, color: Colors.white),),);
+            return const Center(child: CircularProgressIndicator());
           } else {
             item = snapshot.data!;
             unbalanced = _checkBalances();
@@ -348,8 +413,8 @@ class _DetailViewState extends State<DetailView>{
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(
                                   bottom: Radius.circular(20)),
-                              child: Image(
-                                  image: AssetImage('images/image_${item.image}.jpg'),
+                              child: Image.memory(
+                                  item.image!,
                                   width: MediaQuery.of(context).size.width,
                                   height: MediaQuery.of(context).size.height/5,
                                   fit: BoxFit.fill

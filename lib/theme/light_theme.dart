@@ -15,7 +15,7 @@ ThemeData lightTheme = ThemeData(
   dividerColor: Colors.black,
   textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-          foregroundColor: Colors.black
+          foregroundColor: Colors.black,
       )
   ),
   textTheme: const TextTheme(

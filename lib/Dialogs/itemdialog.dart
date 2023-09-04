@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/colormap.dart';
 
-import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Models/member.dart';
+
+import '../Helper/database.dart';
 
 class ItemDialog extends StatefulWidget {
   final List<Item> items;
@@ -27,7 +29,7 @@ class _ItemDialogState extends State<ItemDialog>{
   String title = '';
   List<String> member = [];
   int count = 2;
-  int image = 1;
+  int image = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,6 @@ class _ItemDialogState extends State<ItemDialog>{
                                   title = value;
                                 });
                               },
-                              style: const TextStyle(color: Colors.white),
                               decoration: TfDecorationModel(
                                   context: context,
                                   title: 'Title',
@@ -73,12 +74,19 @@ class _ItemDialogState extends State<ItemDialog>{
                   }
                   if(title != '' && members.length > 1) {
                     widget.setParentState(() {
-                      Item newItem = Item(title, members: members, image: image);
-                      DatabaseHelper.instance.add(newItem);
+                      saveItem(members);
                     });
                   }
                 }
             );
+  }
+
+  Future<void> saveItem(members) async {
+    ByteData data = await rootBundle.load('images/image_${image+1}.jpg');
+    var imageBytes = data.buffer.asUint8List();
+
+    Item newItem = Item(title, members: members, image: imageBytes);
+    DatabaseHelper.instance.add(newItem);
   }
 
   void imagePicker(){
@@ -182,7 +190,6 @@ class _ItemDialogState extends State<ItemDialog>{
               }
             });
           },
-          style: const TextStyle(color: Colors.white),
           decoration: TfDecorationModel(
             context: context,
               title: 'Member $i',
