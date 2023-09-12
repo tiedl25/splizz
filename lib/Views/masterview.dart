@@ -4,16 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
 import 'package:splizz/Views/settingsview.dart';
 
-import '../Dialogs/importdialog.dart';
-import '../Dialogs/itemdialog.dart';
-import '../Helper/colormap.dart';
-import '../Helper/database.dart';
-import '../Helper/ui_model.dart';
-import '../Models/member.dart';
+import 'package:splizz/Dialogs/importdialog.dart';
+import 'package:splizz/Dialogs/itemdialog.dart';
+import 'package:splizz/Helper/colormap.dart';
+import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/Models/member.dart';
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;
@@ -92,10 +93,9 @@ class _MasterViewState extends State<MasterView>{
               for(int i=0; i<Random().nextInt(6)+2; ++i){
                 members.add(Member(names[Random().nextInt(100)], colormap[Random().nextInt(16)]));
               }
-
               saveItem(members);
             }
-          )
+          ),
           // add more options as needed
         ],
       )
@@ -141,8 +141,9 @@ class _MasterViewState extends State<MasterView>{
       ),
     );
   }
-
   Widget _buildDismissible(Item item){
+    bool removeDriveFile = true;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -155,16 +156,47 @@ class _MasterViewState extends State<MasterView>{
         onDismissed: (context) async {
           setState(() {
             DatabaseHelper.instance.remove(item.id!);
+            if(removeDriveFile){
+              GoogleDrive.instance.deleteFile(item.sharedId);
+              GoogleDrive.instance.deleteFile(item.imageSharedId);
+            }
           });
         },
         confirmDismiss: (direction){
           return showDialog(
             context: context,
             builder: (BuildContext context) {
-              return DialogModel(
-                  title: 'Confirm Dismiss',
-                  content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
-                  onConfirmed: (){}
+              return StatefulBuilder(
+                  builder: (context, setState){
+                    return DialogModel(
+                        title: 'Confirm Dismiss',
+                        content: Column(
+                          children: [
+                            Container(
+                                padding: const EdgeInsets.all(5),
+                                child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
+                            ),
+                            if(item.sharedId != '') Container(
+                              padding: const EdgeInsets.all(5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Remove file in Google Drive'),
+                                  Switch(
+                                      value: removeDriveFile,
+                                      onChanged: (value){
+                                        setState((){
+                                          removeDriveFile = value;
+                                        });
+                                      })
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        onConfirmed: (){}
+                    );
+                  }
               );
             },
           );

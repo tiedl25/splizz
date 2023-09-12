@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:splizz/Helper/drive.dart';
-import 'package:splizz/Helper/filehandle.dart';
+import 'package:splizz/Helper/file_handle.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 
-import '../Models/item.dart';
-import '../Models/member.dart';
-import '../Models/operation.dart';
-import '../Models/transaction.dart';
+import 'package:splizz/Models/item.dart';
+import 'package:splizz/Models/member.dart';
+import 'package:splizz/Models/operation.dart';
+import 'package:splizz/Models/transaction.dart';
 
 class DatabaseHelper {
   //Singleton Pattern
@@ -244,8 +244,6 @@ class DatabaseHelper {
   }
 
   memberConflict(Item item, Item driveItem) async {
-    List<Member> members = item.members.where((element) => !driveItem.members.contains(element)).toList();
-    
     for(int i=0; i<item.members.length; ++i){
       Member m1 = driveItem.members[i];
       Member m2 = item.members[i];
@@ -488,8 +486,6 @@ class DatabaseHelper {
   }
 
   Future<List<File>> export(int id, {image=true}) async {
-    Database db = await instance.database;
-
     Item? item = await getItem(id);
 
     for(Transaction t in item.history){

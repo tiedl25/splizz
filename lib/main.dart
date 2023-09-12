@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Views/masterview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
 
 Future main() async {
+  await dotenv.load(fileName: 'keys.env');
+
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }

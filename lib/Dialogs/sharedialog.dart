@@ -1,13 +1,11 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Helper/filehandle.dart';
+import 'package:splizz/Helper/file_handle.dart';
 import 'package:splizz/Helper/ui_model.dart';
-
-import '../Helper/drive.dart';
-import '../Models/item.dart';
+import 'package:splizz/Helper/drive.dart';
+import 'package:splizz/Models/item.dart';
 
 class ShareDialog extends StatefulWidget {
   final Item item;
@@ -51,9 +49,14 @@ class _ShareDialogState extends State<ShareDialog>{
     List<File> files = await DatabaseHelper.instance.export(_item.id!); // Json File and Image File
 
     _item.imageSharedId = (await GoogleDrive.instance.uploadFile(files.last))!;
-    _item.sharedId = (await GoogleDrive.instance.uploadFile(files.first, _item.name, _item.imageSharedId))!;
-
-    DatabaseHelper.instance.update(_item);
+    if(_item.imageSharedId != '1'){
+      _item.sharedId = (await GoogleDrive.instance.uploadFile(files.first, _item.name, _item.imageSharedId))!;
+      if(_item.sharedId != '1'){
+        DatabaseHelper.instance.update(_item);
+      } else {
+        GoogleDrive.instance.deleteFile(_item.imageSharedId);
+      }
+    }
 
     FileHandler.instance.deleteFile(files.first.path);
     FileHandler.instance.deleteFile(files.last.path);
@@ -89,20 +92,32 @@ class _ManageDialogState extends State<ManageDialog>{
   }
 
   Future<List> _fetchData() async {
-    _people = await GoogleDrive.instance.getSharedPeople(_item.sharedId);
+    final response = await GoogleDrive.instance.getSharedPeople(_item.sharedId);
+    if(response == 1) {
+      showDialog(
+          context: context,
+          builder: (context){
+            return ErrorDialog('Item not found');
+          }
+      );
+    }
     return _people;
   }
 
   _addPerson() async {
-    var person = {};
     if (tc.text.isNotEmpty) {
-      person = await GoogleDrive.instance.addPeople(_item.sharedId, tc.text);
-      if (person.isNotEmpty && !_people.contains(person)) {
+      var person = await GoogleDrive.instance.addPeople(_item.sharedId, tc.text);
+      if (person != 1 && !_people.contains(person)) {
         await GoogleDrive.instance.addPeople(_item.imageSharedId, tc.text);
         setState(() {
           _people.add(person);
           tc.text = '';
         });
+      } else {
+        showDialog(context: context, builder: (BuildContext){
+          return const ErrorDialog('There is no Google Account linked to this email address');
+        });
+        tc.text = '';
       }
     }
 
@@ -158,10 +173,14 @@ class _ManageDialogState extends State<ManageDialog>{
                                           key: UniqueKey(),
                                           direction: DismissDirection.endToStart,
                                           onDismissed: (context) async {
-                                            GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
-                                            _fetchData().then(
-                                                    (_) => setState(() {})
-                                            );
+                                            var response = await GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
+                                            if(response == 1){
+                                              showDialog(context: this.context, builder: (BuildContext){
+                                                return ErrorDialog('Person could\'t be removed');
+                                              });
+                                              return;
+                                            }
+                                            _fetchData().then((_) => setState(() {}));
                                           },
                                           confirmDismiss: (direction){
                                             return showDialog(

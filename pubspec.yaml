@@ -54,6 +54,9 @@ dependencies:
   calendar_date_picker2: ^0.5.3
   flutter_rounded_date_picker: ^3.0.4
   image_picker: ^1.0.2
+  http: ^1.1.0
+  flutter_inappwebview: ^5.7.2+3
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +88,7 @@ flutter:
     - images/image_4.jpg
     - images/image_5.jpg
     - images/image_6.jpg
+    - keys.env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

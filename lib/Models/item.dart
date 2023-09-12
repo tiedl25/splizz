@@ -2,8 +2,7 @@ import 'dart:typed_data';
 
 import 'package:splizz/Models/member.dart';
 import 'package:splizz/Models/transaction.dart';
-
-import 'operation.dart';
+import 'package:splizz/Models/operation.dart';
 
 class Item{
   //Private Variables

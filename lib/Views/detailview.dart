@@ -3,10 +3,10 @@ import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Models/transaction.dart';
-import '../Helper/database.dart';
-import '../Helper/ui_model.dart';
-import '../Models/item.dart';
-import '../Models/member.dart';
+import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/Models/item.dart';
+import 'package:splizz/Models/member.dart';
 
 class DetailView extends StatefulWidget{
   final Item item;

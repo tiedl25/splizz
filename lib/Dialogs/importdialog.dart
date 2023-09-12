@@ -1,8 +1,6 @@
-import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Helper/filehandle.dart';
+import 'package:splizz/Helper/file_handle.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/drive.dart';
 
@@ -30,19 +28,28 @@ class _ImportDialogState extends State<ImportDialog>{
   }
 
   Future<List<Map>> _fetchData() async {
-    List<Map> sharedList = await GoogleDrive.instance.getFilenames();
-    List<Map> savedList = await GoogleDrive.instance.getFilenames(owner: true);
+    var sharedList = await GoogleDrive.instance.getFilenames();
+    var savedList = await GoogleDrive.instance.getFilenames(owner: true);
 
-    if(sharedList.isNotEmpty){
-      _filenameList.add({'name' : "Shared with me"});
-      _filenameList.addAll(sharedList);
-    }
-    if(savedList.isNotEmpty){
-      _filenameList.add({'name' : "Saved by me"});
-      _filenameList.addAll(savedList);
+    if(sharedList != 1 && savedList != 1)
+    {
+      if(sharedList.isNotEmpty){
+        _filenameList.add({'name' : "Shared with me"});
+        _filenameList.addAll(sharedList);
+      }
+      if(savedList.isNotEmpty){
+        _filenameList.add({'name' : "Saved by me"});
+        _filenameList.addAll(savedList);
+      }
+    } else {
+      showDialog(context: context, builder: (BuildContext){
+        return ErrorDialog('Sign-In Error');
+      });
     }
     return _filenameList;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -110,15 +117,23 @@ class _ImportDialogState extends State<ImportDialog>{
             ),
           ),
           onConfirmed: () async {
-            var f = _filenameList[_selection];
-            File file = await GoogleDrive.instance.downloadFile(f['id'], f['path']);
-            File imageFile = await GoogleDrive.instance.downloadFile(f['imageId'], '${f['path']}_image');
-            await DatabaseHelper.instance.import(file.path, f['id'], imageFile.path, f['imageId']);
+            if (_selection != -1){
+              var f = _filenameList[_selection];
+              var file = await GoogleDrive.instance.downloadFile(f['id'], f['path']);
+              var imageFile = await GoogleDrive.instance.downloadFile(f['imageId'], '${f['path']}_image');
+              if(file == 1 || imageFile == 1){
+                showDialog(context: context, builder: (BuildContext){
+                  return ErrorDialog('Import Error');
+                });
+                return;
+              }
+              await DatabaseHelper.instance.import(file.path, f['id'], imageFile.path, f['imageId']);
 
-            //GoogleDrive.instance.addParents(file, item.sharedId);
-            FileHandler.instance.deleteFile(file.path);
-            FileHandler.instance.deleteFile(imageFile.path);
-            widget.setParentState(() {});
+              //GoogleDrive.instance.addParents(file, item.sharedId);
+              FileHandler.instance.deleteFile(file.path);
+              FileHandler.instance.deleteFile(imageFile.path);
+              widget.setParentState(() {});
+            }
           }
         );
     }

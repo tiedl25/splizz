@@ -11,6 +11,7 @@ class DialogModel extends StatelessWidget {
   final String rightText;
   final EdgeInsets insetPadding;
   final EdgeInsets contentPadding;
+  final Alignment alignment;
 
   const DialogModel({
     super.key,
@@ -20,7 +21,8 @@ class DialogModel extends StatelessWidget {
     this.leftText='Cancel',
     this.rightText='OK',
     this.insetPadding=const EdgeInsets.all(15),
-    this.contentPadding=const EdgeInsets.all(20)
+    this.contentPadding=const EdgeInsets.all(20),
+    this.alignment=Alignment.bottomCenter,
   });
 
   @override
@@ -29,7 +31,7 @@ class DialogModel extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: AlertDialog(
           elevation: 0,
-          alignment: Alignment.bottomCenter,
+          alignment: alignment,
           insetPadding: insetPadding,
           contentPadding: contentPadding,
           scrollable: true,
@@ -77,6 +79,18 @@ class DialogModel extends StatelessWidget {
         )
     );
   }
+}
+
+class ErrorDialog extends StatelessWidget {
+  final String text;
+
+  const ErrorDialog(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogModel(content: Text(text, style: const TextStyle(color: Colors.red)), alignment: Alignment.center,);
+  }
+
 }
 
 class TfDecorationModel extends InputDecoration {
