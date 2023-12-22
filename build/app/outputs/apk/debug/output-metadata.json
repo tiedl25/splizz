@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "de.tiedl25.splizz.splizz",
+  "applicationId": "de.tmc.splizz",
   "variantName": "debug",
   "elements": [
     {

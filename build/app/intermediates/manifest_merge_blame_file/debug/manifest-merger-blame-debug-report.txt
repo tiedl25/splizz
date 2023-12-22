@@ -1,6 +1,6 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="de.tiedl25.splizz.splizz"
+3    package="de.tmc.splizz"
 4    android:versionCode="1"
 5    android:versionName="1.0.0" >
 6
@@ -13,47 +13,47 @@
 13         to allow setting breakpoints, to provide hot reload, etc.
 14    -->
 15    <uses-permission android:name="android.permission.INTERNET" />
-15-->/home/tiedl25/StudioProjects/splizz/android/app/src/debug/AndroidManifest.xml:7:5-66
-15-->/home/tiedl25/StudioProjects/splizz/android/app/src/debug/AndroidManifest.xml:7:22-64
-16
-17    <queries>
-17-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:9:5-13:15
-18        <intent>
-18-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-12:18
-19            <action android:name="android.support.customtabs.action.CustomTabsService" />
-19-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-90
-19-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:11:21-87
-20        </intent>
-21        <intent>
-21-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:12:9-16:18
-22            <action android:name="android.intent.action.GET_CONTENT" />
-22-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-72
-22-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:13:21-69
-23
-24            <data android:mimeType="*/*" />
-24-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:15:13-44
-24-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:15:19-41
-25        </intent>
-26    </queries>
-27
-28    <uses-permission android:name="android.permission.CAMERA" />
-28-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:9:5-65
-28-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:9:22-62
-29    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-29-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:5-71
-29-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:22-68
-30    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-30-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:9:5-80
-30-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:9:22-77
+15-->/home/tiedl25/StudioProjects/splizz/android/app/src/main/AndroidManifest.xml:34:5-67
+15-->/home/tiedl25/StudioProjects/splizz/android/app/src/main/AndroidManifest.xml:34:22-64
+16    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+16-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:9:5-80
+16-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:9:22-77
+17
+18    <queries>
+18-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:11:5-17:15
+19        <intent>
+19-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:12:9-16:18
+20            <action android:name="android.intent.action.GET_CONTENT" />
+20-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-72
+20-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:13:21-69
+21
+22            <data android:mimeType="*/*" />
+22-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:15:13-44
+22-->[:file_picker] /home/tiedl25/StudioProjects/splizz/build/file_picker/intermediates/merged_manifest/debug/AndroidManifest.xml:15:19-41
+23        </intent>
+24        <intent>
+24-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-12:18
+25            <action android:name="android.support.customtabs.action.CustomTabsService" />
+25-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-90
+25-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:11:21-87
+26        </intent>
+27    </queries>
+28
+29    <uses-permission android:name="android.permission.CAMERA" />
+29-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:9:5-65
+29-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:9:22-62
+30    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+30-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:5-71
+30-->[:camera_android] /home/tiedl25/StudioProjects/splizz/build/camera_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:22-68
 31
 32    <permission
 32-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:22:5-24:47
-33        android:name="de.tiedl25.splizz.splizz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+33        android:name="de.tmc.splizz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 33-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:23:9-81
 34        android:protectionLevel="signature" />
 34-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:24:9-44
 35
-36    <uses-permission android:name="de.tiedl25.splizz.splizz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+36    <uses-permission android:name="de.tmc.splizz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 36-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:26:5-97
 36-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:26:22-94
 37
@@ -62,10 +62,10 @@
 40        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 40-->[androidx.core:core:1.10.1] /home/tiedl25/.gradle/caches/transforms-3/33ea6619dad66716f45041239e9188c1/transformed/core-1.10.1/AndroidManifest.xml:28:18-86
 41        android:debuggable="true"
-42        android:icon="@mipmap/ic_launcher"
-43        android:label="splizz" >
+42        android:icon="@mipmap/launcher_icon"
+43        android:label="Splizz" >
 44        <activity
-45            android:name="de.tiedl25.splizz.splizz.MainActivity"
+45            android:name="de.tmc.splizz.MainActivity"
 46            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
 47            android:exported="true"
 48            android:hardwareAccelerated="true"
@@ -97,95 +97,95 @@
 74            android:name="flutterEmbedding"
 75            android:value="2" />
 76
-77        <activity
-77-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:16:9-20:47
-78            android:name="com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserActivity"
-78-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:17:13-104
-79            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"
-79-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:18:13-137
+77        <provider
+77-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-18:20
+78            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
+78-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-82
+79            android:authorities="de.tmc.splizz.flutter.image_provider"
+79-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:12:13-74
 80            android:exported="false"
-80-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:19:13-37
-81            android:theme="@style/AppTheme" />
-81-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:20:13-44
-82        <activity
-82-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:21:9-24:55
-83            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeCustomTabsActivity"
-83-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:22:13-112
-84            android:exported="false"
-84-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:23:13-37
-85            android:theme="@style/ThemeTransparent" />
-85-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:24:13-52
-86        <activity
-86-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:25:9-28:55
-87            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.TrustedWebActivity"
-87-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:26:13-106
-88            android:exported="false"
-88-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:27:13-37
-89            android:theme="@style/ThemeTransparent" />
-89-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:28:13-52
-90        <activity
-90-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:29:9-33:55
-91            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeCustomTabsActivitySingleInstance"
-91-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:30:13-126
-92            android:exported="false"
-92-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:31:13-37
-93            android:launchMode="singleInstance"
-93-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:32:13-48
-94            android:theme="@style/ThemeTransparent" />
-94-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:33:13-52
-95        <activity
-95-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:34:9-38:55
-96            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.TrustedWebActivitySingleInstance"
-96-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:35:13-120
-97            android:exported="false"
-97-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:36:13-37
-98            android:launchMode="singleInstance"
-98-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:37:13-48
+80-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-37
+81            android:grantUriPermissions="true" >
+81-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:14:13-47
+82            <meta-data
+82-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:15:13-17:75
+83                android:name="android.support.FILE_PROVIDER_PATHS"
+83-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:16:17-67
+84                android:resource="@xml/flutter_image_picker_file_paths" />
+84-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:17:17-72
+85        </provider>
+86
+87        <activity
+87-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-13:74
+88            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
+88-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-74
+89            android:exported="false"
+89-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:12:13-37
+90            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+90-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-71
+91        <activity
+91-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:16:9-20:47
+92            android:name="com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserActivity"
+92-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:17:13-104
+93            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"
+93-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:18:13-137
+94            android:exported="false"
+94-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:19:13-37
+95            android:theme="@style/AppTheme" />
+95-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:20:13-44
+96        <activity
+96-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:21:9-24:55
+97            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeCustomTabsActivity"
+97-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:22:13-112
+98            android:exported="false"
+98-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:23:13-37
 99            android:theme="@style/ThemeTransparent" />
-99-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:38:13-52
-100
-101        <receiver
-101-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:40:9-43:40
-102            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ActionBroadcastReceiver"
-102-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:41:13-111
-103            android:enabled="true"
-103-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:42:13-35
-104            android:exported="false" />
-104-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:43:13-37
-105
-106        <meta-data
-106-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:45:9-47:36
-107            android:name="io.flutter.embedded_views_preview"
-107-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:46:13-61
-108            android:value="true" />
-108-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:47:13-33
-109
-110        <provider
-110-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-18:20
-111            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
-111-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-82
-112            android:authorities="de.tiedl25.splizz.splizz.flutter.image_provider"
-112-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:12:13-74
-113            android:exported="false"
-113-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-37
-114            android:grantUriPermissions="true" >
-114-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:14:13-47
-115            <meta-data
-115-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:15:13-17:75
-116                android:name="android.support.FILE_PROVIDER_PATHS"
-116-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:16:17-67
-117                android:resource="@xml/flutter_image_picker_file_paths" />
-117-->[:image_picker_android] /home/tiedl25/StudioProjects/splizz/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:17:17-72
-118        </provider>
+99-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:24:13-52
+100        <activity
+100-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:25:9-28:55
+101            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.TrustedWebActivity"
+101-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:26:13-106
+102            android:exported="false"
+102-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:27:13-37
+103            android:theme="@style/ThemeTransparent" />
+103-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:28:13-52
+104        <activity
+104-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:29:9-33:55
+105            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeCustomTabsActivitySingleInstance"
+105-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:30:13-126
+106            android:exported="false"
+106-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:31:13-37
+107            android:launchMode="singleInstance"
+107-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:32:13-48
+108            android:theme="@style/ThemeTransparent" />
+108-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:33:13-52
+109        <activity
+109-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:34:9-38:55
+110            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.TrustedWebActivitySingleInstance"
+110-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:35:13-120
+111            android:exported="false"
+111-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:36:13-37
+112            android:launchMode="singleInstance"
+112-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:37:13-48
+113            android:theme="@style/ThemeTransparent" />
+113-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:38:13-52
+114
+115        <receiver
+115-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:40:9-43:40
+116            android:name="com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ActionBroadcastReceiver"
+116-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:41:13-111
+117            android:enabled="true"
+117-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:42:13-35
+118            android:exported="false" />
+118-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:43:13-37
 119
-120        <activity
-120-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:10:9-13:74
-121            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
-121-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-74
-122            android:exported="false"
-122-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:12:13-37
-123            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-123-->[:url_launcher_android] /home/tiedl25/StudioProjects/splizz/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-71
+120        <meta-data
+120-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:45:9-47:36
+121            android:name="io.flutter.embedded_views_preview"
+121-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:46:13-61
+122            android:value="true" />
+122-->[:flutter_inappwebview] /home/tiedl25/StudioProjects/splizz/build/flutter_inappwebview/intermediates/merged_manifest/debug/AndroidManifest.xml:47:13-33
+123
 124        <activity
 124-->[com.google.android.gms:play-services-auth:20.5.0] /home/tiedl25/.gradle/caches/transforms-3/5b798712d3aca7da2e288bc1ca3826af/transformed/jetified-play-services-auth-20.5.0/AndroidManifest.xml:23:9-27:75
 125            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
@@ -231,7 +231,7 @@
 148-->[androidx.emoji2:emoji2:1.2.0] /home/tiedl25/.gradle/caches/transforms-3/e6acde8247786183b2ee28d1a4c213ed/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
 149            android:name="androidx.startup.InitializationProvider"
 149-->[androidx.emoji2:emoji2:1.2.0] /home/tiedl25/.gradle/caches/transforms-3/e6acde8247786183b2ee28d1a4c213ed/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
-150            android:authorities="de.tiedl25.splizz.splizz.androidx-startup"
+150            android:authorities="de.tmc.splizz.androidx-startup"
 150-->[androidx.emoji2:emoji2:1.2.0] /home/tiedl25/.gradle/caches/transforms-3/e6acde8247786183b2ee28d1a4c213ed/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
 151            android:exported="false" >
 151-->[androidx.emoji2:emoji2:1.2.0] /home/tiedl25/.gradle/caches/transforms-3/e6acde8247786183b2ee28d1a4c213ed/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37

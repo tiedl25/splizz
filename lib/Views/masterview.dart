@@ -156,7 +156,7 @@ class _MasterViewState extends State<MasterView>{
         onDismissed: (context) async {
           setState(() {
             DatabaseHelper.instance.remove(item.id!);
-            if(removeDriveFile){
+            if(item.sharedId != '' && removeDriveFile){
               GoogleDrive.instance.deleteFile(item.sharedId);
               GoogleDrive.instance.deleteFile(item.imageSharedId);
             }
@@ -176,6 +176,7 @@ class _MasterViewState extends State<MasterView>{
                                 padding: const EdgeInsets.all(5),
                                 child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
                             ),
+
                             if(item.sharedId != '') Container(
                               padding: const EdgeInsets.all(5),
                               child: Row(

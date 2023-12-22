@@ -28,10 +28,10 @@ class _ImportDialogState extends State<ImportDialog>{
   }
 
   Future<List<Map>> _fetchData() async {
-    var sharedList = await GoogleDrive.instance.getFilenames();
+    List<Map>? sharedList = await GoogleDrive.instance.getFilenames();
     var savedList = await GoogleDrive.instance.getFilenames(owner: true);
 
-    if(sharedList != 1 && savedList != 1)
+    if(sharedList != null && savedList != null)
     {
       if(sharedList.isNotEmpty){
         _filenameList.add({'name' : "Shared with me"});
@@ -41,10 +41,6 @@ class _ImportDialogState extends State<ImportDialog>{
         _filenameList.add({'name' : "Saved by me"});
         _filenameList.addAll(savedList);
       }
-    } else {
-      showDialog(context: context, builder: (BuildContext){
-        return ErrorDialog('Sign-In Error');
-      });
     }
     return _filenameList;
   }
@@ -119,19 +115,19 @@ class _ImportDialogState extends State<ImportDialog>{
           onConfirmed: () async {
             if (_selection != -1){
               var f = _filenameList[_selection];
-              var file = await GoogleDrive.instance.downloadFile(f['id'], f['path']);
-              var imageFile = await GoogleDrive.instance.downloadFile(f['imageId'], '${f['path']}_image');
-              if(file == 1 || imageFile == 1){
+              try{
+                var file = await GoogleDrive.instance.downloadFile(f['id'], f['path']);
+                var imageFile = await GoogleDrive.instance.downloadFile(f['imageId'], '${f['path']}_image');
+                await DatabaseHelper.instance.import(file.path, f['id'], imageFile.path, f['imageId']);
+
+                //GoogleDrive.instance.addParents(file, item.sharedId);
+                FileHandler.instance.deleteFile(file.path);
+                FileHandler.instance.deleteFile(imageFile.path);
+              } catch(_){
                 showDialog(context: context, builder: (BuildContext){
                   return ErrorDialog('Import Error');
                 });
-                return;
               }
-              await DatabaseHelper.instance.import(file.path, f['id'], imageFile.path, f['imageId']);
-
-              //GoogleDrive.instance.addParents(file, item.sharedId);
-              FileHandler.instance.deleteFile(file.path);
-              FileHandler.instance.deleteFile(imageFile.path);
               widget.setParentState(() {});
             }
           }

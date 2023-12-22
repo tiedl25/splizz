@@ -8,8 +8,8 @@ import 'package:path/path.dart' as path;
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/file_handle.dart';
 import 'package:splizz/Helper/secure_storage.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 class GoogleDrive {
   //Singleton Pattern
@@ -27,9 +27,14 @@ class GoogleDrive {
       var authClient = await clientViaUserConsent(
         ClientId(dotenv.env['clientId']!, dotenv.env['clientSecret']), [dotenv.env['scope']!], (url) {
           //Open Url in Browser
-          launchUrl(
-            Uri.parse(url),
-            mode: LaunchMode.externalApplication,
+          launch(
+            url,
+            customTabsOption: CustomTabsOption(
+              enableUrlBarHiding: false,
+              enableInstantApps: true,
+              closeButtonPosition: CustomTabsCloseButtonPosition.end,
+              showPageTitle: true,
+            )
           );
         }
       );
@@ -61,199 +66,103 @@ class GoogleDrive {
 // check if the directory folder is already available in drive, if available return its id
 // if not available create a folder in drive and return id
 //   if not able to create id then it means user authentication has failed
-  Future<String?> _getFolderId(gd.DriveApi drive, {String folderName='Splizz'}) async {
+  Future<String> _getFolderId(gd.DriveApi drive, {String folderName='Splizz'}) async {
     const mimeType = "application/vnd.google-apps.folder";
 
-    try {
-      final found = await drive.files.list(
-        q: "mimeType = '$mimeType' and name = '$folderName'",
-        $fields: "files(id, name)",
-      );
+    final files = (await drive.files.list(q: "mimeType = '$mimeType' and name = '$folderName'", $fields: "files(id, name)")).files;
 
-      final files = found.files;
-
-      if (files == null) {
-        return null;
-      }
-
-      // The folder already exists
-      if (files.isNotEmpty) {
-        return files.first.id;
-      }
-
-      // Create a folder
-      gd.File folder = gd.File();
-      folder.name = folderName;
-      folder.mimeType = mimeType;
-      final folderCreation = await drive.files.create(folder);
-
-      return folderCreation.id;
-    } catch (e) {
-      return null;
+    // The folder already exists
+    if (files!.isNotEmpty) {
+      return files.first.id!;
     }
+
+    // Create a folder
+    gd.File folder = gd.File();
+    folder.name = folderName;
+    folder.mimeType = mimeType;
+    final folderId = (await drive.files.create(folder)).id;
+    return folderId!;
   }
 
   // return all filenames that are related to splizz items
-  Future<dynamic> getFilenames({owner=false}) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
-      String? folderId = await _getFolderId(drive);
-      if(folderId == null) throw Error();
+  Future<List<Map>> getFilenames({owner=false}) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+    String folderId = await _getFolderId(drive);
+    List<gd.File>? response = owner ? (await drive.files.list(q: 'trashed=false and "$folderId" in parents', supportsAllDrives: true, includeItemsFromAllDrives: true, $fields: "*")).files :
+    (await drive.files.list(q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents', supportsAllDrives: true, includeItemsFromAllDrives: true, $fields: "*")).files;
 
-      List<gd.File>? response;
-      if (owner) {
-        response = (await drive.files.list(
-            q: 'trashed=false and "$folderId" in parents',
-            supportsAllDrives: true,
-            includeItemsFromAllDrives: true,
-            $fields: "*")).files;
-      } else {
-        response = (await drive.files.list(
-            q: 'sharedWithMe=true and trashed=false and not "$folderId" in parents',
-            supportsAllDrives: true,
-            includeItemsFromAllDrives: true,
-            $fields: "*")).files;
+    List<Map> itemlist = [];
+    for (var file in response!){
+      if((file.name)!.startsWith('splizz_item') && await DatabaseHelper.instance.checkSharedId(file.id!)){
+        itemlist.add({'path' : file.name, 'id' : file.id, 'name' : file.properties?['itemName'], 'imageId' : file.properties?['imageId']});
       }
+    }
+    return itemlist;
+  }
 
-      List<Map> itemlist = [];
-      for (var file in response!){
-        if((file.name)!.startsWith('splizz_item') && await DatabaseHelper.instance.checkSharedId(file.id!)){
-          itemlist.add({'path' : file.name, 'id' : file.id, 'name' : file.properties?['itemName'], 'imageId' : file.properties?['imageId']});
-        }
+  Future<List> getSharedPeople(String id) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
+
+    final about = await drive.about.get($fields: 'user(emailAddress)');
+    final userEmail = about.user?.emailAddress;
+
+    final permissions = await drive.permissions.list(id, $fields: "*",);
+    List people = [];
+
+    for (var permission in permissions.permissions!) {
+      if(permission.emailAddress != userEmail) {
+        people.add({'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id});
       }
-      return itemlist;
-    } catch(error) {
-      return 1;
     }
-
+    return people;
   }
 
-  Future<dynamic> getSharedPeople(String id) async {
-    try {
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+  Future<Map> addPeople(String fileId, String email) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      final about = await drive.about.get($fields: 'user(emailAddress)');
-      final userEmail = about.user?.emailAddress;
+    var permission = gd.Permission(emailAddress: email, role: 'writer', type: 'user');
 
-      final permissions = await drive.permissions.list(id, $fields: "*",);
-
-      List people = [];
-
-      for (var permission in permissions.permissions!) {
-        if(permission.emailAddress != userEmail) {
-          people.add({'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id});
-        }
-      }
-
-      return people;
-    } catch(error){
-      return 1;
-    }
+    permission = await drive.permissions.create(permission, fileId, sendNotificationEmail: false, $fields: '*');
+    return {'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id};
   }
 
-  Future<dynamic> addPeople(String fileId, String email) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+  Future removePeople(String fileId, String permissionId) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      var permission = gd.Permission(
-          emailAddress: email,
-          role: 'writer',
-          type: 'user'
-      );
-
-      permission = await drive.permissions.create(
-          permission,
-          fileId,
-          sendNotificationEmail: false,
-          $fields: '*'
-      );
-      if (permission.emailAddress == null) throw Error();
-
-      return {'email' : permission.emailAddress, 'name' : permission.displayName, 'id' : permission.id};
-    } catch(error){
-      return 1;
-    }
+    await drive.permissions.delete(fileId, permissionId);
   }
 
-  Future<int> removePeople(String fileId, String permissionId) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+  Future updateFile(File file, id) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      await drive.permissions.delete(fileId, permissionId);
-      return 0;
-    } catch(error){
-      return 1;
-    }
-
+    final updatedFile = gd.File(name: path.basename(file.absolute.path));
+    await drive.files.update(updatedFile, id, uploadMedia: gd.Media(file.openRead(), file.lengthSync()));
   }
 
-  Future<int> updateFile(File file, id) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
-      String? folderId = await _getFolderId(drive);
-      if(folderId == null) throw Error();
+  Future<String?> uploadFile(File file, [String? itemName, String? imageId]) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      final updatedFile = gd.File(name: path.basename(file.absolute.path));
-      await drive.files.update(
-        updatedFile,
-        id,
-        uploadMedia: gd.Media(file.openRead(), file.lengthSync()),
-      );
-      return 0;
-    } catch(error) {
-      return 1;
-    }
+    String folderId =  await _getFolderId(drive);
+
+    gd.File fileToUpload = gd.File(parents: [folderId], name: path.basename(file.absolute.path), properties: {});
+
+    if(itemName != null) fileToUpload.properties?.addAll({'itemName' : itemName});
+    if(imageId != null) fileToUpload.properties?.addAll({'imageId' : imageId});
+
+    return (await drive.files.create(fileToUpload, uploadMedia: gd.Media(file.openRead(), file.lengthSync()))).id;
   }
 
-  Future<dynamic> uploadFile(File file, [String? itemName, String? imageId]) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+  Future deleteFile(String fileId) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      String? folderId =  await _getFolderId(drive);
-      if(folderId == null) throw Error();
-
-      gd.File fileToUpload = gd.File();
-      fileToUpload.parents = [folderId];
-      fileToUpload.name = path.basename(file.absolute.path);
-      fileToUpload.properties = {};
-      if(itemName != null) fileToUpload.properties?.addAll({'itemName' : itemName});
-      if(imageId != null) fileToUpload.properties?.addAll({'imageId' : imageId});
-      var response = await drive.files.create(
-        fileToUpload,
-        uploadMedia: gd.Media(file.openRead(), file.lengthSync()),
-      );
-      return response.id;
-    } catch (error) {
-      return 1;
-    }
-  }
-
-  Future<int> deleteFile(String fileId) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
-      drive.files.delete(fileId);
-      return 0;
-    } catch(error) {
-      return 1;
-    }
-  }
-
-  Future<int> repeat(Function function) async {
-    int i=0;
-    int retValue=0;
-
-    do {
-      retValue = function();
-    } while(retValue == 1 && i<3);
-
-    return i;
+    drive.files.delete(fileId);
   }
 
   Future<bool> lastModifiedByMe(String fileId) async {
@@ -265,36 +174,28 @@ class GoogleDrive {
   }
 
   Future<bool> checkOwner(String fileId) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      final about = await drive.about.get($fields: '*');
-      final id = about.user?.permissionId;
+    final about = await drive.about.get($fields: '*');
+    final id = about.user?.permissionId;
 
-      final permissions = await drive.permissions.list(fileId, $fields: "*",);
+    final permissions = await drive.permissions.list(fileId, $fields: "*",);
 
-      for (var permission in permissions.permissions!) {
-        if(permission.id == id) {
-          return permission.role == 'owner';
-        }
+    for (var permission in permissions.permissions!) {
+      if(permission.id == id) {
+        return permission.role == 'owner';
       }
-      return false;
-    } catch(error){
-      return false;
     }
+    return false;
   }
   
-  Future<dynamic> downloadFile(String fileId, String filename) async {
-    try{
-      var client = await getHttpClient();
-      var drive = gd.DriveApi(client);
+  Future<File> downloadFile(String fileId, String filename) async {
+    var client = await getHttpClient();
+    var drive = gd.DriveApi(client);
 
-      //download ByteStream from GoogleDrive
-      gd.Media? response = (await drive.files.get(fileId, downloadOptions: gd.DownloadOptions.fullMedia)) as gd.Media?;
-      return FileHandler.instance.writeBytestream(filename, response);
-    } catch(error){
-      return 1;
-    }
+    //download ByteStream from GoogleDrive
+    gd.Media? response = (await drive.files.get(fileId, downloadOptions: gd.DownloadOptions.fullMedia)) as gd.Media?;
+    return FileHandler.instance.writeBytestream(filename, response);
   }
 }

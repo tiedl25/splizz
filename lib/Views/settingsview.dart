@@ -28,7 +28,7 @@ class _SettingsViewState extends State<SettingsView>{
   Future<void> loadSwitchValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _systemThemeToggle = prefs.getBool('systemTheme') ?? false;
+      _systemThemeToggle = prefs.getBool('systemTheme') ?? true;
       _darkModeToggle = prefs.getBool('darkMode') ?? false;
     });
   }

@@ -175,11 +175,19 @@ class DatabaseHelper {
   // Synchronize a given item with it's corresponding json-file in GoogleDrive
   Future<Item> itemSync(Item item) async {
     await lock.synchronized(() async{
-      if (item.sharedId != '' && !(await GoogleDrive.instance.lastModifiedByMe(item.sharedId)))
+
+      if (item.sharedId != '')
       {
+        var response = (await GoogleDrive.instance.lastModifiedByMe(item.sharedId));
+        if (response == null && response){
+          return item;
+        }
         // download item from GoogleDrive and import it
         String filename = FileHandler.instance.filename(item);
-        File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+        File? file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+        if(file==null){
+          return item;
+        }
         Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
         driveItem.sharedId = item.sharedId;
 
@@ -191,7 +199,6 @@ class DatabaseHelper {
         bool equalMembers = listEquals(item.members, driveItem.members);
 
         if (equalHistory && equalMembers) {
-
           FileHandler.instance.deleteFile(file.path);
           item.history = history;
         } else {
@@ -477,10 +484,15 @@ class DatabaseHelper {
 
   // directly import a GoogleDrive item
   import(String path, String sharedId, String imagePath, String imageSharedId) async {
+    var response = await GoogleDrive.instance.checkOwner(sharedId);
+    if(response == null){
+      return;
+    }
+
     Item item = Item.fromJson(await FileHandler.instance.readJsonFile(basename(path)));
     item.sharedId = sharedId;
     item.imageSharedId = imageSharedId;
-    item.owner = await GoogleDrive.instance.checkOwner(sharedId);
+    item.owner = response;
     item.image = await FileHandler.instance.readImageFile(basename(imagePath));
     add(item);
   }

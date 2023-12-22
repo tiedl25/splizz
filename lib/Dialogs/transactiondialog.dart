@@ -139,7 +139,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 _dateSelection = i;
               });
             },
-            child: Text(i==2 ? '${date[2].day}.${date[2].month}.${date[2].year}' : date[i], style: TextStyle(color: textColor ,fontSize: 20),),
+            child: Text(i==2 ? '${date[2].day}.${date[2].month}.${date[2].year}' : date[i], style: TextStyle(color: textColor ,fontSize: 15),),
           ),
         );
       },
@@ -201,7 +201,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                           child: memberBar()
                       ),
                       SizedBox(
-                        height: 60,
+                        height: 50,
                         child: dateBar(),
                       )
                     ]
