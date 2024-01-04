@@ -73,10 +73,10 @@ class Item{
       payer.add(a);
     }
 
-    List<Member> positive = List.from(payer.where((element) => element.balance > 0));
+    List<Member> positive = List.from(payer.where((element) => element.balance > 1e-6));
     positive.sort((a,b) => a.balance.compareTo(b.balance));
     positive.reversed;
-    List<Member> negative = List.from(payer.where((element) => element.balance < 0));
+    List<Member> negative = List.from(payer.where((element) => element.balance < -1e-6));
     negative.sort((a,b) => a.balance.compareTo(b.balance));
     negative.reversed;
     
@@ -84,7 +84,7 @@ class Item{
 
     for(int a=0; a<positive.length; a++){
       for(int b=0; b<negative.length; b++){
-        if(positive[a].balance > 0){
+        if(positive[a].balance > 1e-6){
           double tmp = positive[a].balance;
           Member receiver = Member.fromMember(positive[a]);
           
