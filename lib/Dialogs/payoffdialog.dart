@@ -30,24 +30,25 @@ class _PayoffDialogState extends State<PayoffDialog>{
     var paymap = _item.calculatePayoff();
     return DialogModel(
       title: 'Payoff',
+      scrollable: false,
       content: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
             child: Column(
               children: List.generate(
-                //physics: const BouncingScrollPhysics(),
                   paymap.length,
                       (i) {
                     Member m = paymap.keys.toList()[i];
                     return _listElement(m, paymap[m]!);
                   }
               ),
-            ),
           ),
+        ),
         ),
       ),
       onConfirmed: (){

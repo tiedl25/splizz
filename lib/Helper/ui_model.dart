@@ -12,6 +12,7 @@ class DialogModel extends StatelessWidget {
   final EdgeInsets insetPadding;
   final EdgeInsets contentPadding;
   final Alignment alignment;
+  final bool scrollable;
 
   const DialogModel({
     super.key,
@@ -23,6 +24,7 @@ class DialogModel extends StatelessWidget {
     this.insetPadding=const EdgeInsets.all(15),
     this.contentPadding=const EdgeInsets.all(20),
     this.alignment=Alignment.bottomCenter,
+    this.scrollable=true
   });
 
   @override
@@ -34,7 +36,7 @@ class DialogModel extends StatelessWidget {
           alignment: alignment,
           insetPadding: insetPadding,
           contentPadding: contentPadding,
-          scrollable: true,
+          scrollable: scrollable,
           title: title != null ? Text(title!) : null,
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
           backgroundColor: Theme.of(context).colorScheme.background,
@@ -42,38 +44,41 @@ class DialogModel extends StatelessWidget {
           actions: onConfirmed != null ? [
             const Divider(
               thickness: 0.5,
-              indent: 15,
-              endIndent: 15,
+              indent: 0,
+              endIndent: 0,
             ),
             IntrinsicHeight(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Expanded(
-                      child: CupertinoButton(
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(leftText, style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                      )
-                  ),
-                  const VerticalDivider(
-                    indent: 5,
-                    endIndent: 5,
-                  ),
-                  Expanded(
-                    child: CupertinoButton(
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(rightText, style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () {
-                          onConfirmed!();
-                          Navigator.of(context).pop(true);
-                        }
+              child: Container(
+                padding: EdgeInsets.all(0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                        child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          child: Text(leftText, style: Theme.of(context).textTheme.labelLarge,),
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                        )
                     ),
-                  ),
-                ],
-              ),
+                    const VerticalDivider(
+                      indent: 5,
+                      endIndent: 5,
+                    ),
+                    Expanded(
+                      child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          child: Text(rightText, style: Theme.of(context).textTheme.labelLarge,),
+                          onPressed: () {
+                            onConfirmed!();
+                            Navigator.of(context).pop(true);
+                          }
+                      ),
+                    ),
+                  ],
+                ),
+              )
             ),
           ] : null
         )
