@@ -66,6 +66,7 @@ class _MasterViewState extends State<MasterView>{
       ),
       body: _buildBody(),
       floatingActionButton: SpeedDial(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
         spacing: 5,
         animatedIcon: AnimatedIcons.menu_close,
         animatedIconTheme: const IconThemeData(size: 22.0),
@@ -75,6 +76,9 @@ class _MasterViewState extends State<MasterView>{
         overlayOpacity: 0.5,
         children: [
           SpeedDialChild(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+            ),
             backgroundColor: Colors.purple,
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),
