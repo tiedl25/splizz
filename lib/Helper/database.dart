@@ -229,10 +229,10 @@ class DatabaseHelper {
           int memberId = item.members[t.memberId!].id!; //Get correct memberId because in the exported json file the memberIds are set from 0 to n-1
           tNew = Transaction(t.description, t.value, t.date, memberId: memberId, timestamp: t.timestamp, deleted: t.deleted, operations: t.operations);
           //Todo item.addTransaction(t.memberId!, tNew);
-          addTransaction(tNew, item.members, item.id!, memberId);
+          pushTransaction(tNew, item.members, item.id!, memberId);
         } else {
           tNew = Transaction.payoff(t.value, date: t.date, timestamp: t.timestamp, operations: t.operations);
-          addTransaction(tNew, item.members, item.id!, t.memberId!);
+          pushTransaction(tNew, item.members, item.id!, t.memberId!);
           //Todo item.addPayoff(t.memberId!, tNew);
           //addPayoff(tNew, item.id!, memberId);
         }
@@ -284,7 +284,7 @@ class DatabaseHelper {
           transaction.memberId = item.members[transaction.memberId!].id;
         }
 
-        addTransaction(transaction, item.members, itemId, transaction.memberId!, db, false);
+        pushTransaction(transaction, item.members, itemId, transaction.memberId!, db, false);
       }
     });
   }
@@ -306,7 +306,7 @@ class DatabaseHelper {
   }
 
   //Add new Transaction to Database ignoring the operations
-  Future<int> pushTransaction(Transaction transaction, int itemId, int memberId, [Database? db]) async {
+  Future<int> addTransaction(Transaction transaction, int itemId, int memberId, [Database? db]) async {
     db = db ?? await instance.database;
 
     var map = transaction.toMap();
@@ -325,13 +325,13 @@ class DatabaseHelper {
 
   // Add Transaction to Database
   // Used to add a Transaction from a Json file either by importing or through conflict management
-  Future<int> addTransaction(Transaction transaction, List<Member> members, int itemId, int memberId, [Database? db, bool calculate=true]) async {
+  Future<int> pushTransaction(Transaction transaction, List<Member> members, int itemId, int memberId, [Database? db, bool calculate=true]) async {
     db = db ?? await instance.database;
 
     //double value = transaction.value/transaction.operations.length;
 
     await lock.synchronized(() async {
-      int tId = await pushTransaction(transaction, itemId, memberId, db);
+      int tId = await addTransaction(transaction, itemId, memberId, db);
 
       // Update total only if item is not deleted, it should be calculated and the memberId is not -1 (-1 means it is a payoff transaction)
       if(!transaction.deleted && memberId != -1 && calculate) await db?.rawUpdate('UPDATE item_members SET total = total + ${transaction.value} WHERE id = $memberId');
@@ -390,10 +390,11 @@ class DatabaseHelper {
     double value = transaction.value/involvedMembers.length;
 
     await lock.synchronized(() async {
-      int tId = await pushTransaction(transaction, itemId, memberId, db);
+      int tId = await addTransaction(transaction, itemId, memberId, db);
       Operation operation = Operation(transaction.value, itemId: itemId, memberId: memberId, transactionId: tId);
       int opId = await addOperation(operation, db);
 
+      // add operations for each member
       for(int involvedMember in involvedMembers){
         if(involvedMember == memberId){
           Operation o = Operation(transaction.value-value, id: opId, itemId: itemId, memberId: involvedMember, transactionId: tId);
@@ -405,6 +406,7 @@ class DatabaseHelper {
         if(!transaction.deleted) await db.rawUpdate('UPDATE item_members SET balance = balance - $value WHERE id = $involvedMember');
       }
 
+      // update total and balance of payer
       if(!transaction.deleted){
         await db.rawUpdate('UPDATE item_members SET total = total + ${transaction.value} WHERE id = $memberId');
         await db.rawUpdate('UPDATE item_members SET balance = balance + ${transaction.value} WHERE id = $memberId');
@@ -434,7 +436,7 @@ class DatabaseHelper {
 
     await lock.synchronized(() async {
       Transaction t = Transaction.payoff(0.0, timestamp: timestamp);
-      int tId = await pushTransaction(t, item.id!, -1);
+      int tId = await addTransaction(t, item.id!, -1);
 
       for(Member e in item.members){
         Operation o = Operation(-e.balance, itemId: item.id, memberId: e.id, transactionId: tId);
@@ -479,7 +481,7 @@ class DatabaseHelper {
 
   updateTransaction(Transaction transaction) async {
     Database db = await instance.database;
-    await db.update('item_transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
+    return await db.update('item_transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
   }
 
   // directly import a GoogleDrive item
