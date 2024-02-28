@@ -1,18 +1,14 @@
 class Operation{
   //Private Variables
-  final int? _id;
-  int? _listId;
+  final int? id;
+  int? listId;
   int? itemId;
   int? memberId;
   int? transactionId;
-  late double _value;
-
-  //Getter
-  int? get id => _id;
-  double get value => _value;
+  late double value;
 
   //Constructor
-  Operation(this._value, {id, this.itemId, this.memberId, this.transactionId, listId}): _id=id, _listId=listId;
+  Operation(this.value, {id, this.itemId, this.memberId, this.transactionId, listId}): id=id, listId=listId;
 
   Map<String, dynamic> toMap() => {
     'id': id,

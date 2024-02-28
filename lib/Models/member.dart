@@ -4,47 +4,30 @@ import 'package:splizz/Models/transaction.dart';
 class Member{
   //Private Variables
   final int? id;
-  late final String _name;
-  late double _total = 0;
-  late double _balance = 0;
-  late Color _color;
-  bool _active = true;
-  late DateTime _timestamp;
+  late final String name;
+  late double total = 0;
+  late double balance = 0;
+  late Color color;
+  bool active = true;
+  late DateTime timestamp;
   late List<Transaction> history = [];
 
-//Getter
-  String get name => _name;
-  double get total => _total;
-  double get balance => _balance;
-  Color get color => _color;
-  bool get active => _active;
-  DateTime get timestamp => _timestamp;
-
-  //Setter
-  set balance(double value) {
-    _balance = value;
-  }
-
-  set active(bool value) {
-    _active = value;
-  }
-
   //Constructor
-  Member(this._name, this._color, {this.id, total, balance, history, active, timestamp}){
+  Member(this.name, this.color, {this.id, total, balance, history, active, timestamp}){
     if (total==null) {
-      _total=0;
+      this.total=0;
     } else {
-      _total=total.toDouble();
+      this.total=total.toDouble();
     }
     if (balance==null) {
-      _balance=0;
+      this.balance=0;
     } else {
-      _balance=balance.toDouble();
+      this.balance=balance.toDouble();
     }
     if (active==null) {
-      _active=true;
+      this.active=true;
     } else {
-      _active=active;
+      this.active=active;
     }
     if (history==null){
       this.history = [];
@@ -52,10 +35,10 @@ class Member{
       this.history = history;
     }
     if (timestamp == null){
-      _timestamp = DateTime.now();
+      this.timestamp = DateTime.now();
     }
     else {
-      _timestamp = timestamp;
+      this.timestamp = timestamp;
     }
   }
 
@@ -82,8 +65,8 @@ class Member{
   //Methods
   void addTransaction(Transaction t){
     history.add(t);
-    _total += t.value;
-    _balance += t.value;
+    total += t.value;
+    balance += t.value;
   }
 
   void pushTransaction(Transaction t){
@@ -91,25 +74,25 @@ class Member{
   }
 
   void deleteTransaction(Transaction t){
-    _total -= t.value;
-    _balance -= t.value;
+    total -= t.value;
+    balance -= t.value;
   }
 
   void add(double d){
-    _balance += d;
+    balance += d;
   }
 
   void sub(double d){
-    _balance -= d;
+    balance -= d;
   }
 
   void payoff(Transaction t){
     history.add(t);
-    _balance += t.value;
+    balance += t.value;
   }
 
   void compensate(){
-    _total = _balance;
+    total = balance;
   }
 
   Map<String, dynamic> toMap() => {

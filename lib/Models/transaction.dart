@@ -2,35 +2,27 @@ import 'operation.dart';
 
 class Transaction{
   //Private Variables
-  final int? _id;
+  final int? id;
   int? memberId;
-  late String _description;
-  late DateTime _timestamp;
-  late DateTime _date;
-  late double _value;
-  bool _deleted = false;
+  late String description;
+  late DateTime timestamp;
+  late DateTime date;
+  late double value;
+  bool deleted = false;
   late List<Operation> operations;
 
-  //Getter
-  int? get id => _id;
-  String get description => _description;
-  DateTime get timestamp => _timestamp;
-  double get value => _value;
-  bool get deleted => _deleted;
-  DateTime get date => _date;
-
   //Constructor
-  Transaction(this._description, this._value, this._date, {id, this.memberId, timestamp, deleted, operations}): _id=id{
+  Transaction(this.description, this.value, this.date, {id, this.memberId, timestamp, deleted, operations}): id=id{
     if (timestamp == null){
-      _timestamp = DateTime.now();
+      this.timestamp = DateTime.now();
     }
     else {
-      _timestamp = timestamp;
+      this.timestamp = timestamp;
     }
     if (deleted == null) {
-      _deleted = false;
+      this.deleted = false;
     } else {
-      _deleted = deleted;
+      this.deleted = deleted;
     }
     if (operations == null){
       this.operations = [];
@@ -67,11 +59,11 @@ class Transaction{
 
   //Methods
   String formatDate(){
-    return '${_date.day}.${_date.month}.${_date.year}';
+    return '${date.day}.${date.month}.${date.year}';
   }
 
   void delete(){
-    _deleted = true;
+    deleted = true;
   }
 
   Map<String, dynamic> toMap() => {

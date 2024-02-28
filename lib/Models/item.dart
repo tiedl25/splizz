@@ -6,23 +6,18 @@ import 'package:splizz/Models/operation.dart';
 
 class Item{
   //Private Variables
-  final int? _id;
-  String _name;
+  final int? id;
+  String name;
   String sharedId;
   String imageSharedId;
   bool owner;
   List<Member> members = [];
   List<Transaction> history = [];
-  late DateTime _timestamp;
+  late DateTime timestamp;
   Uint8List? image;
 
-   //Getter
-  int? get id => _id;
-  String get name => _name;
-  DateTime get timestamp => _timestamp;
-
   //Constructor
-  Item(this._name, {id, this.sharedId='', this.owner=true, this.imageSharedId='', members, history, this.image, timestamp}): _id=id, _timestamp = timestamp ?? DateTime.now() {
+  Item(this.name, {id, this.sharedId='', this.owner=true, this.imageSharedId='', members, history, this.image, timestamp}): id=id, timestamp = timestamp ?? DateTime.now() {
     if(members!=null){
       this.members=members;
     }
@@ -44,6 +39,10 @@ class Item{
         members[i].sub(val);
       }
     }
+  }
+
+  void addMember(Member m){
+    members.add(m);
   }
 
   // Mark transaction as deleted, while also updating total and balance of all members
