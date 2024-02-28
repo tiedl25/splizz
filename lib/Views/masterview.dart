@@ -111,6 +111,9 @@ class _MasterViewState extends State<MasterView>{
     var imageBytes = data.buffer.asUint8List();
 
     Item newItem = Item('Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
+    setState(() {
+      items.add(newItem);
+    });
     DatabaseHelper.instance.add(newItem);
   }
 

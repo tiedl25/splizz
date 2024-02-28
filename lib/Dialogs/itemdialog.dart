@@ -86,6 +86,11 @@ class _ItemDialogState extends State<ItemDialog>{
     var imageBytes = data.buffer.asUint8List();
 
     Item newItem = Item(title, members: members, image: imageBytes);
+    widget.setParentState(
+        () {
+          widget.items.add(newItem);
+        }
+    );
     DatabaseHelper.instance.add(newItem);
   }
 
