@@ -24,19 +24,19 @@ class TransactionDialog extends StatefulWidget {
 }
 
 class _TransactionDialogState extends State<TransactionDialog>{
-  late Item _item;
+  late Item item;
   CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',');
   TextEditingController descriptionController = TextEditingController();
   bool currency = false;
   //late final List<bool> _payerSelection;
   late final List<bool> _memberSelection;
   List<dynamic> date = ["Today", "Yesterday"];
-  int _selection = -1;
+  int selection = -1;
   int _dateSelection = 0;
 
   @override void initState() {
-    _item = widget.item;
-    _memberSelection = _item.members.map((Member m) => m.active).toList();
+    item = widget.item;
+    _memberSelection = item.members.map((Member m) => m.active).toList();
     date.add(DateTime.now());
 
     super.initState();
@@ -47,9 +47,9 @@ class _TransactionDialogState extends State<TransactionDialog>{
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 5),
       physics: const BouncingScrollPhysics(),
-      itemCount: _item.members.length,
+      itemCount: item.members.length,
       itemBuilder: (context, i) {
-        Color color = _selection==i ? _item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color color = selection==i ? item.members[i].color : Theme.of(context).colorScheme.surface;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
         return PillModel(
@@ -57,10 +57,10 @@ class _TransactionDialogState extends State<TransactionDialog>{
           child: TextButton(
             onPressed: (){
               setState(() {
-                _selection = i;
+                selection = i;
               });
             },
-            child: Text(_item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
+            child: Text(item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
           ),
         );
       },
@@ -72,9 +72,9 @@ class _TransactionDialogState extends State<TransactionDialog>{
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 5),
       physics: const BouncingScrollPhysics(),
-      itemCount: _item.members.length,
+      itemCount: item.members.length,
       itemBuilder: (context, i) {
-        Color color = _memberSelection[i] ? _item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color color = _memberSelection[i] ? item.members[i].color : Theme.of(context).colorScheme.surface;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
         return PillModel(color: color, child: TextButton(
@@ -83,7 +83,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 _memberSelection[i] = !_memberSelection[i];
               });
             },
-            child: Text(_item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
+            child: Text(item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
           ),
         );
       },
@@ -209,10 +209,8 @@ class _TransactionDialogState extends State<TransactionDialog>{
           )
       ),
       onConfirmed: () {
-            if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && _selection!=-1 && _memberSelection.contains(true)) {
+            if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
               widget.setParentState(() {
-                int associatedId = _item.members[_selection].id!;
-                Transaction tract = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId);
                 List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
                 //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
 
@@ -222,12 +220,14 @@ class _TransactionDialogState extends State<TransactionDialog>{
                   }
                 });
 
-                List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => _item.members[e].id!).toList();
-
-                //_item.addTransaction(_selection, tract, involvedMembersListIds);
-                DatabaseHelper.instance.addTransactionCalculate(tract, _item.id!, associatedId, involvedMembersDbIds);
-                //DatabaseHelper.instance.update(_item);
-                _selection=-1;
+                List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
+                
+                int associatedId = item.members[selection].id!;
+                Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
+                item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
+                //DatabaseHelper.instance.addTransactionCalculate(transaction, item.id!, associatedId, involvedMembersDbIds);
+                DatabaseHelper.instance.update(item);
+                selection=-1;
               });
             }
           }

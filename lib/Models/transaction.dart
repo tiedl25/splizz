@@ -4,6 +4,7 @@ class Transaction{
   //Private Variables
   final int? id;
   int? memberId;
+  int? itemId;
   late String description;
   late DateTime timestamp;
   late DateTime date;
@@ -12,7 +13,7 @@ class Transaction{
   late List<Operation> operations;
 
   //Constructor
-  Transaction(this.description, this.value, this.date, {id, this.memberId, timestamp, deleted, operations}): id=id{
+  Transaction(this.description, this.value, this.date, {id, this.memberId, this.itemId, timestamp, deleted, operations}): id=id{
     if (timestamp == null){
       this.timestamp = DateTime.now();
     }
@@ -64,6 +65,14 @@ class Transaction{
 
   void delete(){
     deleted = true;
+  }
+
+  void restore(){
+    deleted = false;
+  }
+
+  void addOperation(Operation operation){
+    operations.add(operation);
   }
 
   Map<String, dynamic> toMap() => {

@@ -314,6 +314,21 @@ class DatabaseHelper {
     return await db.insert('item_transactions', map);
   }
 
+  Future<int> addTransactionFromTransaction(Transaction transaction, itemId, [Database? db]) async {
+    db = db ?? await instance.database;
+
+    var map = transaction.toMap();
+    map.addAll({'itemId': itemId});
+    int transactionId = await db.insert('item_transactions', map);
+
+    for (Operation operation in transaction.operations) {
+      operation.transactionId = transactionId;
+      await addOperation(operation, db);
+    }
+
+    return transactionId;
+  }
+
   Future<int> addPayoff(Transaction transaction, int itemId, int memberId, [Database? db]) async {
     db = db ?? await instance.database;
 
@@ -469,7 +484,10 @@ class DatabaseHelper {
         updateMember(member);
       }
       for (Transaction transaction in item.history) {
-        updateTransaction(transaction);
+        int failed = await updateTransaction(transaction);
+        if (failed == 0) {
+          addTransactionFromTransaction(transaction, item.id, db);
+        }
       }
     });
   }

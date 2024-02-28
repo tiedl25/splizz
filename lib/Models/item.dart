@@ -27,17 +27,20 @@ class Item{
   }
 
   // Add new transaction to history and member history, while also updating total and balance of all members
-  void addTransaction(int associatedId, Transaction t, List<int> involvedMembers){
+  void addTransaction(int associatedId, Transaction t, List<int> involvedMembers, List<int> involvedDbMembers){
     members[associatedId].addTransaction(t);
     history.add(t);
 
+    double splitValue = t.value/involvedMembers.length;
+
     if(!t.deleted)
     {
-      double val = t.value/involvedMembers.length;
-
-      for(int i in involvedMembers){
-        members[i].sub(val);
+      for(int i=0; i<involvedMembers.length; i++) {
+        members[involvedMembers[i]].sub(splitValue);
+        t.addOperation(Operation(-splitValue, memberId: involvedDbMembers[i], itemId: this.id));
       }
+
+      t.addOperation(Operation(t.value, memberId: members[associatedId].id, itemId: this.id));
     }
   }
 
