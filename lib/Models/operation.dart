@@ -1,14 +1,13 @@
 class Operation{
   //Private Variables
   final int? id;
-  int? listId;
   int? itemId;
   int? memberId;
   int? transactionId;
   late double value;
 
   //Constructor
-  Operation(this.value, {id, this.itemId, this.memberId, this.transactionId, listId}): id=id, listId=listId;
+  Operation(this.value, {id, this.itemId, this.memberId, this.transactionId}): id=id;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -18,14 +17,13 @@ class Operation{
     'value': value,
   };
 
-  factory Operation.fromMap(Map<String, dynamic> map, int index) {
+  factory Operation.fromMap(Map<String, dynamic> map) {
     return Operation(
       map['value'],
       id: map['id'],
       itemId: map['itemId'],
       memberId: map['memberId'],
       transactionId: map['transactionId'],
-      listId: index
     );
   }
 

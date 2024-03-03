@@ -100,6 +100,17 @@ class _MasterViewState extends State<MasterView>{
               saveItem(members);
             }
           ),
+          if(kDebugMode) SpeedDialChild(
+            child: const Icon(Icons.remove),
+            onTap: () async {
+              for(int i=0; i<items.length; ++i){
+                DatabaseHelper.instance.remove(items[i].id!);
+              }
+              setState(() {
+                items = [];
+              });
+            }
+          ),
           // add more options as needed
         ],
       )
@@ -125,6 +136,10 @@ class _MasterViewState extends State<MasterView>{
           if (!snapshot.hasData){
             return const Center(child: CircularProgressIndicator());
           }
+          if (snapshot.data!.isNotEmpty) {
+            items = snapshot.data!;
+            //items.sort((a, b) => b.date.compareTo(a.date));
+          }
           return RefreshIndicator(
               child: snapshot.data!.isEmpty ?
               ListView(
@@ -149,7 +164,7 @@ class _MasterViewState extends State<MasterView>{
     );
   }
   Widget _buildDismissible(Item item){
-    bool removeDriveFile = true;
+    bool removeDriveFile = item.owner;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
@@ -163,7 +178,7 @@ class _MasterViewState extends State<MasterView>{
         onDismissed: (context) async {
           setState(() {
             DatabaseHelper.instance.remove(item.id!);
-            if(item.sharedId != '' && removeDriveFile){
+            if(item.sharedId != '' && removeDriveFile && item.owner){
               GoogleDrive.instance.deleteFile(item.sharedId);
               GoogleDrive.instance.deleteFile(item.imageSharedId);
             }

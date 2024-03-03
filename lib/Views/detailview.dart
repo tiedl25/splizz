@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'dart:math';
+
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
@@ -36,7 +39,7 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return TransactionDialog(item: item, setParentState: setState);
+        return TransactionDialog(item: item, setParentState: setState, updateItem: (data) => setState(() => item = data));
       },
     );
   }
@@ -189,7 +192,7 @@ class _DetailViewState extends State<DetailView>{
                   showDialog(
                     context: context, barrierDismissible: true, // user must tap button!
                     builder: (BuildContext context) {
-                      return PayoffDialog(item: item, setParentState: setState);
+                      return PayoffDialog(item: item, setParentState: setState, updateItem: (data) => setState(() => item = data));
                     },
                   );
                 }
@@ -255,7 +258,7 @@ class _DetailViewState extends State<DetailView>{
                     margin: const EdgeInsets.only(bottom: 5),
                     child: expansionTile(transaction, memberMap),
                   ) :
-                  dismissibleTile(transaction, memberMap);
+                  dismissibleTile(transaction, memberMap, i);
                 }
               },
             ),
@@ -264,7 +267,7 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  Widget dismissibleTile(Transaction transaction, Map <int, int> memberMap) {
+  Widget dismissibleTile(Transaction transaction, Map <int, int> memberMap, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -283,9 +286,17 @@ class _DetailViewState extends State<DetailView>{
                     content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
                     onConfirmed: (){
                       setState(() {
-                        // Todo item.deleteTransaction(memberMap[transaction.memberId]!, transaction);
-                        transaction.delete();
-                        DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
+                         if (item.deleteTransaction(transaction, memberMap, index)){
+                          DatabaseHelper.instance.update(item);
+                         } else {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete transaction. Please try again')));
+                         }
+                        //List transactionMemberList = transaction.operations.map((e) => e.memberId).toList();
+                        //List<Member> memberList = item.members.where((element) => transactionMemberList.contains(element.id)).toList();
+                        //transaction.memberId = item.members.indexWhere((element) => element.id == transaction.memberId);
+                        //item.deleteTransactionFromOperations(transaction, memberList);
+                        
+                        //DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
                       });
                     }
                 );
@@ -355,7 +366,7 @@ class _DetailViewState extends State<DetailView>{
                   ),
                   child: Row(
                     children: List.generate(
-                        transaction.operations.length+1,
+                        transaction.operations.length,
                             (index) {
                           if(index==0){
                             return Container(
@@ -368,7 +379,7 @@ class _DetailViewState extends State<DetailView>{
                           if(transaction.value == transaction.operations[index-1].value){
                             return Container();
                           }
-                          Member m = item.members.singleWhere((Member m) => m.id == transaction.operations[index-1].memberId );
+                          Member m = item.members.firstWhere((Member m) => m.id == transaction.operations[index-1].memberId );
                           return Container(
                             padding: const EdgeInsets.all(5),
                             margin: const EdgeInsets.all(2),
@@ -465,11 +476,47 @@ class _DetailViewState extends State<DetailView>{
         ],
       ),
       body: body(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDialog,
-        tooltip: 'Add Transaction',
+      //floatingActionButton: FloatingActionButton(
+      //  onPressed: _showAddDialog,
+      //  tooltip: 'Add Transaction',
+      //  foregroundColor: Colors.white,
+      //  child: const Icon(Icons.add),
+      //),
+      floatingActionButton: SpeedDial(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+        spacing: 5,
+        animatedIcon: AnimatedIcons.menu_close,
+        animatedIconTheme: const IconThemeData(size: 22.0),
         foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        curve: Curves.bounceIn,
+        overlayColor: Colors.black,
+        overlayOpacity: 0.5,
+        children: [
+          SpeedDialChild(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+            ),
+            backgroundColor: Colors.purple,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+            onTap: _showAddDialog,
+          ),
+          SpeedDialChild(
+            child: const Icon(Icons.bug_report),
+            onTap: () async {
+              int memberListIndex = Random().nextInt(item.members.length);
+              List<int> involvedMembers = List.generate(item.members.length, (index) => index);
+              List<int> involvedDbMembers = item.members.map((e) => e.id!).toList();
+              setState(() {
+                Transaction t = Transaction('test', 23.45, DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
+                item.addTransaction(memberListIndex, t, involvedMembers, involvedDbMembers);
+              });
+                
+              DatabaseHelper.instance.update(item);
+            }
+          ),
+          // add more options as needed
+        ],
       ),
     );
   }

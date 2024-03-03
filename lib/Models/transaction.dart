@@ -13,7 +13,7 @@ class Transaction{
   late List<Operation> operations;
 
   //Constructor
-  Transaction(this.description, this.value, this.date, {id, this.memberId, this.itemId, timestamp, deleted, operations}): id=id{
+  Transaction(this.description, this.value, this.date, {this.id, this.memberId, this.itemId, timestamp, deleted, operations}){
     if (timestamp == null){
       this.timestamp = DateTime.now();
     }
@@ -32,13 +32,13 @@ class Transaction{
     }
   }
 
-  factory Transaction.payoff(value, {date, id, memberId, timestamp, operations}){
+  factory Transaction.payoff({date, id, timestamp, operations}){
     return Transaction(
       'payoff',
-      value,
+      0.0,
       date ?? timestamp,
       id: id,
-      memberId: memberId,
+      memberId: -1,
       timestamp: timestamp,
       operations: operations,
     );
@@ -48,15 +48,15 @@ class Transaction{
   @override
   bool operator ==(dynamic other) =>
       other.description == description &&
-          other.timestamp == timestamp &&
-          other.value == value &&
-          other.deleted == deleted;
+      other.timestamp == timestamp &&
+      other.value == value &&
+      other.deleted == deleted;
 
   bool isSimilar(dynamic other) =>
       other.description == description &&
-          other.timestamp == timestamp &&
-          other.value == value &&
-          other.deleted != deleted;
+      other.timestamp == timestamp &&
+      other.value == value &&
+      other.deleted != deleted;
 
   //Methods
   String formatDate(){
@@ -79,9 +79,10 @@ class Transaction{
     'id': id,
     'description': description,
     'memberId': memberId,
+    'itemId': itemId,
     'timestamp': timestamp.toString(),
     'value': value,
-    'deleted': deleted,
+    'deleted': deleted ? 1 : 0,
     'date': date.toString()
   };
 
@@ -92,6 +93,7 @@ class Transaction{
       DateTime.parse(map['date']),
       id: map['id'],
       memberId: map['memberId'],
+      itemId: map['itemId'],
       timestamp: DateTime.parse(map['timestamp']),
       deleted: map['deleted'] == 1 ? true : false
     );
@@ -99,6 +101,7 @@ class Transaction{
 
   Map<String, dynamic> toJson() => {
     'memberId': memberId,
+    'itemId': itemId,
     'description': description,
     'timestamp': timestamp.toString(),
     'value': value,
@@ -114,6 +117,7 @@ class Transaction{
         data['value'],
         DateTime.parse(data['date']),
         memberId: data['memberId'],
+        itemId: data['itemId'],
         timestamp: DateTime.parse(data['timestamp']),
         deleted: data['deleted'],
         operations: operationsData.map((d) => Operation.fromJson(d)).toList(),

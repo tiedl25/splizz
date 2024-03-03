@@ -9,12 +9,14 @@ import '../Models/member.dart';
 
 class TransactionDialog extends StatefulWidget {
   final Item item;
+  final Function updateItem;
   final Function setParentState;
 
   const TransactionDialog({
     super.key,
     required this.item,
-    required this.setParentState
+    required this.setParentState,
+    required this.updateItem
   });
 
   @override
@@ -228,6 +230,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                 //DatabaseHelper.instance.addTransactionCalculate(transaction, item.id!, associatedId, involvedMembersDbIds);
                 DatabaseHelper.instance.update(item);
                 selection=-1;
+                widget.updateItem(item);
               });
             }
           }

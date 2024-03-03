@@ -141,8 +141,14 @@ class GoogleDrive {
     var drive = gd.DriveApi(client);
 
     final updatedFile = gd.File(name: path.basename(file.absolute.path));
-    await drive.files.update(updatedFile, id, uploadMedia: gd.Media(file.openRead(), file.lengthSync()));
+    try{
+      await drive.files.update(updatedFile, id, uploadMedia: gd.Media(file.openRead(), file.lengthSync()));
+    }catch(e){
+      return 0;
+    }
+    return 1;
   }
+
 
   Future<String?> uploadFile(File file, [String? itemName, String? imageId]) async {
     var client = await getHttpClient();

@@ -8,11 +8,13 @@ import '../Helper/ui_model.dart';
 class PayoffDialog extends StatefulWidget {
   final Item item;
   final Function setParentState;
+  final Function updateItem;
 
   const PayoffDialog({
     Key? key,
     required this.item,
-    required this.setParentState
+    required this.setParentState,
+    required this.updateItem
   }) : super(key: key);
 
   @override
@@ -22,12 +24,12 @@ class PayoffDialog extends StatefulWidget {
 }
 
 class _PayoffDialogState extends State<PayoffDialog>{
-  late Item _item;
+  late Item item;
 
   @override
   Widget build(BuildContext context) {
-    _item = widget.item;
-    var paymap = _item.calculatePayoff();
+    item = widget.item;
+    var paymap = item.calculatePayoff();
     return DialogModel(
       title: 'Payoff',
       scrollable: false,
@@ -52,11 +54,12 @@ class _PayoffDialogState extends State<PayoffDialog>{
         ),
       ),
       onConfirmed: (){
-        var timestamp = DateTime.now();
-          widget.setParentState(() {
-            DatabaseHelper.instance.payoff(_item, timestamp); //Todo .then((value) => _item.payoff(timestamp));
-            //DatabaseHelper.instance.update(_item);
-          });
+        if (item.payoff()){
+          DatabaseHelper.instance.update(item);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete payoff. Please try again')));
+        }
+        widget.updateItem(item);
         }
     );
   }

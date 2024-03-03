@@ -63,19 +63,20 @@ class Member{
       other.color == color;
 
   //Methods
-  void addTransaction(Transaction t){
+  void addTransaction(Transaction t, {balance=true}){
     history.add(t);
     total += t.value;
-    balance += t.value;
+    if (balance) this.balance += t.value;
   }
 
   void pushTransaction(Transaction t){
     history.add(t);
   }
 
-  void deleteTransaction(Transaction t){
+  void deleteTransaction(Transaction t, {balance=true}){
     total -= t.value;
-    balance -= t.value;
+    if (balance) this.balance -= t.value;
+    history.firstWhere((e) => e.id == t.id).delete();
   }
 
   void add(double d){
@@ -84,11 +85,6 @@ class Member{
 
   void sub(double d){
     balance -= d;
-  }
-
-  void payoff(Transaction t){
-    history.add(t);
-    balance += t.value;
   }
 
   void compensate(){
@@ -101,7 +97,7 @@ class Member{
     'color': color.value,
     'total': total,
     'balance': balance,
-    'active': active,
+    'active': active ? 1 : 0,
     'timestamp': timestamp.toString()
   };
 

@@ -44,27 +44,77 @@ class Item{
     }
   }
 
+  void addTransactionFromDatabase(Transaction t, List<Member> transactionMembers){
+    if (t.memberId != -1){
+      if (!t.deleted){
+        members.firstWhere((element) => element.id == t.memberId).addTransaction(t, balance: false);
+      } else {
+        members.firstWhere((element) => element.id == t.memberId).pushTransaction(t);
+      }
+    }
+    
+    //members[t.memberId!].addTransaction(t);
+    history.add(t);
+
+    for (Operation o in t.operations){
+      o.itemId = this.id;
+      if (!t.deleted){
+        this.members[o.memberId!].add(o.value);
+      }
+      o.memberId = transactionMembers[o.memberId!].id;
+    }
+    
+  }
+
+  void deleteTransactionFromDatabase(Transaction t){
+    members.firstWhere((element) => element.id == t.memberId).deleteTransaction(t, balance: false);
+    history.firstWhere((e) => e.id == t.id).delete();
+
+    for (Operation o in t.operations){
+      o.itemId = this.id;
+      this.members.firstWhere((element) => element.id == o.memberId).sub(o.value);
+      //o.memberId = this.members[o.memberId!-1].id;
+    }
+  }
+
   void addMember(Member m){
     members.add(m);
   }
 
   // Mark transaction as deleted, while also updating total and balance of all members
-  void deleteTransaction(int associatedId, Transaction t){
-    members[associatedId].deleteTransaction(t);
+  bool deleteTransaction(Transaction t, Map<int, int> memberMap, index){
+    if(t.id == null){
+      return false;
+    }
+    members.firstWhere((element) => element.id == t.memberId).deleteTransaction(t, balance: false);
+    //members[memberMap[t.memberId]!].deleteTransaction(t, balance: false);
+    history.firstWhere((e) => e.id == t.id).delete();
 
     for(Operation o in t.operations){
-      // Todo
-      //this.members[i].add(val);
+      int mId = memberMap[o.memberId]!;
+      //members[mId].sub(o.value);
+      o.itemId = this.id;
+      this.members[mId].sub(o.value);
+      o.memberId = this.members[mId].id;
     }
-    t.delete();
+    return true;
   }
 
-  void payoff(DateTime timestamp){
-    Transaction t = Transaction.payoff(0.0, memberId: -1, timestamp: timestamp);
-    history.add(t);
-    for(Member e in members){
-      e.payoff(t);
+  bool payoff(){
+    if (history.any((element) => element.id == null)){
+      return false;
     }
+    Transaction t = Transaction.payoff(timestamp: DateTime.now());
+    t.itemId = this.id;
+    history.add(t);
+
+    for(Member m in members){
+      Operation o = Operation(-m.balance, itemId: this.id, memberId: m.id);
+      t.addOperation(o);
+      m.add(o.value);
+    }
+
+    return true;
   }
 
   Map<Member, List<Member>> calculatePayoff(){
@@ -117,7 +167,7 @@ class Item{
     'id': id,
     'sharedId': sharedId,
     'imageSharedId': imageSharedId,
-    'owner': owner,
+    'owner': owner ? 1 : 0,
     'image': image,
     'timestamp': timestamp.toString(),
   };
