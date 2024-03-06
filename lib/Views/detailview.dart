@@ -22,6 +22,7 @@ class DetailView extends StatefulWidget{
 class _DetailViewState extends State<DetailView>{
   late Item item;
   bool unbalanced = false;
+  bool first = true;
 
   // Important to grey out payoff button
   bool _checkBalances(){
@@ -399,62 +400,70 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
+  Future<Item> getItem(String sharedId) async {
+    
+    if (sharedId == '' || first==true){
+      item = await DatabaseHelper.instance.getItem(item.id!);
+      if (first && sharedId != '') setState(() {});
+      first = false;
+    } else {
+      item = await DatabaseHelper.instance.itemSync(item);
+    }
+
+    return item;
+  }
+
   Widget body() {
-    return Center(
-      child: FutureBuilder<Item>(
-        future: DatabaseHelper.instance.getItem(item.id!),
-        builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            item = snapshot.data!;
-            unbalanced = _checkBalances();
-            return FutureBuilder<Item>(
-                future: DatabaseHelper.instance.itemSync(item),
-                builder: (BuildContext context, AsyncSnapshot<Item> syncSnapshot) {
-                  if (syncSnapshot.hasData) {
-                    item = syncSnapshot.data!;
-                    unbalanced = _checkBalances();
-                  }
-                  return Column(
-                    children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                  bottom: Radius.circular(20)),
-                              child: Image.memory(
-                                  item.image!,
-                                  width: MediaQuery.of(context).size.width,
-                                  height: MediaQuery.of(context).size.height/5,
-                                  fit: BoxFit.fill
-                              ),
-                            )
-                          ]
-                      ),
-                      const Spacer(),
-                      SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: memberBar(),
-                          )
-                      ),
-                      const Spacer(flex: 5,),
-                      payoffButton(),
-                      const Spacer(),
-                      transactionList(),
-                    ],
-                  );
-                }
-            );
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(20)),
+              child: Image.memory(
+                  item.image!,
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height/5,
+                  fit: BoxFit.fill
+              ),
+            ),
+            const Spacer(),
+          ]
+        ),
+        FutureBuilder<Item>(
+            future: getItem(item.sharedId),
+            builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              } else {
+                item = snapshot.data!;
+                unbalanced = _checkBalances();
+                return Expanded(
+                  child: Column(                 
+                  children: [
+                    const Spacer(),
+                    SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: memberBar(),
+                        ),
+                    ),
+                    const Spacer(flex: 2,),
+                    payoffButton(),
+                    const Spacer(),
+                    transactionList(),
+                  ],
+                )
+                );
+              }
 
-          }
-
-        }
-      ),
+            }
+          ),
+      ],
     );
   }
 
