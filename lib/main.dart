@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Views/masterview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
@@ -33,7 +32,7 @@ class _MyAppState extends State<MyApp>{
   Future<void> loadSwitchValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _systemThemeToggle = prefs.getBool('systemTheme') ?? false;
+      _systemThemeToggle = prefs.getBool('systemTheme') ?? true;
       _darkModeToggle = prefs.getBool('darkMode') ?? false;
     });
   }
