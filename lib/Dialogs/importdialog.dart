@@ -124,9 +124,7 @@ class _ImportDialogState extends State<ImportDialog>{
                 FileHandler.instance.deleteFile(file.path);
                 FileHandler.instance.deleteFile(imageFile.path);
               } catch(_){
-                showDialog(context: context, builder: (BuildContext){
-                  return ErrorDialog('Import Error');
-                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import error')));
               }
               widget.setParentState(() {});
             }

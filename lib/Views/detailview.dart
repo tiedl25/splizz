@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
@@ -485,13 +486,7 @@ class _DetailViewState extends State<DetailView>{
         ],
       ),
       body: body(),
-      //floatingActionButton: FloatingActionButton(
-      //  onPressed: _showAddDialog,
-      //  tooltip: 'Add Transaction',
-      //  foregroundColor: Colors.white,
-      //  child: const Icon(Icons.add),
-      //),
-      floatingActionButton: SpeedDial(
+      floatingActionButton: kDebugMode ? SpeedDial(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
         spacing: 5,
         animatedIcon: AnimatedIcons.menu_close,
@@ -526,7 +521,13 @@ class _DetailViewState extends State<DetailView>{
           ),
           // add more options as needed
         ],
+      ) : FloatingActionButton(
+        onPressed: _showAddDialog,
+        tooltip: 'Add Transaction',
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
+
     );
   }
 }

@@ -54,9 +54,9 @@ class _ShareDialogState extends State<ShareDialog>{
     } catch(_){
       GoogleDrive.instance.deleteFile(_item.imageSharedId);
       GoogleDrive.instance.deleteFile(_item.sharedId);
-      showDialog(context: context, builder: (context){
-        return ErrorDialog("Item upload failed");
-      });
+      _item.imageSharedId = '';
+      _item.sharedId = '';
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item upload failed')));
     }
     DatabaseHelper.instance.update(_item);
     FileHandler.instance.deleteFile(files.first.path);
@@ -96,12 +96,7 @@ class _ManageDialogState extends State<ManageDialog>{
     try{
       _people = await GoogleDrive.instance.getSharedPeople(_item.sharedId);
     } catch(_) {
-      showDialog(
-          context: context,
-          builder: (context){
-            return ErrorDialog('Item not found');
-          }
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item not found in Google Drive')));
     } finally {
       return _people;
     }
@@ -119,9 +114,7 @@ class _ManageDialogState extends State<ManageDialog>{
           });
         }
       } catch(_) {
-        showDialog(context: context, builder: (BuildContext){
-          return const ErrorDialog('There is no Google Account linked to this email address');
-        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('There is no Google account with this email')));
         tc.text = '';
       }
     }
@@ -181,9 +174,7 @@ class _ManageDialogState extends State<ManageDialog>{
                                             try{
                                               await GoogleDrive.instance.removePeople(_item.sharedId, _people[i]['id']);
                                             } catch(_) {
-                                              showDialog(context: this.context, builder: (BuildContext){
-                                                return ErrorDialog('Person could\'t be removed');
-                                              });
+                                              ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(content: Text('Person could\'t be removed')));
                                             }
                                             _fetchData().then((_) => setState(() {}));
                                           },

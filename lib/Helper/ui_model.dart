@@ -86,18 +86,6 @@ class DialogModel extends StatelessWidget {
   }
 }
 
-class ErrorDialog extends StatelessWidget {
-  final String text;
-
-  const ErrorDialog(this.text, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return DialogModel(content: Text(text, style: const TextStyle(color: Colors.red)), alignment: Alignment.center,);
-  }
-
-}
-
 class TfDecorationModel extends InputDecoration {
   TfDecorationModel({required BuildContext context, required String title, IconButton? icon}) : super(
       suffixIcon: icon,
