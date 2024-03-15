@@ -436,8 +436,8 @@ class _DetailViewState extends State<DetailView>{
         FutureBuilder<Item>(
             future: getItem(item.sharedId),
             builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
+              if (!snapshot.hasData && first) {
+                return const Center(child: CircularProgressIndicator(),);
               } else {
                 item = snapshot.data!;
                 unbalanced = _checkBalances();
