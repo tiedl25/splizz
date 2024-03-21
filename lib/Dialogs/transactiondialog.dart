@@ -160,6 +160,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
+                          autofocus: true,
                           controller: descriptionController,
                           onChanged: (value) {
                             setState(() {
