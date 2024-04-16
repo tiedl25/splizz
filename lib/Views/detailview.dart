@@ -439,8 +439,10 @@ class _DetailViewState extends State<DetailView>{
               if (!snapshot.hasData && first) {
                 return const Center(child: CircularProgressIndicator(),);
               } else {
-                item = snapshot.data!;
-                unbalanced = _checkBalances();
+                if (snapshot.hasData) {
+                  item = snapshot.data!;
+                  unbalanced = _checkBalances();
+                }
                 return Expanded(
                   child: Column(                 
                   children: [
