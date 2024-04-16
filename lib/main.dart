@@ -41,8 +41,6 @@ class _MyAppState extends State<MyApp>{
   // It contains everything to run the application, nothing more
   @override
   Widget build(BuildContext context) {
-    //loadSwitchValue();
-
     return MaterialApp(
       title: 'Splizz',
       theme: lightTheme,
