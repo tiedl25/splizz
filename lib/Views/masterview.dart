@@ -63,6 +63,9 @@ class _MasterViewState extends State<MasterView>{
               )
           )
         ],
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor: Theme.of(context).colorScheme.background, // Navigation bar
+        ),
       ),
       body: _buildBody(),
       floatingActionButton: SpeedDial(
