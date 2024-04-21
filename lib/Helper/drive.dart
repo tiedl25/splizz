@@ -201,7 +201,8 @@ class GoogleDrive {
     var drive = gd.DriveApi(client);
 
     //download ByteStream from GoogleDrive
-    gd.Media? response = (await drive.files.get(fileId, downloadOptions: gd.DownloadOptions.fullMedia)) as gd.Media?;
-    return FileHandler.instance.writeBytestream(filename, response);
+    gd.Media response = (await drive.files.get(fileId, downloadOptions: gd.DownloadOptions.fullMedia)) as gd.Media;
+
+    return await FileHandler.instance.writeBytestream(filename, response);
   }
 }

@@ -185,9 +185,14 @@ class DatabaseHelper {
 
         // download item from GoogleDrive and import it
         String filename = FileHandler.instance.filename(item);
-        File? file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
-
-        Item driveItem = Item.fromJson(await FileHandler.instance.readJsonFile(filename));
+        dynamic jsonContent;
+        File file;
+        do{
+          file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+          jsonContent = await FileHandler.instance.readJsonFile(filename);
+        } while (jsonContent == 1);
+        
+        Item driveItem = Item.fromJson(jsonContent);
         driveItem.sharedId = item.sharedId;
 
         item = await getItem(item.id!);

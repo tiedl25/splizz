@@ -52,15 +52,19 @@ class FileHandler{
     return content;
   }
 
-  Future<Map<String, dynamic>> readJsonFile(String name, [String? path]) async {
+  Future readJsonFile(String name, [String? path]) async {
     File file;
     if (path == null) {
       file = await _file(name);
     } else {
       file = File('$path/$name');
     }
-    String content = await file.readAsString();
-    return json.decode(content);
+    try{
+      String content = await file.readAsString();
+      return json.decode(content);
+    } catch(e){
+      return 1;
+    }
   }
 
   Future<Uint8List> readImageFile(String name, [String? path]) async {
