@@ -5,11 +5,8 @@ import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/drive.dart';
 
 class ImportDialog extends StatefulWidget {
-  final Function setParentState;
-
   const ImportDialog({
     Key? key,
-    required this.setParentState
   }) : super(key: key);
 
   @override
@@ -126,7 +123,6 @@ class _ImportDialogState extends State<ImportDialog>{
               } catch(_){
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import error')));
               }
-              widget.setParentState(() {});
             }
           }
         );

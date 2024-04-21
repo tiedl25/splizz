@@ -37,7 +37,7 @@ class _MasterViewState extends State<MasterView>{
         context: context,
         barrierDismissible: true, // user must tap button!
         builder: (BuildContext context){
-          return ItemDialog(items: items, setParentState: setState,);
+          return ItemDialog(items: items, updateItemList: (item) => setState(() => items.add(item)));
         });
   }
 
@@ -46,7 +46,7 @@ class _MasterViewState extends State<MasterView>{
         context: context,
         barrierDismissible: true,
         builder: (BuildContext context){
-          return ImportDialog(setParentState: setState,);
+          return ImportDialog();
         });
   }
 
@@ -266,7 +266,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView(setParentState: setState, updateTheme: widget.updateTheme,);
+          return SettingsView(updateTheme: widget.updateTheme,);
         },
       ),
     );

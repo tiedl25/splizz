@@ -9,12 +9,10 @@ import 'package:splizz/Models/item.dart';
 
 class ShareDialog extends StatefulWidget {
   final Item item;
-  final Function setParentState;
 
   const ShareDialog({
     Key? key,
     required this.item,
-    required this.setParentState
   }) : super(key: key);
 
   @override
@@ -66,12 +64,10 @@ class _ShareDialogState extends State<ShareDialog>{
 
 class ManageDialog extends StatefulWidget {
   final Item item;
-  final Function setParentState;
 
   const ManageDialog({
     Key? key,
     required this.item,
-    required this.setParentState
   }) : super(key: key);
 
   @override

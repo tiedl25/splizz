@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends StatefulWidget{
-  final Function setParentState;
   final Function updateTheme; //Triggers setState method of MyApp
 
   const SettingsView({
     super.key,
-    required this.setParentState,
     required this.updateTheme,
   });
 

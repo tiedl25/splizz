@@ -50,7 +50,7 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return item.sharedId=='' ? ShareDialog(item: item, setParentState: setState) : ManageDialog(item: item, setParentState: setState);
+        return item.sharedId=='' ? ShareDialog(item: item) : ManageDialog(item: item);
       },
     );
   }
@@ -194,7 +194,7 @@ class _DetailViewState extends State<DetailView>{
                   showDialog(
                     context: context, barrierDismissible: true, // user must tap button!
                     builder: (BuildContext context) {
-                      return PayoffDialog(item: item, setParentState: setState, updateItem: (data) => setState(() => item = data));
+                      return PayoffDialog(item: item, updateItem: (data) => setState(() => item = data));
                     },
                   );
                 }

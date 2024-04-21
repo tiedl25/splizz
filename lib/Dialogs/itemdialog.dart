@@ -11,12 +11,12 @@ import '../Helper/database.dart';
 
 class ItemDialog extends StatefulWidget {
   final List<Item> items;
-  final Function setParentState;
+  final Function updateItemList;
 
   const ItemDialog({
     Key? key,
     required this.items,
-    required this.setParentState
+    required this.updateItemList
   }) : super(key: key);
 
   @override
@@ -66,18 +66,16 @@ class _ItemDialogState extends State<ItemDialog>{
               ),
             ),
             onConfirmed:  (){
-                  List<Member> members = [];
-                  for(String name in member){
-                    if(name != ''){
-                      members.add(Member(name, colormap[members.length]));
-                    }
-                  }
-                  if(title != '' && members.length > 1) {
-                    widget.setParentState(() {
-                      saveItem(members);
-                    });
-                  }
+              List<Member> members = [];
+              for(String name in member){
+                if(name != ''){
+                  members.add(Member(name, colormap[members.length]));
                 }
+              }
+              if(title != '' && members.length > 1) {
+                saveItem(members);
+              }
+            }
             );
   }
 
@@ -86,12 +84,8 @@ class _ItemDialogState extends State<ItemDialog>{
     var imageBytes = data.buffer.asUint8List();
 
     Item newItem = Item(title, members: members, image: imageBytes);
-    widget.setParentState(
-        () {
-          widget.items.add(newItem);
-        }
-    );
     DatabaseHelper.instance.add(newItem);
+    widget.updateItemList(newItem);
   }
 
   void imagePicker(){

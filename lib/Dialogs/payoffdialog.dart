@@ -7,13 +7,11 @@ import '../Helper/ui_model.dart';
 
 class PayoffDialog extends StatefulWidget {
   final Item item;
-  final Function setParentState;
   final Function updateItem;
 
   const PayoffDialog({
     Key? key,
     required this.item,
-    required this.setParentState,
     required this.updateItem
   }) : super(key: key);
 
