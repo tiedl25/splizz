@@ -41,7 +41,7 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return TransactionDialog(item: item, setParentState: setState, updateItem: (data) => setState(() => item = data));
+        return TransactionDialog(item: item, updateItem: (data) => setState(() => item = data));
       },
     );
   }
