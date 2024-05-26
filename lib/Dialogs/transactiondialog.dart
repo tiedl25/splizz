@@ -210,29 +210,28 @@ class _TransactionDialogState extends State<TransactionDialog>{
           )
       ),
       onConfirmed: () {
-            if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
-              List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
-              //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
+        if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
+          List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
+          //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
 
-              _memberSelection.asMap().forEach((index, value) {
-                if (value == true) {
-                  involvedMembersListIds.add(index);
-                }
-              });
-
-              List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
-              
-              int associatedId = item.members[selection].id!;
-              Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
-              item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
-              //DatabaseHelper.instance.addTransactionCalculate(transaction, item.id!, associatedId, involvedMembersDbIds);
-              DatabaseHelper.instance.update(item).then((value) {
-                widget.updateItem(item);
-              });
-              selection=-1;
-              
+          _memberSelection.asMap().forEach((index, value) {
+            if (value == true) {
+              involvedMembersListIds.add(index);
             }
-          }
+          });
+
+          List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
+          
+          int associatedId = item.members[selection].id!;
+          Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
+          item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
+          //DatabaseHelper.instance.addTransactionCalculate(transaction, item.id!, associatedId, involvedMembersDbIds);
+          DatabaseHelper.instance.update(item);
+          widget.updateItem(item);
+          selection=-1;
+          
+        }
+      }
     );
   }
 }
