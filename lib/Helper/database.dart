@@ -164,14 +164,11 @@ class DatabaseHelper {
 
   Future<Item> getItem(int id) async {
     Database db = await instance.database;
-    Item item = await lock.synchronized(() async {
-      var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
-      Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
+    var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
+    Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
 
-      item.members = await getMembers(id, db);
-      item.history = await getUniqueTransactions(id, db);
-      return item;
-    });
+    item.members = await getMembers(id, db);
+    item.history = await getUniqueTransactions(id, db);
     return item;
   }
 
@@ -210,7 +207,6 @@ class DatabaseHelper {
         } else {
           if(!equalHistory) item = await conflictManagement(item, driveItem);
           if(!equalMembers) item = await memberConflict(item, driveItem);
-          //update(item);
 
           // item history contains all transactions/deletions that appeared in the conflict management --> upload it also to GoogleDrive
           File file = (await export(item.id!, image: false)).first;
@@ -283,28 +279,26 @@ class DatabaseHelper {
   add(Item item) async {
     Database db = await instance.database;
 
-    await lock.synchronized(() async {
-      int itemId = await db.insert('splizz_items', item.toMap());
+    int itemId = await db.insert('splizz_items', item.toMap());
 
-      for (int i=0; i<item.members.length; i++) {
-        Member m = item.members[i];
-        int memberId = await addMember(m, itemId);
-        item.members[i] = Member.fromMember(m, id: memberId);
+    for (int i=0; i<item.members.length; i++) {
+      Member m = item.members[i];
+      int memberId = await addMember(m, itemId);
+      item.members[i] = Member.fromMember(m, id: memberId);
+    }
+
+    for (Transaction transaction in item.history) {
+      // if the transaction is imported from a json file the memberId has to be adapted to work
+      if (transaction.memberId != null && transaction.memberId != -1) {
+        transaction.memberId = item.members[transaction.memberId!].id;
       }
 
-      for (Transaction transaction in item.history) {
-        // if the transaction is imported from a json file the memberId has to be adapted to work
-        if (transaction.memberId != null && transaction.memberId != -1) {
-          transaction.memberId = item.members[transaction.memberId!].id;
-        }
+      transaction.itemId = itemId;
+      //item.addTransactionFromDatabase(transaction, item.members);
 
-        transaction.itemId = itemId;
-        //item.addTransactionFromDatabase(transaction, item.members);
-
-        addTransaction(transaction, db, item, true);
-        //pushTransaction(transaction, item.members, db, false);
-      }
-    });
+      addTransaction(transaction, db, item, true);
+      //pushTransaction(transaction, item.members, db, false);
+    }
   }
 
   // Check if the given sharedId already exists in the database
@@ -356,40 +350,33 @@ class DatabaseHelper {
   remove(int id) async {
     Database db = await instance.database;
 
-    await lock.synchronized(() async {
-      await db.delete('transaction_operations', where: 'itemId = ?', whereArgs: [id]);
-      await db.delete('item_transactions', where: 'itemId = ?', whereArgs: [id]);
-      await db.delete('item_members', where: 'itemId = ?', whereArgs: [id]);
-      await db.delete('splizz_items', where: 'id = ?', whereArgs: [id]);
-      
-      
-      
-    });
+    await db.delete('transaction_operations', where: 'itemId = ?', whereArgs: [id]);
+    await db.delete('item_transactions', where: 'itemId = ?', whereArgs: [id]);
+    await db.delete('item_members', where: 'itemId = ?', whereArgs: [id]);
+    await db.delete('splizz_items', where: 'id = ?', whereArgs: [id]);
   }
 
   update(Item item) async {
     Database db = await instance.database;
     
-    await lock.synchronized(() async {
-      int failed = await db.update('splizz_items', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
+    int failed = await db.update('splizz_items', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
+    if (failed == 0) {
+      add(item);
+      return;
+    }
+    for (Member member in item.members) {
+      updateMember(member);
+    }
+    for (Transaction transaction in item.history) {
+      if (transaction.id == null) {
+        addTransaction(transaction, db);
+        continue;
+      }
+      int failed = await updateTransaction(transaction);
       if (failed == 0) {
-        add(item);
-        return;
+        addTransaction(transaction, db);
       }
-      for (Member member in item.members) {
-        updateMember(member);
-      }
-      for (Transaction transaction in item.history) {
-        if (transaction.id == null) {
-          addTransaction(transaction, db);
-          continue;
-        }
-        int failed = await updateTransaction(transaction);
-        if (failed == 0) {
-          addTransaction(transaction, db);
-        }
-      }
-    });
+    }
   }
 
   updateMember(Member member) async {
