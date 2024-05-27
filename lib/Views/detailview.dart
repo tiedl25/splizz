@@ -23,13 +23,29 @@ class DetailView extends StatefulWidget{
 class _DetailViewState extends State<DetailView>{
   late Item item;
   bool unbalanced = false;
-  bool first = true;
-  bool noSync = false;
+  late Future<Item> itemFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    item = widget.item;
+    
+    itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
+      setState(() {
+        syncItem();
+      });
+      return item;
+    });
+  }
+
+  void syncItem(){
+    itemFuture = DatabaseHelper.instance.itemSync(item);
+  }
 
   // Important to grey out payoff button
   bool _checkBalances(){
     for(var m in item.members){
-      if(m.balance > 1e-6 || m.balance < -1e-6){//!= 0){
+      if(m.balance > 1e-6 || m.balance < -1e-6){
         return true;
       }
     }
@@ -42,10 +58,7 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return TransactionDialog(item: item, updateItem: (data) => setState((){
-          noSync = true;
-          item = data;
-        }));
+        return TransactionDialog(item: item, updateItem: (data) => setState((){item = data;}));
       },
     );
   }
@@ -231,8 +244,10 @@ class _DetailViewState extends State<DetailView>{
           margin: const EdgeInsets.all(10),
           child: RefreshIndicator(
             onRefresh: (){
-              setState(() {});
-              return Future(() => null);
+              setState(() {
+                syncItem();
+              });
+              return itemFuture;
             },
             child: item.history.isEmpty ?
             ListView(
@@ -297,12 +312,6 @@ class _DetailViewState extends State<DetailView>{
                          } else {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete transaction. Please try again')));
                          }
-                        //List transactionMemberList = transaction.operations.map((e) => e.memberId).toList();
-                        //List<Member> memberList = item.members.where((element) => transactionMemberList.contains(element.id)).toList();
-                        //transaction.memberId = item.members.indexWhere((element) => element.id == transaction.memberId);
-                        //item.deleteTransactionFromOperations(transaction, memberList);
-                        
-                        //DatabaseHelper.instance.deleteTransaction(transaction, item.id!);
                       });
                     }
                 );
@@ -355,10 +364,6 @@ class _DetailViewState extends State<DetailView>{
           ],
         ),
         children: [
-          /*ListTile(
-            title: Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
-            subtitle: Text(transaction.date(), style: const TextStyle(color: Colors.black),),
-          ),*/
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -405,25 +410,6 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  Future<Item> getItem(String sharedId) async {
-
-    if (noSync && sharedId != ''){
-      noSync == false;
-      DatabaseHelper.instance.itemSync(item);
-      return item;
-    }
-    
-    if (sharedId == '' || first==true){
-      item = await DatabaseHelper.instance.getItem(item.id!);
-      if (first && sharedId != '') setState(() {});
-      first = false;
-    } else {
-      item = await DatabaseHelper.instance.itemSync(item);
-    }
-
-    return item;
-  }
-
   Widget body() {
     return Column(
       children: [
@@ -444,15 +430,14 @@ class _DetailViewState extends State<DetailView>{
           ]
         ),
         FutureBuilder<Item>(
-            future: getItem(item.sharedId),
+            future: itemFuture,
             builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
-              if (!snapshot.hasData && first) {
+              if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator(),);
               } else {
-                if (snapshot.hasData) {
-                  item = snapshot.data!;
-                  unbalanced = _checkBalances();
-                }
+                item = snapshot.data!;
+                unbalanced = _checkBalances();
+
                 return Expanded(
                   child: Column(                 
                   children: [
@@ -482,8 +467,6 @@ class _DetailViewState extends State<DetailView>{
 
   @override
   Widget build(BuildContext context) {
-    item = widget.item;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -524,7 +507,7 @@ class _DetailViewState extends State<DetailView>{
               List<int> involvedMembers = List.generate(item.members.length, (index) => index);
               List<int> involvedDbMembers = item.members.map((e) => e.id!).toList();
               setState(() {
-                Transaction t = Transaction('test', 23.45, DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
+                Transaction t = Transaction('test', 22.00, DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
                 item.addTransaction(memberListIndex, t, involvedMembers, involvedDbMembers);
               });
                 

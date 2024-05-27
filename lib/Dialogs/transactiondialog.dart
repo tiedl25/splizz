@@ -225,11 +225,10 @@ class _TransactionDialogState extends State<TransactionDialog>{
           int associatedId = item.members[selection].id!;
           Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
           item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
-          //DatabaseHelper.instance.addTransactionCalculate(transaction, item.id!, associatedId, involvedMembersDbIds);
+          
           DatabaseHelper.instance.update(item);
           widget.updateItem(item);
           selection=-1;
-          
         }
       }
     );
