@@ -24,6 +24,7 @@ class _DetailViewState extends State<DetailView>{
   late Item item;
   bool unbalanced = false;
   bool first = true;
+  bool noSync = false;
 
   // Important to grey out payoff button
   bool _checkBalances(){
@@ -41,7 +42,10 @@ class _DetailViewState extends State<DetailView>{
     showDialog(
       context: context, barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
-        return TransactionDialog(item: item, updateItem: (data) => setState(() => item = data));
+        return TransactionDialog(item: item, updateItem: (data) => setState((){
+          noSync = true;
+          item = data;
+        }));
       },
     );
   }
@@ -402,6 +406,12 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Future<Item> getItem(String sharedId) async {
+
+    if (noSync && sharedId != ''){
+      noSync == false;
+      DatabaseHelper.instance.itemSync(item);
+      return item;
+    }
     
     if (sharedId == '' || first==true){
       item = await DatabaseHelper.instance.getItem(item.id!);
