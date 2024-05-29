@@ -157,7 +157,9 @@ class _MasterViewState extends State<MasterView>{
             return;
           };
           setState(() {
-            DatabaseHelper.instance.remove(item.id!);
+            DatabaseHelper.instance.remove(item.id!).then((value) => setState(() {
+              itemListFuture = DatabaseHelper.instance.getItems();
+            }));
             if(item.sharedId != '' && removeDriveFile && item.owner){
               GoogleDrive.instance.deleteFile(item.sharedId);
               GoogleDrive.instance.deleteFile(item.imageSharedId);
@@ -241,7 +243,9 @@ class _MasterViewState extends State<MasterView>{
           child: const Icon(Icons.remove),
           onTap: () async {
             for(int i=0; i<items.length; ++i){
-              DatabaseHelper.instance.remove(items[i].id!);
+              DatabaseHelper.instance.remove(items[i].id!).then((value) => setState(() {
+                itemListFuture = DatabaseHelper.instance.getItems();
+              }));
             }
             setState(() {
               items = [];
