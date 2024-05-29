@@ -194,16 +194,11 @@ class DatabaseHelper {
 
         item = await getItem(item.id!);
 
-        var history = item.history;
-        //assure that history contains all transactions not only the unique ones
-        item.history = await getTransactions(item.id!);
-
         bool equalHistory = listEquals(item.history, driveItem.history);
         bool equalMembers = listEquals(item.members, driveItem.members);
 
         if (equalHistory && equalMembers) {
           FileHandler.instance.deleteFile(file.path);
-          item.history = history;
         } else {
           if(!equalHistory) item = await conflictManagement(item, driveItem);
           if(!equalMembers) item = await memberConflict(item, driveItem);
