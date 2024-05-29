@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Views/detailview.dart';
@@ -31,96 +32,16 @@ class MasterView extends StatefulWidget{
 
 class _MasterViewState extends State<MasterView>{
   List<Item> items = [];
-
-  _showAddDialog(){
-    showDialog(
-        context: context,
-        barrierDismissible: true, // user must tap button!
-        builder: (BuildContext context){
-          return ItemDialog(items: items, updateItemList: (item) => setState(() => items.add(item)));
-        });
-  }
-
-  _showImportDialog(){
-    showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context){
-          return ImportDialog();
-        });
-  }
+  late Future<List<Item>> itemListFuture;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Splizz'),
-        actions: [
-          IconButton(
-              onPressed: _pushSettingsView,
-              icon: const Icon(Icons.settings
-              )
-          )
-        ],
-        systemOverlayStyle: SystemUiOverlayStyle(
-          systemNavigationBarColor: Theme.of(context).colorScheme.background, // Navigation bar
-        ),
-      ),
-      body: _buildBody(),
-      floatingActionButton: SpeedDial(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-        spacing: 5,
-        animatedIcon: AnimatedIcons.menu_close,
-        animatedIconTheme: const IconThemeData(size: 22.0),
-        foregroundColor: Colors.white,
-        curve: Curves.bounceIn,
-        overlayColor: Colors.black,
-        overlayOpacity: 0.5,
-        children: [
-          SpeedDialChild(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15)),
-            ),
-            backgroundColor: Colors.purple,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
-            onTap: _showAddDialog,
-          ),
-          SpeedDialChild(
-            backgroundColor: Colors.purple,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.import_export),
-            onTap: _showImportDialog,
-          ),
-          if(kDebugMode) SpeedDialChild(
-            child: const Icon(Icons.bug_report),
-            onTap: () async {
-              List<Member> members = [];
-              for(int i=0; i<Random().nextInt(6)+2; ++i){
-                members.add(Member(names[Random().nextInt(100)], colormap[Random().nextInt(16)]));
-              }
-              saveItem(members);
-            }
-          ),
-          if(kDebugMode) SpeedDialChild(
-            child: const Icon(Icons.remove),
-            onTap: () async {
-              for(int i=0; i<items.length; ++i){
-                DatabaseHelper.instance.remove(items[i].id!);
-              }
-              setState(() {
-                items = [];
-              });
-            }
-          ),
-          // add more options as needed
-        ],
-      )
-    );
+  void initState() {
+    super.initState();
+
+    itemListFuture = DatabaseHelper.instance.getItems();
   }
 
-  Future<void> saveItem(members) async {
+  Future<void> addDebugItem(members) async {
     ByteData data = await rootBundle.load('images/image_${Random().nextInt(6)+1}.jpg');
     var imageBytes = data.buffer.asUint8List();
 
@@ -131,42 +52,92 @@ class _MasterViewState extends State<MasterView>{
     DatabaseHelper.instance.add(newItem);
   }
 
-  Widget _buildBody() {
-    return Center(
-      child: FutureBuilder<List<Item>>(
-        future: DatabaseHelper.instance.getItems(),
-        builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
-          if (!snapshot.hasData){
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.data!.isNotEmpty) {
-            items = snapshot.data!;
-            //items.sort((a, b) => b.date.compareTo(a.date));
-          }
-          return RefreshIndicator(
-              child: snapshot.data!.isEmpty ?
-              ListView(
-                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height/2.5),
-                children: const [Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)],
-              )
-                  : ListView.builder(
-                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                padding: const EdgeInsets.all(16),
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, i) {
-                  return _buildDismissible(snapshot.data![i]);
-                }
-              ),
-              onRefresh: (){
-                setState(() {});
-                return Future(() => null);
-              });
-        }
+  //Dialogs
+
+  void _showAddDialog(){
+    showDialog(
+        context: context,
+        barrierDismissible: true, // user must tap button!
+        builder: (BuildContext context){
+          return ItemDialog(items: items, updateItemList: (item) => setState(() => items.add(item)));
+        });
+  }
+
+  void _showImportDialog(){
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context){
+          return ImportDialog();
+        });
+  }
+
+  Future<bool?> _showDismissDialog(bool removeDriveFile, String sharedId) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (context, setState){
+              return DialogModel(
+                  title: 'Confirm Dismiss',
+                  content: Column(
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.all(5),
+                          child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
+                      ),
+
+                      if(sharedId != '') Container(
+                        padding: const EdgeInsets.all(5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Remove file in Google Drive'),
+                            Switch(
+                                value: removeDriveFile,
+                                onChanged: (value){
+                                  setState((){
+                                    removeDriveFile = value;
+                                  });
+                                })
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  onConfirmed: (){}
+              );
+            }
+        );
+      },
+    );
+  }
+
+  //Navigation
+
+  void _pushSettingsView(){
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context){
+          return SettingsView(updateTheme: widget.updateTheme,);
+        },
       ),
     );
   }
-  Widget _buildDismissible(Item item){
+
+  void _pushDetailView(Item i) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context){
+        return DetailView(item: i,);
+        },
+      ),
+    );
+  }
+
+  Widget dismissTile(Item item){
     bool removeDriveFile = item.owner;
 
     return Container(
@@ -188,44 +159,7 @@ class _MasterViewState extends State<MasterView>{
           });
         },
         confirmDismiss: (direction){
-          return showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return StatefulBuilder(
-                  builder: (context, setState){
-                    return DialogModel(
-                        title: 'Confirm Dismiss',
-                        content: Column(
-                          children: [
-                            Container(
-                                padding: const EdgeInsets.all(5),
-                                child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
-                            ),
-
-                            if(item.sharedId != '') Container(
-                              padding: const EdgeInsets.all(5),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text('Remove file in Google Drive'),
-                                  Switch(
-                                      value: removeDriveFile,
-                                      onChanged: (value){
-                                        setState((){
-                                          removeDriveFile = value;
-                                        });
-                                      })
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                        onConfirmed: (){}
-                    );
-                  }
-              );
-            },
-          );
+          return _showDismissDialog(removeDriveFile, item.sharedId);
         },
         background: Container(
           padding: const EdgeInsets.only(right: 20),
@@ -234,12 +168,12 @@ class _MasterViewState extends State<MasterView>{
             Icons.delete,
           ),
         ),
-        child: _buildRow(item),
+        child: itemTile(item),
       ),
     );
   }
 
-  Widget _buildRow(Item item) {
+  Widget itemTile(Item item) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
@@ -261,25 +195,115 @@ class _MasterViewState extends State<MasterView>{
     );
   }
 
-  void _pushSettingsView(){
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context){
-          return SettingsView(updateTheme: widget.updateTheme,);
-        },
+  Widget speedDial() {
+    return SpeedDial(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+      spacing: 5,
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: const IconThemeData(size: 22.0),
+      foregroundColor: Colors.white,
+      curve: Curves.bounceIn,
+      overlayColor: Colors.black,
+      overlayOpacity: 0.5,
+      children: [
+        SpeedDialChild(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+          ),
+          backgroundColor: Colors.purple,
+          foregroundColor: Colors.white,
+          child: const Icon(Icons.add),
+          onTap: _showAddDialog,
+        ),
+        SpeedDialChild(
+          backgroundColor: Colors.purple,
+          foregroundColor: Colors.white,
+          child: const Icon(Icons.import_export),
+          onTap: _showImportDialog,
+        ),
+        if(kDebugMode) SpeedDialChild(
+          child: const Icon(Icons.bug_report),
+          onTap: () async {
+            List<Member> members = [];
+            for(int i=0; i<Random().nextInt(6)+2; ++i){
+              members.add(Member(names[Random().nextInt(100)], colormap[Random().nextInt(16)]));
+            }
+            addDebugItem(members);
+          }
+        ),
+        if(kDebugMode) SpeedDialChild(
+          child: const Icon(Icons.remove),
+          onTap: () async {
+            for(int i=0; i<items.length; ++i){
+              DatabaseHelper.instance.remove(items[i].id!);
+            }
+            setState(() {
+              items = [];
+            });
+          }
+        ),
+        // add more options as needed
+      ],
+    );
+  }
+
+  Widget body() {
+    return Center(
+      child: FutureBuilder<List<Item>>(
+        future: itemListFuture,
+        builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
+          if (!snapshot.hasData){
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.data!.isNotEmpty) {
+            items = snapshot.data!;
+            //items.sort((a, b) => b.date.compareTo(a.date));
+          }
+          return RefreshIndicator(
+              child: snapshot.data!.isEmpty ?
+              ListView(
+                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+                padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height/2.5),
+                children: const [Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)],
+              )
+                  : ListView.builder(
+                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.all(16),
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, i) {
+                  return dismissTile(snapshot.data![i]);
+                }
+              ),
+              onRefresh: (){
+                setState(() {
+                  itemListFuture = DatabaseHelper.instance.getItems();
+                });
+                return itemListFuture;
+              });
+        }
       ),
     );
   }
 
-  _pushDetailView(Item i) {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context){
-        return DetailView(item: i,);
-        },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: const Text('Splizz'),
+        actions: [
+          IconButton(
+              onPressed: _pushSettingsView,
+              icon: const Icon(Icons.settings
+              )
+          )
+        ],
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor: Theme.of(context).colorScheme.background, // Navigation bar
+        ),
       ),
+      body: body(),
+      floatingActionButton: speedDial(),
     );
   }
 }
