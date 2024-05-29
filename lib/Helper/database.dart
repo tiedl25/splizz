@@ -271,7 +271,7 @@ class DatabaseHelper {
     return item;
   }
 
-  add(Item item) async {
+  Future<int> add(Item item) async {
     Database db = await instance.database;
 
     int itemId = await db.insert('splizz_items', item.toMap());
@@ -294,6 +294,8 @@ class DatabaseHelper {
       addTransaction(transaction, db, item, true);
       //pushTransaction(transaction, item.members, db, false);
     }
+
+    return itemId;
   }
 
   // Check if the given sharedId already exists in the database
