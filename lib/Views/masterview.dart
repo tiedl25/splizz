@@ -49,7 +49,9 @@ class _MasterViewState extends State<MasterView>{
     setState(() {
       items.add(newItem);
     });
-    DatabaseHelper.instance.add(newItem);
+    DatabaseHelper.instance.add(newItem).then((value) => setState(() {
+      itemListFuture = DatabaseHelper.instance.getItems();
+    }));
   }
 
   //Dialogs
@@ -137,7 +139,7 @@ class _MasterViewState extends State<MasterView>{
     );
   }
 
-  Widget dismissTile(Item item){
+  Widget dismissTile(Item item) {
     bool removeDriveFile = item.owner;
 
     return Container(
@@ -149,7 +151,11 @@ class _MasterViewState extends State<MasterView>{
       child: Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (context) async {
+        onDismissed: (dismissDirection) async {
+          if(item.id == null){
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete transaction. Please try again')));
+            return;
+          };
           setState(() {
             DatabaseHelper.instance.remove(item.id!);
             if(item.sharedId != '' && removeDriveFile && item.owner){
