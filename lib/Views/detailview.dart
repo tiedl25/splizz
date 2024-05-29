@@ -71,6 +71,15 @@ class _DetailViewState extends State<DetailView>{
       },
     );
   }
+
+  void _showPastPayoffDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PastPayoffDialog(item: item, index: index,);
+      },
+    );
+  }
   
   //Custom Widgets
 
@@ -263,15 +272,19 @@ class _DetailViewState extends State<DetailView>{
               itemBuilder: (context, i) {
                 Transaction transaction = item.history[item.history.length-1-i];
                 if (transaction.description == 'payoff'){
-                  return Container(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Payoff'),
-                        Text(transaction.formatDate())
-                      ],
-                    ),
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _showPastPayoffDialog(item.history.length-i-1), 
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Payoff'),
+                          Text(transaction.formatDate())
+                        ],
+                      ),
+                    )
                   );
                 } else {
                   return transaction.deleted ?

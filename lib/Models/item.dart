@@ -26,6 +26,8 @@ class Item{
     }
   }
 
+  Item.copy(Item item) : this(item.name, id: item.id, sharedId: item.sharedId, owner: item.owner, members: item.members, history: item.history, image: item.image, timestamp: item.timestamp);
+
   // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t, List<int> involvedMembers, List<int> involvedDbMembers){
     members[associatedId].addTransaction(t);
