@@ -174,8 +174,9 @@ class DatabaseHelper {
 
   // Synchronize a given item with it's corresponding json-file in GoogleDrive
   Future<Item> itemSync(Item item) async {
-    await lock.synchronized(() async{
+    item = await getItem(item.id!);
 
+    await lock.synchronized(() async{
       if (item.sharedId != '')
       {
         //var response = (await GoogleDrive.instance.lastModifiedByMe(item.sharedId));
@@ -191,8 +192,6 @@ class DatabaseHelper {
         
         Item driveItem = Item.fromJson(jsonContent);
         driveItem.sharedId = item.sharedId;
-
-        item = await getItem(item.id!);
 
         bool equalHistory = listEquals(item.history, driveItem.history);
         bool equalMembers = listEquals(item.members, driveItem.members);
