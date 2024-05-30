@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class DialogModel extends StatelessWidget {
   final String? title;
+  final Widget? header;
   final Widget content;
   final Function? onConfirmed;
   final String leftText;
@@ -17,6 +18,7 @@ class DialogModel extends StatelessWidget {
   const DialogModel({
     super.key,
     this.title,
+    this.header,
     required this.content,
     this.onConfirmed,
     this.leftText='Cancel',
@@ -37,7 +39,7 @@ class DialogModel extends StatelessWidget {
           insetPadding: insetPadding,
           contentPadding: contentPadding,
           scrollable: scrollable,
-          title: title != null ? Text(title!) : null,
+          title: header ?? (title != null ? Text(title!) : null),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
           backgroundColor: Theme.of(context).colorScheme.background,
           content: content,
