@@ -59,6 +59,7 @@ dependencies:
   change_app_package_name: ^1.1.0
   flutter_custom_tabs: ^1.2.0
   either_dart: ^1.0.0
+  widgets_to_image: ^1.0.0
 
 dev_dependencies:
   flutter_test:
