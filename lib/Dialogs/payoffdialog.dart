@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 import 'package:splizz/Helper/database.dart';
@@ -154,8 +156,12 @@ class PastPayoffDialog extends StatefulWidget {
 
 class _PastPayoffDialogState extends State<PastPayoffDialog>{
   late Item item;
+  late Transaction transaction;
+  late String path;
+
   Uint8List? bytes;
   WidgetsToImageController controller = WidgetsToImageController();
+  ScreenshotController screenshotController = ScreenshotController();
 
   setBalance(Transaction transaction){
     List<Member> members = [];
@@ -169,11 +175,36 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
     item.members = members;
   }
 
-  Future<File> widgetToImageFile(Uint8List capturedImage) async {
-    String downloadPath = "/storage/emulated/0/Download";
-    String ts = DateTime.now().millisecondsSinceEpoch.toString();
-    String path = '$downloadPath/$ts.png';
-    return await File(path).writeAsBytes(capturedImage);
+  void transactionTable(int tId, int firstTId) async{
+    var response = await DatabaseHelper.instance.exportTransactionsSinceLastPayoff(item.id!, tId, firstTId);
+    List<String> columnLabels = response.isNotEmpty ? response[0].keys.toList() : [];
+    List<DataColumn> columns = columnLabels.map<DataColumn>((column) => DataColumn(label: Text(column))).toList();
+    List<DataRow> rows = response.map<DataRow>((row) {
+          return DataRow(
+            cells: columnLabels.map<DataCell>((label) {
+              return DataCell(Text(row[label].toString()));
+            }).toList(),
+          );
+        }).toList();
+
+    await screenshotController.captureFromWidget(
+      FittedBox(
+        fit: BoxFit.fitWidth,
+        child: DataTable(
+          headingRowColor: MaterialStateProperty.all(Colors.grey),
+          dataRowColor: MaterialStateProperty.all(Colors.white),
+          columns: columns,
+          rows: rows,
+        )
+      )
+    ).then((value) async {
+      print(await widgetToImageFile(value, 'transactions.png'));
+    });
+    
+  }
+
+  Future<File> widgetToImageFile(Uint8List capturedImage, String filename) async {   
+    return await File(path + filename).writeAsBytes(capturedImage);
   }
 
   Widget paymapRelation(Member m, List<Member> paylist){
@@ -245,9 +276,56 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     item = Item.copy(widget.item);
-    setBalance(item.history[widget.index]);
+    transaction = item.history[widget.index];
+    setBalance(transaction);
+    createDir();
+  }
+
+  createDir() async {
+    DateTime d = transaction.date;
+    String date = '${d.day}.${d.month}.${d.year}';
+    path = '/storage/emulated/0/Download/splizzPayoff_${date}/';
+
+    await Permission.manageExternalStorage.request();
+    var status = await Permission.manageExternalStorage.status;
+    if (status.isDenied) {
+      return;
+    }
+
+    // You can can also directly ask the permission about its status.
+    if (await Permission.manageExternalStorage.isRestricted) {
+      return;
+    }
+    if (status.isGranted) {
+      if(!Directory(path).existsSync()){
+        Directory(path).createSync(recursive: true);
+      }
+    }
+  }
+
+  Widget paymapWidget(paymap){
+    return WidgetsToImage(
+        controller: controller,
+        child: Column(
+          children: [
+            ...List.generate(
+              paymap.length,
+                  (i) {
+                Member m = paymap.keys.toList()[i];
+                return paymapRelation(m, paymap[m]!);
+              }
+            ),
+            if(bytes != null) Image.memory(bytes!),
+          ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var paymap = item.calculatePayoff();
 
     return DialogModel(
@@ -258,7 +336,8 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
             IconButton(
               onPressed: () async {
                 final bytes = await controller.capture();
-                await widgetToImageFile(bytes!);
+                await widgetToImageFile(bytes!, 'payoff.png');
+                transactionTable(item.history[widget.index].id!, item.history[0].id!);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Exported image to Download folder')));
               },
@@ -275,21 +354,7 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
               fit: BoxFit.fitWidth,
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
-              child: WidgetsToImage(
-              controller: controller,
-              child: Column(
-                children: [
-                  ...List.generate(
-                    paymap.length,
-                        (i) {
-                      Member m = paymap.keys.toList()[i];
-                      return paymapRelation(m, paymap[m]!);
-                    }
-                  ),
-                  if(bytes != null) Image.memory(bytes!),
-                ],
-            ),
-          ),
+              child: paymapWidget(paymap),
           ),
         ),
       )

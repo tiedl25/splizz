@@ -162,8 +162,8 @@ class DatabaseHelper {
     return itemList;
   }
 
-  Future<Item> getItem(int id) async {
-    Database db = await instance.database;
+  Future<Item> getItem(int id, [Database? db]) async {
+    db = db ?? await instance.database;
     var response = await db.query('splizz_items', orderBy: 'id', where: 'id = ?', whereArgs: [id]);
     Item item = (response.isNotEmpty ? (response.map((e) => Item.fromMap(e)).toList()) : [])[0];
 
@@ -383,6 +383,33 @@ class DatabaseHelper {
   updateTransaction(Transaction transaction) async {
     Database db = await instance.database;
     return await db.update('item_transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
+  }
+
+  exportTransactionsSinceLastPayoff(int id, int tId, int firstTId) async {
+    Database db = await instance.database;
+
+    var response = await db.rawQuery(
+      """
+        SELECT
+          description as Title,
+          value as Amount,
+          DATE(date) as Date,
+          (SELECT name
+            from item_members
+            where id=it.memberId)
+            as "Person who payed",
+          (SELECT
+            group_concat((SELECT name
+                    from item_members
+                    where id=top.memberId and value!=it.value))
+                    as transaction_member_names
+            from transaction_operations top
+            where transactionId=it.id)
+            as "People involved"
+          FROM item_transactions it
+            WHERE itemId=? and deleted=0 and id<? and id > (SELECT id from item_transactions WHERE id < ? and ((description="payoff" and memberId=-1) or id=?) and itemId=? ORDER By timestamp desc LIMIT 1)      """
+      , [id, tId, tId, firstTId, id]);
+    return response;
   }
 
   // directly import a GoogleDrive item
