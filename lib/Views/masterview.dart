@@ -33,11 +33,11 @@ class MasterView extends StatefulWidget{
 class _MasterViewState extends State<MasterView>{
   List<Item> items = [];
   late Future<List<Item>> itemListFuture;
+  bool removeDriveFile = false;
 
   @override
   void initState() {
     super.initState();
-
     itemListFuture = DatabaseHelper.instance.getItems();
   }
 
@@ -74,7 +74,7 @@ class _MasterViewState extends State<MasterView>{
         });
   }
 
-  Future<bool?> _showDismissDialog(bool removeDriveFile, String sharedId) {
+  Future<bool?> _showDismissDialog(String sharedId) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -140,7 +140,7 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget dismissTile(Item item) {
-    bool removeDriveFile = item.owner;
+    removeDriveFile = item.owner;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
@@ -167,7 +167,7 @@ class _MasterViewState extends State<MasterView>{
           });
         },
         confirmDismiss: (direction){
-          return _showDismissDialog(removeDriveFile, item.sharedId);
+          return _showDismissDialog(item.sharedId);
         },
         background: Container(
           padding: const EdgeInsets.only(right: 20),
