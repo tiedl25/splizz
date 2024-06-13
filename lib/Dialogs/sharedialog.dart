@@ -80,12 +80,13 @@ class _ManageDialogState extends State<ManageDialog>{
   late Item _item;
   List _people = [];
   TextEditingController tc = TextEditingController();
+  late Future<List> peopleFuture;
 
   @override
   void initState(){
     super.initState();
     _item = widget.item;
-    _fetchData();
+    peopleFuture = _fetchData();
   }
 
   Future<List> _fetchData() async {
@@ -124,7 +125,7 @@ class _ManageDialogState extends State<ManageDialog>{
         content: SizedBox(
           width: MediaQuery.of(context).size.width,
           child: FutureBuilder<List>(
-              future: _fetchData(),
+              future: peopleFuture,
               builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
                 return !snapshot.hasData ?
                   const Center(child: CircularProgressIndicator()) :
