@@ -317,7 +317,7 @@ class _DetailViewState extends State<DetailView>{
               builder: (BuildContext context) {
                 return DialogModel(
                     title: 'Confirm Dismiss',
-                    content: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
+                    content: const Text('Do you really want to remove this Transaction', style: TextStyle(fontSize: 20),),
                     onConfirmed: (){
                       setState(() {
                          if (item.deleteTransaction(transaction, memberMap, index)){
