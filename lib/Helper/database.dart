@@ -184,11 +184,8 @@ class DatabaseHelper {
         // download item from GoogleDrive and import it
         String filename = FileHandler.instance.filename(item);
         dynamic jsonContent;
-        File file;
-        do{
-          file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
-          jsonContent = await FileHandler.instance.readJsonFile(filename);
-        } while (jsonContent == 1);
+        File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+        jsonContent = await FileHandler.instance.readJsonFile(filename);
         
         Item driveItem = Item.fromJson(jsonContent);
         driveItem.sharedId = item.sharedId;
@@ -207,8 +204,10 @@ class DatabaseHelper {
           GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => value==1 ? FileHandler.instance.deleteFile(file.path) : 
             GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => FileHandler.instance.deleteFile(file.path)));
         }
+
       }
     });
+    
     return item;
   }
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
 
+import 'package:googleapis/drive/v3.dart' as gd;
+
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
@@ -32,14 +34,25 @@ class _DetailViewState extends State<DetailView>{
     
     itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
       setState(() {
-        syncItem();
+        itemFuture = syncItem();
       });
       return item;
     });
   }
 
-  void syncItem(){
-    itemFuture = DatabaseHelper.instance.itemSync(item);
+  Future<Item> syncItem() async {
+    try{
+      Item i = await DatabaseHelper.instance.itemSync(item);
+      return i;
+    }catch(e){
+      if (e is gd.DetailedApiRequestError && e.status == 404) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item not found in GoogleDrive')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item sync failed')));
+      }
+    }finally{
+      return item;
+    }
   }
 
   // Important to grey out payoff button
