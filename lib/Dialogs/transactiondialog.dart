@@ -33,6 +33,8 @@ class _TransactionDialogState extends State<TransactionDialog>{
   List<dynamic> date = ["Today", "Yesterday"];
   int selection = -1;
   int _dateSelection = 0;
+  bool extend = false;
+  double _scale = 1.0;
 
   @override void initState() {
     item = widget.item;
@@ -146,91 +148,195 @@ class _TransactionDialogState extends State<TransactionDialog>{
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return DialogModel(
-      title: 'Add new Transaction',
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
+  Widget dialog(){
+    return AnimatedScale(
+      duration: const Duration(milliseconds: 100),
+      scale: _scale,
+      child: DialogModel(
+        title: 'Add new Transaction',
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                            autofocus: true,
+                            controller: descriptionController,
+                            onChanged: (value) {
+                              setState(() {
+                              });
+                            },
+                            decoration: TfDecorationModel(context: context, title: 'Add a description')
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 5, top: 5),
+                          alignment: Alignment.centerLeft,
+                          child: const Text('Who payed?'),
+                        ),
+                        SizedBox(
+                            height: 60,//MediaQuery.of(context).size.height/14,
+                            child: payerBar()
+                        ),
+                        TextField(
+                            controller: currencyController,
+                            onChanged: (value) {
+                              setState(() {
+                              });
+                            },
+                            decoration: TfDecorationModel(
+                                context: context,
+                                title: '0,00',
+                                icon: IconButton(
+                                    onPressed: (){setState(() {
+                                      currency = !currency;
+                                    });},
+                                    icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
+                                )
+                            )
+                        ),
+                        SizedBox(
+                          height: 50,
+                          child: dateBar(),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 5, top: 5),
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            child: Text('Show more'),
+                            onPressed: (){
+                              setState(() {
+                                _scale = 1.07;
+                                
+                              });
+                              Future.delayed(const Duration(milliseconds: 100), (){
+                                setState(() {
+                                  extend = !extend;
+                                  _scale = 1;
+                                });
+                              });
+                            }
+                          ),
+                        ),
+                      ]
+                  ),
+            )
+        ),
+        onConfirmed: () {
+          if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
+            List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
+            //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
+
+            _memberSelection.asMap().forEach((index, value) {
+              if (value == true) {
+                involvedMembersListIds.add(index);
+              }
+            });
+
+            List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
+            
+            int associatedId = item.members[selection].id!;
+            Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
+            item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
+            
+            DatabaseHelper.instance.update(item);
+            widget.updateItem(item);
+            selection=-1;
+          }
+        }
+      )
+    );
+  }
+
+  Widget view(){
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+      child: Scaffold(
+        extendBodyBehindAppBar: false,
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          backgroundColor: Colors.black26,
+          title: Text("Add new Transaction"),
+        ),
+        body: Container(
+          padding: const EdgeInsets.all(10),
+          child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                          autofocus: true,
-                          controller: descriptionController,
-                          onChanged: (value) {
-                            setState(() {
-                            });
-                          },
-                          decoration: TfDecorationModel(context: context, title: 'Add a description')
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(left: 5, top: 5),
-                        alignment: Alignment.centerLeft,
-                        child: const Text('Who payed?'),
-                      ),
-                      SizedBox(
-                          height: 60,//MediaQuery.of(context).size.height/14,
-                          child: payerBar()
-                      ),
-                      TextField(
-                          controller: currencyController,
-                          onChanged: (value) {
-                            setState(() {
-                            });
-                          },
-                          decoration: TfDecorationModel(
-                              context: context,
-                              title: '0,00',
-                              icon: IconButton(
-                                  onPressed: (){setState(() {
-                                    currency = !currency;
-                                  });},
-                                  icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
-                              )
-                          )
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(left: 5, top: 5),
-                        alignment: Alignment.centerLeft,
-                        child: const Text('For whom?'),
-                      ),
-                      SizedBox(
-                          height: 60,
-                          child: memberBar()
-                      ),
-                      SizedBox(
-                        height: 50,
-                        child: dateBar(),
-                      )
-                    ]
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                    autofocus: true,
+                    controller: descriptionController,
+                    onChanged: (value) {
+                      setState(() {
+                      });
+                    },
+                    decoration: TfDecorationModel(context: context, title: 'Add a description')
                 ),
-          )
+                Container(
+                  margin: const EdgeInsets.only(left: 5, top: 5),
+                  alignment: Alignment.centerLeft,
+                  child: const Text('Who payed?'),
+                ),
+                SizedBox(
+                    height: 60,//MediaQuery.of(context).size.height/14,
+                    child: payerBar()
+                ),
+                TextField(
+                    controller: currencyController,
+                    onChanged: (value) {
+                      setState(() {
+                      });
+                    },
+                    decoration: TfDecorationModel(
+                        context: context,
+                        title: '0,00',
+                        icon: IconButton(
+                            onPressed: (){setState(() {
+                              currency = !currency;
+                            });},
+                            icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
+                        )
+                    )
+                ),
+                SizedBox(
+                  height: 50,
+                  child: dateBar(),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(left: 5, top: 5),
+                  alignment: Alignment.centerLeft,
+                  child: const Text('For whom?'),
+                ),
+                SizedBox(
+                    height: 60,
+                    child: memberBar()
+                ),
+                Container(
+                  margin: const EdgeInsets.only(left: 5, top: 5),
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    child: Text('Show less'),
+                    onPressed: (){
+                      setState(() {
+                        extend = !extend;
+                      });
+                    }
+                  ),
+                ),
+              ]
+            ),
+          ),
+        ),
       ),
-      onConfirmed: () {
-        if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
-          List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
-          //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
-
-          _memberSelection.asMap().forEach((index, value) {
-            if (value == true) {
-              involvedMembersListIds.add(index);
-            }
-          });
-
-          List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
-          
-          int associatedId = item.members[selection].id!;
-          Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
-          item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
-          
-          DatabaseHelper.instance.update(item);
-          widget.updateItem(item);
-          selection=-1;
-        }
-      }
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return extend ? view() : dialog();
   }
 }
