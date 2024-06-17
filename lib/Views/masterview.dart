@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Views/detailview.dart';
@@ -128,8 +127,8 @@ class _MasterViewState extends State<MasterView>{
     );
   }
 
-  void _pushDetailView(Item i) {
-    Navigator.push(
+  Future<void> _pushDetailView(Item i) async {
+    await Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
@@ -137,6 +136,10 @@ class _MasterViewState extends State<MasterView>{
         },
       ),
     );
+    itemListFuture = DatabaseHelper.instance.getItems();
+    setState(() {
+      
+    });
   }
 
   Widget dismissTile(Item item) {
@@ -153,7 +156,7 @@ class _MasterViewState extends State<MasterView>{
         direction: DismissDirection.endToStart,
         onDismissed: (dismissDirection) async {
           if(item.id == null){
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete transaction. Please try again')));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete item. Please try again')));
             return;
           };
           setState(() {

@@ -4,6 +4,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
 
 import 'package:googleapis/drive/v3.dart' as gd;
+import 'package:splizz/Dialogs/notfounddialog.dart';
 
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
@@ -34,19 +35,20 @@ class _DetailViewState extends State<DetailView>{
     
     itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
       setState(() {
-        itemFuture = syncItem();
+        itemFuture = syncItem(item);
       });
       return item;
     });
   }
 
-  Future<Item> syncItem() async {
+  Future<Item> syncItem(Item item) async {
     try{
       Item i = await DatabaseHelper.instance.itemSync(item);
       return i;
     }catch(e){
       if (e is gd.DetailedApiRequestError && e.status == 404) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item not found in GoogleDrive')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(seconds: 1), content: Text('Item not found in GoogleDrive')));
+        Future.delayed(const Duration(seconds: 1)).then((_) => _showNotFoundDialog());
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item sync failed')));
       }
@@ -91,6 +93,18 @@ class _DetailViewState extends State<DetailView>{
       builder: (BuildContext context) {
         return PastPayoffDialog(item: item, index: index,);
       },
+    );
+  }
+  
+  void _showNotFoundDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return NotFoundDialog(item: item);
+      },
+    ).then((value) {
+      if(value) Navigator.of(context).pop();
+      }
     );
   }
   
@@ -267,7 +281,7 @@ class _DetailViewState extends State<DetailView>{
           child: RefreshIndicator(
             onRefresh: (){
               setState(() {
-                syncItem();
+                syncItem(item);
               });
               return itemFuture;
             },

@@ -174,39 +174,37 @@ class DatabaseHelper {
 
   // Synchronize a given item with it's corresponding json-file in GoogleDrive
   Future<Item> itemSync(Item item) async {
-    item = await getItem(item.id!);
+    if (item.sharedId != '')
+    {
+      item = await getItem(item.id!);
+      await lock.synchronized(() async{
+          //var response = (await GoogleDrive.instance.lastModifiedByMe(item.sharedId));
 
-    await lock.synchronized(() async{
-      if (item.sharedId != '')
-      {
-        //var response = (await GoogleDrive.instance.lastModifiedByMe(item.sharedId));
+          // download item from GoogleDrive and import it
+          String filename = FileHandler.instance.filename(item);
+          dynamic jsonContent;
+          File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
+          jsonContent = await FileHandler.instance.readJsonFile(filename);
+          
+          Item driveItem = Item.fromJson(jsonContent);
+          driveItem.sharedId = item.sharedId;
 
-        // download item from GoogleDrive and import it
-        String filename = FileHandler.instance.filename(item);
-        dynamic jsonContent;
-        File file = await GoogleDrive.instance.downloadFile(item.sharedId, filename);
-        jsonContent = await FileHandler.instance.readJsonFile(filename);
-        
-        Item driveItem = Item.fromJson(jsonContent);
-        driveItem.sharedId = item.sharedId;
+          bool equalHistory = listEquals(item.history, driveItem.history);
+          bool equalMembers = listEquals(item.members, driveItem.members);
 
-        bool equalHistory = listEquals(item.history, driveItem.history);
-        bool equalMembers = listEquals(item.members, driveItem.members);
+          if (equalHistory && equalMembers) {
+            FileHandler.instance.deleteFile(file.path);
+          } else {
+            if(!equalHistory) item = await conflictManagement(item, driveItem);
+            if(!equalMembers) item = await memberConflict(item, driveItem);
 
-        if (equalHistory && equalMembers) {
-          FileHandler.instance.deleteFile(file.path);
-        } else {
-          if(!equalHistory) item = await conflictManagement(item, driveItem);
-          if(!equalMembers) item = await memberConflict(item, driveItem);
-
-          // item history contains all transactions/deletions that appeared in the conflict management --> upload it also to GoogleDrive
-          File file = (await export(item.id!, image: false)).first;
-          GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => value==1 ? FileHandler.instance.deleteFile(file.path) : 
-            GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => FileHandler.instance.deleteFile(file.path)));
-        }
-
-      }
-    });
+            // item history contains all transactions/deletions that appeared in the conflict management --> upload it also to GoogleDrive
+            File file = (await export(item.id!, image: false)).first;
+            GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => value==1 ? FileHandler.instance.deleteFile(file.path) : 
+              GoogleDrive.instance.updateFile(file, item.sharedId).then((value) => FileHandler.instance.deleteFile(file.path)));
+          }
+      });
+    }
     
     return item;
   }
