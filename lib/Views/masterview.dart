@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:splizz/Helper/drive.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/Models/item.dart';
@@ -33,11 +34,13 @@ class _MasterViewState extends State<MasterView>{
   List<Item> items = [];
   late Future<List<Item>> itemListFuture;
   bool removeDriveFile = false;
+  late PackageInfo packageInfo;
 
   @override
   void initState() {
     super.initState();
     itemListFuture = DatabaseHelper.instance.getItems();
+    PackageInfo.fromPlatform().then((value) => packageInfo = value);
   }
 
   Future<void> addDebugItem(members) async {
@@ -121,7 +124,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView(updateTheme: widget.updateTheme,);
+          return SettingsView(updateTheme: widget.updateTheme, version: packageInfo.version);
         },
       ),
     );
