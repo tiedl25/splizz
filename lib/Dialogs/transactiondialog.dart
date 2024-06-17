@@ -1,4 +1,5 @@
 import 'package:currency_textfield/currency_textfield.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/transaction.dart';
@@ -43,6 +44,31 @@ class _TransactionDialogState extends State<TransactionDialog>{
 
     super.initState();
   }
+
+    
+  add() {
+    if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
+      List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
+      //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
+
+      _memberSelection.asMap().forEach((index, value) {
+        if (value == true) {
+          involvedMembersListIds.add(index);
+        }
+      });
+
+      List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
+      
+      int associatedId = item.members[selection].id!;
+      Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
+      item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
+      
+      DatabaseHelper.instance.update(item);
+      widget.updateItem(item);
+      selection=-1;
+    }
+  }
+
 
   Widget payerBar(){
     return ListView.builder(
@@ -208,12 +234,10 @@ class _TransactionDialogState extends State<TransactionDialog>{
                             onPressed: (){
                               setState(() {
                                 _scale = 1.07;
-                                
                               });
                               Future.delayed(const Duration(milliseconds: 100), (){
                                 setState(() {
                                   extend = !extend;
-                                  _scale = 1;
                                 });
                               });
                             }
@@ -223,28 +247,8 @@ class _TransactionDialogState extends State<TransactionDialog>{
                   ),
             )
         ),
-        onConfirmed: () {
-          if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
-            List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
-            //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
-
-            _memberSelection.asMap().forEach((index, value) {
-              if (value == true) {
-                involvedMembersListIds.add(index);
-              }
-            });
-
-            List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
-            
-            int associatedId = item.members[selection].id!;
-            Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
-            item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
-            
-            DatabaseHelper.instance.update(item);
-            widget.updateItem(item);
-            selection=-1;
-          }
-        }
+        onConfirmed: () => add(),
+          
       )
     );
   }
@@ -261,73 +265,114 @@ class _TransactionDialogState extends State<TransactionDialog>{
         ),
         body: Container(
           padding: const EdgeInsets.all(10),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                    autofocus: true,
-                    controller: descriptionController,
-                    onChanged: (value) {
-                      setState(() {
-                      });
-                    },
-                    decoration: TfDecorationModel(context: context, title: 'Add a description')
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 5, top: 5),
-                  alignment: Alignment.centerLeft,
-                  child: const Text('Who payed?'),
-                ),
-                SizedBox(
-                    height: 60,//MediaQuery.of(context).size.height/14,
-                    child: payerBar()
-                ),
-                TextField(
-                    controller: currencyController,
-                    onChanged: (value) {
-                      setState(() {
-                      });
-                    },
-                    decoration: TfDecorationModel(
-                        context: context,
-                        title: '0,00',
-                        icon: IconButton(
-                            onPressed: (){setState(() {
-                              currency = !currency;
-                            });},
-                            icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
+          child: Column(
+            children: [
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                        autofocus: true,
+                        controller: descriptionController,
+                        onChanged: (value) {
+                          setState(() {
+                          });
+                        },
+                        decoration: TfDecorationModel(context: context, title: 'Add a description')
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, top: 5),
+                      alignment: Alignment.centerLeft,
+                      child: const Text('Who payed?'),
+                    ),
+                    SizedBox(
+                        height: 60,//MediaQuery.of(context).size.height/14,
+                        child: payerBar()
+                    ),
+                    TextField(
+                        controller: currencyController,
+                        onChanged: (value) {
+                          setState(() {
+                          });
+                        },
+                        decoration: TfDecorationModel(
+                            context: context,
+                            title: '0,00',
+                            icon: IconButton(
+                                onPressed: (){setState(() {
+                                  currency = !currency;
+                                });},
+                                icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
+                            )
                         )
-                    )
+                    ),
+                    SizedBox(
+                      height: 50,
+                      child: dateBar(),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, top: 5),
+                      alignment: Alignment.centerLeft,
+                      child: const Text('For whom?'),
+                    ),
+                    SizedBox(
+                        height: 60,
+                        child: memberBar()
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, top: 5),
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        child: Text('Show less'),
+                        onPressed: (){
+                          setState(() {
+                            extend = !extend;
+                            _scale = 1;
+                          });
+                        }
+                      ),
+                    ),
+                  ]
                 ),
-                SizedBox(
-                  height: 50,
-                  child: dateBar(),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 5, top: 5),
-                  alignment: Alignment.centerLeft,
-                  child: const Text('For whom?'),
-                ),
-                SizedBox(
-                    height: 60,
-                    child: memberBar()
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 5, top: 5),
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    child: Text('Show less'),
-                    onPressed: (){
-                      setState(() {
-                        extend = !extend;
-                      });
-                    }
-                  ),
-                ),
-              ]
-            ),
+              ),
+              Spacer(),
+              const Divider(
+                thickness: 0.5,
+                indent: 0,
+                endIndent: 0,
+              ),
+              IntrinsicHeight(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                        child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          child: Text("Cancel", style: Theme.of(context).textTheme.labelLarge,),
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                        )
+                    ),
+                    const VerticalDivider(
+                      indent: 5,
+                      endIndent: 5,
+                    ),
+                    Expanded(
+                      child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          child: Text("Add", style: Theme.of(context).textTheme.labelLarge,),
+                          onPressed: () {
+                            add();
+                            Navigator.of(context).pop(true);
+                          }
+                      ),
+                    ),
+                  ],
+                )
+              ),
+            ],    
           ),
         ),
       ),
