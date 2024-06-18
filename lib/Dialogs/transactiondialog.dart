@@ -1,6 +1,7 @@
 import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:splizz/Helper/circularSlider.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Models/transaction.dart';
 import 'package:splizz/Helper/ui_model.dart';
@@ -31,6 +32,8 @@ class _TransactionDialogState extends State<TransactionDialog>{
   bool currency = false;
   //late final List<bool> _payerSelection;
   late final List<bool> _memberSelection;
+  late final List<double> _memberBalances;
+
   List<dynamic> date = ["Today", "Yesterday"];
   int selection = -1;
   int _dateSelection = 0;
@@ -40,6 +43,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   @override void initState() {
     item = widget.item;
     _memberSelection = item.members.map((Member m) => m.active).toList();
+    _memberBalances = List.generate(_memberSelection.length, (index) => currencyController.doubleValue/_memberSelection.length);
     date.add(DateTime.now());
 
     super.initState();
@@ -104,15 +108,41 @@ class _TransactionDialogState extends State<TransactionDialog>{
       itemBuilder: (context, i) {
         Color color = _memberSelection[i] ? item.members[i].color : Theme.of(context).colorScheme.surface;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
+        //if (_memberBalances.length < item.members.length) {
+        //  _memberBalances.add(1.0);
+        //}
 
-        return PillModel(color: color, child: TextButton(
-            onPressed: (){
-              setState(() {
-                _memberSelection[i] = !_memberSelection[i];
-              });
-            },
-            child: Text(item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
-          ),
+        return Column(
+          children: [
+            PillModel(
+              color: color, 
+              child: TextButton(
+                onPressed: (){
+                  setState(() {
+                      _memberSelection[i] = !_memberSelection[i];
+                  });
+                },
+                child: Text(item.members[i].name, style: TextStyle(color: textColor, fontSize: 20),),
+              ),
+            ),
+            
+            //RotatedBox(
+            //  quarterTurns: 3,
+            //  child: Slider(
+            //    divisions: 10,
+            //    activeColor: _memberSelection[i] ? item.members[i].color : Theme.of(context).colorScheme.surface,
+            //    value: _memberBalances[i],
+            //    label: _memberBalances[i].toString(),
+            //    min: 0, 
+            //    max: 1, 
+            //    onChanged: (value){
+            //      setState(() {
+            //        _memberBalances[i] = value;
+            //      });
+            //    }
+            //  )
+            //)
+          ],
         );
       },
     );
@@ -173,6 +203,10 @@ class _TransactionDialogState extends State<TransactionDialog>{
       },
     );
   }
+
+  //Widget adjustCircle(){
+  //  return 
+  //}
 
   Widget dialog(){
     return AnimatedScale(
@@ -317,8 +351,12 @@ class _TransactionDialogState extends State<TransactionDialog>{
                       child: const Text('For whom?'),
                     ),
                     SizedBox(
-                        height: 60,
+                        height: 70,
                         child: memberBar()
+                    ),
+                    CircularSlider(
+                      sum: currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue,
+                      angles: List.generate(_memberSelection.length, (index) => (currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue)/_memberSelection.length),
                     ),
                     Container(
                       margin: const EdgeInsets.only(left: 5, top: 5),
