@@ -357,6 +357,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                     CircularSlider(
                       sum: currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue,
                       angles: List.generate(_memberSelection.length, (index) => (currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue)/_memberSelection.length),
+                      colors: item.members.map((Member m) => m.color).toList(),
                     ),
                     Container(
                       margin: const EdgeInsets.only(left: 5, top: 5),
