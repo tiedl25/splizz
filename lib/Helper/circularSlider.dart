@@ -31,6 +31,7 @@ class _CircularSliderState extends State<CircularSlider> {
 
     double val = 0;
     double angle = (2*math.pi) / widget.memberSelection.where((e) => e==true).length;
+    double balance = widget.sum / widget.memberSelection.where((e) => e==true).length;
     
     for (int i=0; i<widget.members.length; i++) {
       if(!widget.memberSelection[i]) continue;
@@ -40,7 +41,7 @@ class _CircularSliderState extends State<CircularSlider> {
         'listId': i,
         'id': widget.members[i].id,
         'color': widget.members[i].color,
-        'balance': widget.memberBalances[i],
+        'balance': balance,
         'angle': val
       });
     }
@@ -48,8 +49,10 @@ class _CircularSliderState extends State<CircularSlider> {
 
   @override
   Widget build(BuildContext context) {
-    widget.sum == 0.0 ? lock = true : lock = false;
-    widget.memberSelection.where((e) => e==true).length != members.length ? update() : null;
+    int numberOfSelectedMembers = widget.memberSelection.where((e) => e==true).length;
+
+    widget.sum == 0.0 || numberOfSelectedMembers == 0 || numberOfSelectedMembers == 1 ? lock = true : lock = false;
+    numberOfSelectedMembers != members.length ? update() : null;
     //update();
 
     return GestureDetector(

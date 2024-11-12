@@ -52,7 +52,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
 
     
   add() {
-    if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.where((element) => element == true).length >= 2) {
+    if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
       if (_involvedMembers.isEmpty) {
         updateBalances();
       }
@@ -68,7 +68,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   }
 
   updateBalances(){
-    int memberCount = _memberSelection.where((element) => element).length;
+    int memberCount = _memberSelection.where((element) => element==true).length;
     for (int i=0; i<_memberSelection.length; i++){
       if (_memberSelection[i]){
         _involvedMembers.add({'listId': i, 'id': item.members[i].id, 'balance': currencyController.doubleValue/memberCount});
