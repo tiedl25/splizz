@@ -33,6 +33,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   //late final List<bool> _payerSelection;
   late final List<bool> _memberSelection;
   late final List<double> _memberBalances;
+  List<Map<String, dynamic>> _involvedMembers = [];
 
   List<dynamic> date = ["Today", "Yesterday"];
   int selection = -1;
@@ -43,7 +44,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   @override void initState() {
     item = widget.item;
     _memberSelection = item.members.map((Member m) => m.active).toList();
-    _memberBalances = List.generate(_memberSelection.length, (index) => currencyController.doubleValue/_memberSelection.length);
+    _memberBalances = List.generate(_memberSelection.length, (index) => 0.0);
     date.add(DateTime.now());
 
     super.initState();
@@ -51,26 +52,28 @@ class _TransactionDialogState extends State<TransactionDialog>{
 
     
   add() {
-    if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
-      List<int> involvedMembersListIds = [];//List.generate(_item.members.length, (index) => index);
-      //List<int> involvedMembersDbIds = _item.members.map((e) => e.id!).toList();
-
-      _memberSelection.asMap().forEach((index, value) {
-        if (value == true) {
-          involvedMembersListIds.add(index);
-        }
-      });
-
-      List<int> involvedMembersDbIds = involvedMembersListIds.map((e) => item.members[e].id!).toList();
+    if(currencyController.doubleValue != 0 && descriptionController.text.isNotEmpty && selection!=-1 && _memberSelection.where((element) => element == true).length >= 2) {
+      if (_involvedMembers.isEmpty) {
+        updateBalances();
+      }
       
       int associatedId = item.members[selection].id!;
       Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
-      item.addTransaction(selection, transaction, involvedMembersListIds, involvedMembersDbIds);
+      item.addTransaction(selection, transaction, _involvedMembers);
       
       DatabaseHelper.instance.update(item);
       widget.updateItem(item);
       selection=-1;
     }
+  }
+
+  updateBalances(){
+    int memberCount = _memberSelection.where((element) => element).length;
+    for (int i=0; i<_memberSelection.length; i++){
+      if (_memberSelection[i]){
+        _involvedMembers.add({'listId': i, 'id': item.members[i].id, 'balance': currencyController.doubleValue/memberCount});
+      }
+    } 
   }
 
 
@@ -261,7 +264,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
                           child: dateBar(),
                         ),
                         Container(
-                          margin: const EdgeInsets.only(left: 5, top: 5),
+                          //margin: const EdgeInsets.only(left: 0, top: 5),
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             child: Text('Show more'),
@@ -291,6 +294,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
     return ClipRRect(
       borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: false,
         backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
@@ -301,81 +305,77 @@ class _TransactionDialogState extends State<TransactionDialog>{
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                        autofocus: true,
-                        controller: descriptionController,
-                        onChanged: (value) {
-                          setState(() {
-                          });
-                        },
-                        decoration: TfDecorationModel(context: context, title: 'Add a description')
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(left: 5, top: 5),
-                      alignment: Alignment.centerLeft,
-                      child: const Text('Who payed?'),
-                    ),
-                    SizedBox(
-                        height: 60,//MediaQuery.of(context).size.height/14,
-                        child: payerBar()
-                    ),
-                    TextField(
-                        controller: currencyController,
-                        onChanged: (value) {
-                          setState(() {
-                          });
-                        },
-                        decoration: TfDecorationModel(
-                            context: context,
-                            title: '0,00',
-                            icon: IconButton(
-                                onPressed: (){setState(() {
-                                  currency = !currency;
-                                });},
-                                icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
-                            )
-                        )
-                    ),
-                    SizedBox(
-                      height: 50,
-                      child: dateBar(),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(left: 5, top: 5),
-                      alignment: Alignment.centerLeft,
-                      child: const Text('For whom?'),
-                    ),
-                    SizedBox(
-                        height: 70,
-                        child: memberBar()
-                    ),
-                    CircularSlider(
-                      sum: currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue,
-                      angles: List.generate(_memberSelection.length, (index) => (currencyController.doubleValue == 0 ? 1 : currencyController.doubleValue)/_memberSelection.length),
-                      colors: item.members.map((Member m) => m.color).toList(),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(left: 5, top: 5),
-                      alignment: Alignment.centerLeft,
-                      child: TextButton(
-                        child: Text('Show less'),
-                        onPressed: (){
-                          setState(() {
-                            extend = !extend;
-                            _scale = 1;
-                          });
-                        }
-                      ),
-                    ),
-                  ]
-                ),
+              TextField(
+                  autofocus: true,
+                  controller: descriptionController,
+                  onChanged: (value) {
+                    setState(() {
+                    });
+                  },
+                  decoration: TfDecorationModel(context: context, title: 'Add a description')
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 5, top: 5),
+                alignment: Alignment.centerLeft,
+                child: const Text('Who payed?'),
+              ),
+              SizedBox(
+                  height: 60,//MediaQuery.of(context).size.height/14,
+                  child: payerBar()
+              ),
+              TextField(
+                  controller: currencyController,
+                  onChanged: (value) {
+                    setState(() {
+                    });
+                  },
+                  decoration: TfDecorationModel(
+                      context: context,
+                      title: '0,00',
+                      icon: IconButton(
+                          onPressed: (){setState(() {
+                            currency = !currency;
+                          });},
+                          icon: currency==false ? const Icon(Icons.euro) : const Icon(Icons.attach_money)
+                      )
+                  )
+              ),
+              SizedBox(
+                height: 50,
+                child: dateBar(),
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 5, top: 5),
+                alignment: Alignment.centerLeft,
+                child: const Text('For whom?'),
+              ),
+              SizedBox(
+                  height: 70,
+                  child: memberBar()
               ),
               Spacer(),
+              CircularSlider(
+                sum: currencyController.doubleValue,
+                members: item.members,
+                memberBalances: _memberBalances,
+                memberSelection: _memberSelection,
+                getInvolvedMembers: (value){_involvedMembers = value;},
+              ),
+              Spacer(),
+              Container(
+                //margin: const EdgeInsets.only(left: 5, top: 5),
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  child: Text('Show less'),
+                  onPressed: (){
+                    setState(() {
+                      extend = !extend;
+                      _scale = 1;
+                    });
+                  }
+                ),
+              ),
+              //Spacer(),
               const Divider(
                 thickness: 0.5,
                 indent: 0,
@@ -419,8 +419,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
   }
 
   @override
-  Widget build(BuildContext context) {
-    
+  Widget build(BuildContext context) {    
     return extend ? view() : dialog();
   }
 }

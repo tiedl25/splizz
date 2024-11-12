@@ -544,11 +544,15 @@ class _DetailViewState extends State<DetailView>{
             child: const Icon(Icons.bug_report),
             onTap: () async {
               int memberListIndex = Random().nextInt(item.members.length);
-              List<int> involvedMembers = List.generate(item.members.length, (index) => index);
-              List<int> involvedDbMembers = item.members.map((e) => e.id!).toList();
+              //List<int> involvedMembers = List.generate(item.members.length, (index) => index);
+              List<Map<String, dynamic>> involvedMembers = item.members.asMap().entries.map((entry) {
+                int index = entry.key;  // This is the index
+                var e = entry.value;    // This is the item at that index
+                return {'listId': index, 'id': e.id!, 'balance': double.parse((22.00/item.members.length).toStringAsFixed(2))};
+              }).toList();
               setState(() {
                 Transaction t = Transaction('test', 22.00, DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
-                item.addTransaction(memberListIndex, t, involvedMembers, involvedDbMembers);
+                item.addTransaction(memberListIndex, t, involvedMembers);
               });
                 
               DatabaseHelper.instance.update(item);

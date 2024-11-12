@@ -1,53 +1,67 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:splizz/Models/member.dart';
+
 class CircularSlider extends StatefulWidget {
   final double sum;
-  final List<double> angles;
-  final List<Color> colors;
+  final List<Member> members;
+  final List<double> memberBalances;
+  final List<bool> memberSelection;
+  final Function getInvolvedMembers;
 
-  CircularSlider({Key? key, required this.sum, required this.angles, required this.colors}) : super(key: key);
+  CircularSlider({Key? key, required this.sum, required this.members, required this.memberBalances, required this.memberSelection, required this.getInvolvedMembers}) : super(key: key);
   @override
   _CircularSliderState createState() => _CircularSliderState();
 }
 
 class _CircularSliderState extends State<CircularSlider> {
-  late List<double> angles;
+  late List<Map<String, dynamic>> members;
   bool lock = false;
 
   @override
   void initState() {
     super.initState();
+    
+    update();
+  }
 
-    if (widget.sum == 0.0) {
-      lock = true;
-    }
+  void update(){
+    this.members = [];
 
-    double factor = lock ? widget.angles.length.toDouble() : widget.sum / (2 * math.pi);
-    print(factor);
-    angles = [];
     double val = 0;
-    for (double angle in widget.angles) {
-      angles.add(angle/factor + val);
-      val = angle/factor + val;
+    double angle = (2*math.pi) / widget.memberSelection.where((e) => e==true).length;
+    
+    for (int i=0; i<widget.members.length; i++) {
+      if(!widget.memberSelection[i]) continue;
+      val = angle + val;
+      
+      this.members.add({
+        'listId': i,
+        'id': widget.members[i].id,
+        'color': widget.members[i].color,
+        'balance': widget.memberBalances[i],
+        'angle': val
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    widget.sum == 0.0 ? lock = true : lock = false;
+    widget.memberSelection.where((e) => e==true).length != members.length ? update() : null;
+    //update();
+
     return GestureDetector(
-      onPanDown: (value){lock = false;},
+      onPanDown: (value){},
       onPanUpdate: lock ? null : _updatePosition,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          //color: Colors.black
-        ),
-        padding: EdgeInsets.all(20),
-          child: CustomPaint(
-          size: Size(200, 200),
-          painter: CircularSliderPainter(angles, widget.colors, widget.sum, this.lock),
-        ),
+      onPanEnd: widget.getInvolvedMembers(members),
+      child: CustomPaint(
+        size: Size(200, 200),
+        painter: CircularSliderPainter(this.members,
+          widget.sum, 
+          this.lock, 
+        )
       ),
     );
   }
@@ -58,43 +72,36 @@ class _CircularSliderState extends State<CircularSlider> {
     final center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
     final angle = (math.atan2(offset.dy - center.dy, offset.dx - center.dx) + 2 * math.pi) % (2 * math.pi);
     setState(() {
-      for (int i = 0; i < angles.length; i++) {
+      for (int i = 0; i < members.length; i++) {
 
-        if ((angle - angles[i]).abs() < 0.2 || (angle - angles[i] + 2 * math.pi).abs() < 0.2 || (angle - angles[i] - 2 * math.pi).abs() < 0.2) {
+        double mAngle = members[i]['angle'];
+
+        if ((angle - mAngle).abs() < 0.2 || (angle - mAngle + 2 * math.pi).abs() < 0.2 || (angle - mAngle - 2 * math.pi).abs() < 0.2) {
           
-          if ((angles[i+1 >= angles.length ? 0 : i+1] - angles[i]).abs() < 0.25 && angle > angles[i]) {
+          if ((members[i+1 >= members.length ? 0 : i+1]['angle'] - mAngle).abs() < 0.25 && angle > mAngle) {
             //lock = true;
             break;
           }
 
-          if ((angles[i] - angles[i-1 < 0 ? angles.length-1 : i-1]).abs() < 0.25 && angle < angles[i]) {
+          if ((mAngle - members[i-1 < 0 ? members.length-1 : i-1]['angle']).abs() < 0.25 && angle < mAngle) {
             //lock = true;
             break;
           }
 
-          print(i);
-          angles[i] = angle;
+          members[i]['angle'] = angle;
           break;
         }
       }
-      //if ((angle - angle1).abs() < 0.2) {
-      //  angle1 = angle;
-      //} else if ((angle - angle2).abs() < 0.2) {
-      //  angle2 = angle;
-      //} else if ((angle - angle3).abs() < 0.2) {
-      //  angle3 = angle;
-      //}
     });
   }
 }
 
 class CircularSliderPainter extends CustomPainter {
-  final List<double> angles;
-  final List<Color> colors;
+  final List<Map<String, dynamic>> members;
   final double sum;
   bool lock;
 
-  CircularSliderPainter(this.angles, this.colors, this.sum, this.lock);
+  CircularSliderPainter(this.members, this.sum, this.lock);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -114,9 +121,9 @@ class CircularSliderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10.0;
 
-    for (int i = 0; i < angles.length; i++) {
-      final startAngle = angles[i];
-      final endAngle = angles[(i + 1) % angles.length];
+    for (int i = 0; i < members.length; i++) {
+      final startAngle = members[i]['angle'];
+      final endAngle = members[(i + 1) % members.length]['angle'];
       final path = Path();
       path.arcTo(
         Rect.fromCircle(center: center, radius: radius),
@@ -124,23 +131,26 @@ class CircularSliderPainter extends CustomPainter {
         (endAngle - startAngle) % (2 * math.pi),
         false,
       );
-      segmentPaint.color = Color.alphaBlend(this.lock ? Color.fromARGB(136, 97, 97, 97) : Color.fromARGB(0, 255, 255, 255), colors[i]);
+      segmentPaint.color = Color.alphaBlend(this.lock ? Color.fromARGB(136, 97, 97, 97) : Color.fromARGB(0, 255, 255, 255), members[i]['color']);
       canvas.drawPath(path, segmentPaint);
     }
 
-    for (double angle in angles) {
+    for (double angle in members.map((e) => e['angle'])) {
       _drawHandle(canvas, center, radius, angle);
     }
 
     if (this.lock) return;
 
-    for (int i = 0; i < angles.length; i++) {
-      double ang = i == angles.length - 1 ? angles[0]: angles[i+1];
-      double pos2 = angles[i] > ang ? ang + 2*math.pi : ang;
-      double labelPos = (angles[i] + pos2) / 2;
+    for (int i = 0; i < members.length; i++) {
+      double ang = i == members.length - 1 ? members[0]['angle']: members[i+1]['angle'];
+      double pos2 = members[i]['angle'] > ang ? ang + 2*math.pi : ang;
+      double labelPos = (members[i]['angle'] + pos2) / 2;
 
-      double pathLength = (angles[i] - pos2).abs();
-      _drawLabel(canvas, center, radius, labelPos > 2*math.pi ? labelPos - 2*math.pi : labelPos, pathLength);
+      double pathLength = (members[i]['angle'] - pos2).abs();
+
+      members[i]['balance'] = double.parse((sum / (2*math.pi / pathLength)).toStringAsFixed(2));
+
+      _drawLabel(canvas, center, radius, labelPos > 2*math.pi ? labelPos - 2*math.pi : labelPos, members[i]['balance']);
     }
   }
 
@@ -156,11 +166,7 @@ class CircularSliderPainter extends CustomPainter {
     canvas.drawCircle(handleCenter, 15.0, handlePaint);
   }
 
-  void _drawLabel(Canvas canvas, Offset center, double radius, double angle, double pathLength) {
-    final labelPaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-
+  void _drawLabel(Canvas canvas, Offset center, double radius, double angle, double balance) {
     final labelCenter = Offset(
       center.dx + radius * math.cos(angle),
       center.dy + radius * math.sin(angle),
@@ -178,7 +184,7 @@ class CircularSliderPainter extends CustomPainter {
     // Draw labels
     final textPainter = TextPainter(
       text: TextSpan(
-        text: (sum / (2*math.pi / pathLength)).toStringAsFixed(2) + ' €',
+        text: balance.toStringAsFixed(2) + ' €',
         style: TextStyle(color: Colors.black, fontSize: 12),
       ),
       textDirection: TextDirection.ltr,

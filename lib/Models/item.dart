@@ -29,17 +29,15 @@ class Item{
   Item.copy(Item item) : this(item.name, id: item.id, sharedId: item.sharedId, owner: item.owner, members: item.members, history: item.history, image: item.image, timestamp: item.timestamp);
 
   // Add new transaction to history and member history, while also updating total and balance of all members
-  void addTransaction(int associatedId, Transaction t, List<int> involvedMembers, List<int> involvedDbMembers){
+  void addTransaction(int associatedId, Transaction t, List<Map<String, dynamic>> involvedMembers){
     members[associatedId].addTransaction(t);
     history.add(t);
-
-    double splitValue = t.value/involvedMembers.length;
 
     if(!t.deleted)
     {
       for(int i=0; i<involvedMembers.length; i++) {
-        members[involvedMembers[i]].sub(splitValue);
-        t.addOperation(Operation(-splitValue, memberId: involvedDbMembers[i], itemId: this.id));
+        members[involvedMembers[i]['listId']].sub(involvedMembers[i]['balance']);
+        t.addOperation(Operation(-involvedMembers[i]['balance'], memberId: involvedMembers[i]['id'], itemId: this.id));
       }
 
       t.addOperation(Operation(t.value, memberId: members[associatedId].id, itemId: this.id));
