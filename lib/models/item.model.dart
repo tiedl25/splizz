@@ -23,20 +23,18 @@ class Item extends OfflineFirstWithSupabaseModel {
   Uint8List? image;
   final DateTime timestamp;
 
-  List<Member> members = [];
-  List<Transaction> history = [];
+  List<Member> members;
+  List<Transaction> history;
 
   //Constructor
-  Item(this.name, {String ? id, this.owner=true, members, history, this.image, timestamp}) : this.id = id ?? Uuid().v4(), timestamp = timestamp ?? DateTime.now() {
-    if(members!=null){
-      this.members=members;
-    }
-    if(history!=null){
-      this.history=history;
-    }
-  }
+  Item({required String? name, String? id, this.owner=true, members, history, this.image, timestamp}) : 
+    this.id = id ?? Uuid().v4(), 
+    this.timestamp = timestamp ?? DateTime.now(),
+    this.name = name ?? '',
+    this.members = members ?? [],
+    this.history = history ?? [];
 
-  Item.copy(Item item) : this(item.name, id: item.id, owner: item.owner, members: item.members, history: item.history, image: item.image, timestamp: item.timestamp);
+  Item.copy(Item item) : this(name: item.name, id: item.id, owner: item.owner, members: item.members, history: item.history, image: item.image, timestamp: item.timestamp);
 
   // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t, List<Map<String, dynamic>> involvedMembers){
@@ -47,10 +45,10 @@ class Item extends OfflineFirstWithSupabaseModel {
     {
       for(int i=0; i<involvedMembers.length; i++) {
         members[involvedMembers[i]['listId']].sub(involvedMembers[i]['balance']);
-        t.addOperation(Operation(-involvedMembers[i]['balance'], memberId: involvedMembers[i]['id'], itemId: this.id));
+        t.addOperation(Operation(value: -involvedMembers[i]['balance'], memberId: involvedMembers[i]['id'], itemId: this.id));
       }
 
-      t.addOperation(Operation(t.value, memberId: members[associatedId].id, itemId: this.id));
+      t.addOperation(Operation(value: t.value, memberId: members[associatedId].id, itemId: this.id));
     }
   }
 
@@ -86,7 +84,7 @@ class Item extends OfflineFirstWithSupabaseModel {
     history.add(t);
 
     for(Member m in members){
-      Operation o = Operation(-m.balance, itemId: this.id, memberId: m.id);
+      Operation o = Operation(value: -m.balance, itemId: this.id, memberId: m.id);
       t.addOperation(o);
       m.add(o.value);
     }
@@ -149,7 +147,7 @@ class Item extends OfflineFirstWithSupabaseModel {
 
   factory Item.fromMap(Map<String, dynamic> map) {
     return Item(
-      map['name'],
+      name: map['name'],
       id: map['id'],
       owner: map['owner'] == 1 ? true : false,
       image: map['image'],

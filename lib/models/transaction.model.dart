@@ -16,16 +16,16 @@ class Transaction extends OfflineFirstWithSupabaseModel {
 
   String? memberId;
   String? itemId;
-  late String description;
-  late DateTime date;
-  late double value;
+  String description;
+  DateTime date;
+  double value;
   bool deleted = false;
   final DateTime timestamp;
-  
+
   late List<Operation> operations;
 
   //Constructor
-  Transaction(this.description, this.value, this.date, {String? id, this.memberId, this.itemId, DateTime? timestamp, deleted, operations}) : 
+  Transaction({required this.description, required this.value, required this.date, String? id, this.memberId, this.itemId, DateTime? timestamp, deleted, operations}) : 
     this.id = id ?? Uuid().v4(),
     this.timestamp = timestamp ?? DateTime.now(),
     this.deleted = deleted ?? false,
@@ -33,9 +33,9 @@ class Transaction extends OfflineFirstWithSupabaseModel {
 
   factory Transaction.payoff({date, id, timestamp, operations}){
     return Transaction(
-      'payoff',
-      0.0,
-      date ?? timestamp,
+      description: 'payoff',
+      value: 0.0,
+      date: date ?? timestamp,
       id: id,
       memberId: "",
       timestamp: timestamp,
@@ -87,9 +87,9 @@ class Transaction extends OfflineFirstWithSupabaseModel {
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
-      map['description'],
-      map['value'],
-      DateTime.parse(map['date']),
+      description: map['description'],
+      value: map['value'],
+      date: DateTime.parse(map['date']),
       id: map['id'],
       memberId: map['memberId'],
       itemId: map['itemId'],

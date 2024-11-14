@@ -5,6 +5,9 @@ import 'package:splizz/Views/masterview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
 
+import 'package:splizz/brick/repository.dart';
+import 'package:sqflite/sqflite.dart' show databaseFactory;
+
 Future main() async {
   await dotenv.load(fileName: 'keys.env');
 

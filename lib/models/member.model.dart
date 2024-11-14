@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
@@ -19,14 +17,14 @@ class Member extends OfflineFirstWithSupabaseModel {
   late final String name;
   late double total = 0;
   late double balance = 0;
-  late Color color;
+  late int color;
   bool active = true;
   final DateTime timestamp;
 
   late List<Transaction> history;
 
   //Constructor
-  Member(this.name, this.color, {String? id, double? total, double? balance, history, active, timestamp}) : this.id = id ?? const Uuid().v4(),
+  Member({required this.name, required this.color, String? id, double? total, double? balance, history, active, timestamp}) : this.id = id ?? const Uuid().v4(),
     this.total = total ?? 0,
     this.balance = balance ?? 0,
     this.history = history ?? [],
@@ -35,8 +33,8 @@ class Member extends OfflineFirstWithSupabaseModel {
 
   factory Member.fromMember(Member m, {name, color, id, total, balance, history, active, timestamp}){
     return Member(
-        name ?? m.name,
-        color ?? m.color,
+        name: name ?? m.name,
+        color: color ?? m.color,
         id: id ?? m.id,
         total: total ?? m.total,
         balance: balance ?? m.balance,
@@ -85,7 +83,7 @@ class Member extends OfflineFirstWithSupabaseModel {
   Map<String, dynamic> toMap() => {
     'id': id,
     'name': name,
-    'color': color.value,
+    'color': color,
     'total': total,
     'balance': balance,
     'active': active ? 1 : 0,
@@ -94,8 +92,8 @@ class Member extends OfflineFirstWithSupabaseModel {
 
   factory Member.fromMap(Map<String, dynamic> map) {
     return Member(
-      map['name'],
-      Color(map['color']),
+      name: map['name'],
+      color: map['color'],
       id: map['id'],
       total: map['total'],
       balance: map['balance'],
