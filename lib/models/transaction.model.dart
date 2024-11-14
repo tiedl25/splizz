@@ -73,28 +73,4 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   void addOperation(Operation operation){
     operations.add(operation);
   }
-
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'description': description,
-    'memberId': memberId,
-    'itemId': itemId,
-    'timestamp': timestamp.toString(),
-    'value': value,
-    'deleted': deleted ? 1 : 0,
-    'date': date.toString()
-  };
-
-  factory Transaction.fromMap(Map<String, dynamic> map) {
-    return Transaction(
-      description: map['description'],
-      value: map['value'],
-      date: DateTime.parse(map['date']),
-      id: map['id'],
-      memberId: map['memberId'],
-      itemId: map['itemId'],
-      timestamp: DateTime.parse(map['timestamp']),
-      deleted: map['deleted'] == 1 ? true : false
-    );
-  }
 }

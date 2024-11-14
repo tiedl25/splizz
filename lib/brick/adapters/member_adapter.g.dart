@@ -7,8 +7,6 @@ Future<Member> _$MemberFromSupabase(Map<String, dynamic> data,
   return Member(
       id: data['id'] as String?,
       name: data['name'] as String,
-      total: data['total'] as double?,
-      balance: data['balance'] as double?,
       color: data['color'] as int);
 }
 
@@ -18,15 +16,9 @@ Future<Map<String, dynamic>> _$MemberToSupabase(Member instance,
   return {
     'id': instance.id,
     'name': instance.name,
-    'total': instance.total,
-    'balance': instance.balance,
     'color': instance.color,
     'active': instance.active,
-    'timestamp': instance.timestamp.toIso8601String(),
-    'history': await Future.wait<Map<String, dynamic>>(instance.history
-        .map((s) => TransactionAdapter()
-            .toSupabase(s, provider: provider, repository: repository))
-        .toList())
+    'timestamp': instance.timestamp.toIso8601String()
   };
 }
 
@@ -36,23 +28,9 @@ Future<Member> _$MemberFromSqlite(Map<String, dynamic> data,
   return Member(
       id: data['id'] as String,
       name: data['name'] as String,
-      total: data['total'] as double,
-      balance: data['balance'] as double,
       color: data['color'] as int,
       active: data['active'] == 1,
-      timestamp: DateTime.parse(data['timestamp'] as String),
-      history: (await provider.rawQuery(
-              'SELECT DISTINCT `f_Transaction_brick_id` FROM `_brick_Member_history` WHERE l_Member_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
-        final ids = results.map((r) => r['f_Transaction_brick_id']);
-        return Future.wait<Transaction>(ids.map((primaryKey) => repository!
-            .getAssociation<Transaction>(
-              Query.where('primaryKey', primaryKey, limit1: true),
-            )
-            .then((r) => r!.first)));
-      }))
-          .toList()
-          .cast<Transaction>())
+      timestamp: DateTime.parse(data['timestamp'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -62,8 +40,6 @@ Future<Map<String, dynamic>> _$MemberToSqlite(Member instance,
   return {
     'id': instance.id,
     'name': instance.name,
-    'total': instance.total,
-    'balance': instance.balance,
     'color': instance.color,
     'active': instance.active ? 1 : 0,
     'timestamp': instance.timestamp.toIso8601String()
@@ -88,14 +64,6 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
       association: false,
       columnName: 'name',
     ),
-    'total': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'total',
-    ),
-    'balance': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'balance',
-    ),
     'color': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'color',
@@ -107,12 +75,6 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'timestamp': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'timestamp',
-    ),
-    'history': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'history',
-      associationType: Transaction,
-      associationIsNullable: false,
     )
   };
   @override
@@ -139,18 +101,6 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
       iterable: false,
       type: String,
     ),
-    'total': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'total',
-      iterable: false,
-      type: double,
-    ),
-    'balance': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'balance',
-      iterable: false,
-      type: double,
-    ),
     'color': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'color',
@@ -168,12 +118,6 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
       columnName: 'timestamp',
       iterable: false,
       type: DateTime,
-    ),
-    'history': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'history',
-      iterable: true,
-      type: Transaction,
     )
   };
   @override
@@ -192,34 +136,6 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
 
   @override
   final String tableName = 'Member';
-  @override
-  Future<void> afterSave(instance, {required provider, repository}) async {
-    if (instance.primaryKey != null) {
-      final historyOldColumns = await provider.rawQuery(
-          'SELECT `f_Transaction_brick_id` FROM `_brick_Member_history` WHERE `l_Member_brick_id` = ?',
-          [instance.primaryKey]);
-      final historyOldIds =
-          historyOldColumns.map((a) => a['f_Transaction_brick_id']);
-      final historyNewIds =
-          instance.history.map((s) => s.primaryKey).whereType<int>();
-      final historyIdsToDelete =
-          historyOldIds.where((id) => !historyNewIds.contains(id));
-
-      await Future.wait<void>(historyIdsToDelete.map((id) async {
-        return await provider.rawExecute(
-            'DELETE FROM `_brick_Member_history` WHERE `l_Member_brick_id` = ? AND `f_Transaction_brick_id` = ?',
-            [instance.primaryKey, id]).catchError((e) => null);
-      }));
-
-      await Future.wait<int?>(instance.history.map((s) async {
-        final id = s.primaryKey ??
-            await provider.upsert<Transaction>(s, repository: repository);
-        return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_Member_history` (`l_Member_brick_id`, `f_Transaction_brick_id`) VALUES (?, ?)',
-            [instance.primaryKey, id]);
-      }));
-    }
-  }
 
   @override
   Future<Member> fromSupabase(Map<String, dynamic> input,

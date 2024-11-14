@@ -5,6 +5,7 @@ import 'package:brick_sqlite/memory_cache_provider.dart';
 // This hide is for Brick's @Supabase annotation; in most cases,
 // supabase_flutter **will not** be imported in application code.
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:splizz/brick/db/schema.g.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -32,8 +33,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final queue = cq.$2;
 
     await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+      url: "https://ysriwnygdfeevzbbjrkt.supabase.co",
+      anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzcml3bnlnZGZlZXZ6YmJqcmt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1OTMyOTcsImV4cCI6MjA0NzE2OTI5N30.9rl3Eb2hNE1Wuwvsjy8OIc2Ak_eY1oWLGzJ8Ghezspg",
       httpClient: client,
     );
 

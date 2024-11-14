@@ -13,11 +13,7 @@ import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:splizz/models/operation.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:splizz/models/transaction.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'dart:typed_data';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:splizz/models/member.model.dart';// GENERATED CODE DO NOT EDIT
+import 'dart:typed_data';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
