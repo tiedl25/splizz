@@ -9,6 +9,9 @@ import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 
 Future main() async {
+  await Repository.configure(databaseFactory);
+  await Repository().initialize();
+
   await dotenv.load(fileName: 'keys.env');
 
   WidgetsFlutterBinding.ensureInitialized();

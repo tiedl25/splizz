@@ -5,17 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:splizz/Helper/drive.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Views/detailview.dart';
-import 'package:splizz/Models/item.dart';
+import 'package:splizz/brick/repository.dart';
+import 'package:splizz/models/item.model.dart';
 import 'package:splizz/Views/settingsview.dart';
 
-import 'package:splizz/Dialogs/importdialog.dart';
 import 'package:splizz/Dialogs/itemdialog.dart';
 import 'package:splizz/Helper/colormap.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/ui_model.dart';
-import 'package:splizz/Models/member.dart';
+import 'package:splizz/models/member.model.dart';
+
+import 'package:brick_core/query.dart';
+import 'package:splizz/models/operation.model.dart';
+import 'package:splizz/models/transaction.model.dart';
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;
@@ -40,20 +43,24 @@ class _MasterViewState extends State<MasterView>{
   void initState() {
     super.initState();
     itemListFuture = DatabaseHelper.instance.getItems();
+    //DatabaseHelper.instance.getItems();
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
   }
 
   Future<void> addDebugItem(members) async {
     ByteData data = await rootBundle.load('images/image_${Random().nextInt(6)+1}.jpg');
-    var imageBytes = data.buffer.asUint8List();
+    final imageBytes = data.buffer.asUint8List();
+    Item newItem = Item(name: 'Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
 
-    Item newItem = Item('Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
+    for (Member m in members){
+      m.itemId = newItem.id;
+    }
+
+    DatabaseHelper.instance.upsertItem(newItem);
+
     setState(() {
       items.add(newItem);
     });
-    DatabaseHelper.instance.add(newItem).then((value) => setState(() {
-      itemListFuture = DatabaseHelper.instance.getItems();
-    }));
   }
 
   //Dialogs
@@ -68,12 +75,13 @@ class _MasterViewState extends State<MasterView>{
   }
 
   void _showImportDialog(){
-    showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context){
-          return ImportDialog();
-        });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete payoff. Please try again')));
+    //showDialog(
+    //    context: context,
+    //    barrierDismissible: true,
+    //    builder: (BuildContext context){
+    //      return ImportDialog();
+    //    });
   }
 
   Future<bool?> _showDismissDialog(String sharedId) {
@@ -91,22 +99,22 @@ class _MasterViewState extends State<MasterView>{
                           child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
                       ),
 
-                      if(sharedId != '') Container(
-                        padding: const EdgeInsets.all(5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Remove file in Google Drive'),
-                            Switch(
-                                value: removeDriveFile,
-                                onChanged: (value){
-                                  setState((){
-                                    removeDriveFile = value;
-                                  });
-                                })
-                          ],
-                        ),
-                      )
+                      //if(sharedId != '') Container(
+                      //  padding: const EdgeInsets.all(5),
+                      //  child: Row(
+                      //    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //    children: [
+                      //      const Text('Remove file in Google Drive'),
+                      //      Switch(
+                      //          value: removeDriveFile,
+                      //          onChanged: (value){
+                      //            setState((){
+                      //              removeDriveFile = value;
+                      //            });
+                      //          })
+                      //    ],
+                      //  ),
+                      //)
                     ],
                   ),
                   onConfirmed: (){}
@@ -140,13 +148,36 @@ class _MasterViewState extends State<MasterView>{
       ),
     );
     itemListFuture = DatabaseHelper.instance.getItems();
+    //DatabaseHelper.instance.getItems();
     setState(() {
       
     });
   }
 
+  Future<void> deleteItem(Item i) async {
+    await DatabaseHelper.instance.deleteItem(i);
+    final memberQuery = Query(where: [Where('itemId').isExactly(i.id)]);
+    final members = await Repository.instance.get<Member>(query: memberQuery);
+
+    final transactionQuery = Query(where: [Where('itemId').isExactly(i.id)]);
+    final transactions = await Repository.instance.get<Transaction>(query: transactionQuery);
+
+    final operationQuery = Query(where: [Where('itemId').isExactly(i.id)]);
+    final operations = await Repository.instance.get<Operation>(query: operationQuery);
+
+    for(Member m in members){
+      await DatabaseHelper.instance.deleteMember(m);
+    }
+    for(Transaction t in transactions){
+      await DatabaseHelper.instance.deleteTransaction(t);
+    }
+    for(Operation o in operations){
+      await DatabaseHelper.instance.deleteOperation(o);
+    }
+  }
+
   Widget dismissTile(Item item) {
-    removeDriveFile = item.owner;
+    //removeDriveFile = item.owner;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
@@ -158,22 +189,20 @@ class _MasterViewState extends State<MasterView>{
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
         onDismissed: (dismissDirection) async {
-          if(item.id == null){
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete item. Please try again')));
-            return;
-          };
           setState(() {
-            DatabaseHelper.instance.remove(item.id!).then((value) => setState(() {
+
+            deleteItem(item).then((value) => setState(() {
               itemListFuture = DatabaseHelper.instance.getItems();
+              //DatabaseHelper.instance.getItems();
             }));
-            if(item.sharedId != '' && removeDriveFile && item.owner){
-              GoogleDrive.instance.deleteFile(item.sharedId);
-              GoogleDrive.instance.deleteFile(item.imageSharedId);
-            }
+            //if(item.sharedId != '' && removeDriveFile && item.owner){
+            //  GoogleDrive.instance.deleteFile(item.sharedId);
+            //  GoogleDrive.instance.deleteFile(item.imageSharedId);
+            //}
           });
         },
         confirmDismiss: (direction){
-          return _showDismissDialog(item.sharedId);
+          return _showDismissDialog("");
         },
         background: Container(
           padding: const EdgeInsets.only(right: 20),
@@ -240,7 +269,7 @@ class _MasterViewState extends State<MasterView>{
           onTap: () async {
             List<Member> members = [];
             for(int i=0; i<Random().nextInt(6)+2; ++i){
-              members.add(Member(names[Random().nextInt(100)], colormap[Random().nextInt(16)]));
+              members.add(Member(name: names[Random().nextInt(100)], color: colormap[Random().nextInt(16)].value));
             }
             addDebugItem(members);
           }
@@ -249,8 +278,9 @@ class _MasterViewState extends State<MasterView>{
           child: const Icon(Icons.remove),
           onTap: () async {
             for(int i=0; i<items.length; ++i){
-              DatabaseHelper.instance.remove(items[i].id!).then((value) => setState(() {
+              DatabaseHelper.instance.deleteItem(items[i]).then((value) => setState(() {
                 itemListFuture = DatabaseHelper.instance.getItems();
+                //DatabaseHelper.instance.getItems();
               }));
             }
             setState(() {
@@ -293,6 +323,7 @@ class _MasterViewState extends State<MasterView>{
               onRefresh: (){
                 setState(() {
                   itemListFuture = DatabaseHelper.instance.getItems();
+                  //DatabaseHelper.instance.getItems();
                 });
                 return itemListFuture;
               });

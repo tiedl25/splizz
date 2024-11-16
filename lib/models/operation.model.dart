@@ -22,22 +22,4 @@ class Operation extends OfflineFirstWithSupabaseModel{
   Operation({required this.value, String? id, this.itemId, this.memberId, this.transactionId, DateTime? timestamp}) : 
     this.id = id ?? const Uuid().v4(),
     this.timestamp = timestamp ?? DateTime.now();
-
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'itemId': itemId,
-    'memberId': memberId,
-    'transactionId': transactionId,
-    'value': value,
-  };
-
-  factory Operation.fromMap(Map<String, dynamic> map) {
-    return Operation(
-      value: map['value'],
-      id: map['id'],
-      itemId: map['itemId'],
-      memberId: map['memberId'],
-      transactionId: map['transactionId'],
-    );
-  }
 }

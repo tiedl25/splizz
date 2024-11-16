@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
 
-import 'package:googleapis/drive/v3.dart' as gd;
-import 'package:splizz/Dialogs/notfounddialog.dart';
-
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
-import 'package:splizz/Dialogs/sharedialog.dart';
-import 'package:splizz/Models/transaction.dart';
 import 'package:splizz/Helper/database.dart';
+import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
-import 'package:splizz/Models/item.dart';
-import 'package:splizz/Models/member.dart';
+import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/member.model.dart';
 
 class DetailView extends StatefulWidget{
   final Item item;
@@ -25,37 +21,49 @@ class DetailView extends StatefulWidget{
 
 class _DetailViewState extends State<DetailView>{
   late Item item;
+  late List<Member> members;
+
   bool unbalanced = false;
   late Future<Item> itemFuture;
+
+  Future<Item> getData() async {
+    item.members = await DatabaseHelper.instance.getMembers(item.id);
+    item.history = await DatabaseHelper.instance.getTransactions(item.id);
+
+    return item;
+  }
 
   @override
   void initState() {
     super.initState();
+
     item = widget.item;
+
+    itemFuture = getData();
     
-    itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
-      setState(() {
-        itemFuture = syncItem(item);
-      });
-      return item;
-    });
+    //itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
+    //  setState(() {
+    //    itemFuture = syncItem(item);
+    //  });
+    //  return item;
+    //});
   }
 
-  Future<Item> syncItem(Item item) async {
-    try{
-      Item i = await DatabaseHelper.instance.itemSync(item);
-      return i;
-    }catch(e){
-      if (e is gd.DetailedApiRequestError && e.status == 404) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(seconds: 1), content: Text('Item not found in GoogleDrive')));
-        Future.delayed(const Duration(seconds: 1)).then((_) => _showNotFoundDialog());
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item sync failed')));
-      }
-    }finally{
-      return item;
-    }
-  }
+  //Future<Item> syncItem(Item item) async {
+  //  try{
+  //    Item i = await DatabaseHelper.instance.itemSync(item);
+  //    return i;
+  //  }catch(e){
+  //    if (e is gd.DetailedApiRequestError && e.status == 404) {
+  //      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(seconds: 1), content: Text('Item not found in GoogleDrive')));
+  //      Future.delayed(const Duration(seconds: 1)).then((_) => _showNotFoundDialog());
+  //    } else {
+  //      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item sync failed')));
+  //    }
+  //  }finally{
+  //    return item;
+  //  }
+  //}
 
   // Important to grey out payoff button
   bool _checkBalances(){
@@ -79,12 +87,14 @@ class _DetailViewState extends State<DetailView>{
   }
 
   void _showShareDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return item.sharedId=='' ? ShareDialog(item: item) : ManageDialog(item: item);
-      },
-    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not Implemented')));
+
+    //showDialog(
+    //  context: context,
+    //  builder: (BuildContext context) {
+    //    return item.sharedId=='' ? ShareDialog(item: item) : ManageDialog(item: item);
+    //  },
+    //);
   }
 
   void _showPastPayoffDialog(int index) {
@@ -96,17 +106,17 @@ class _DetailViewState extends State<DetailView>{
     );
   }
   
-  void _showNotFoundDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return NotFoundDialog(item: item);
-      },
-    ).then((value) {
-      if(value) Navigator.of(context).pop();
-      }
-    );
-  }
+  //void _showNotFoundDialog() {
+  //  showDialog(
+  //    context: context,
+  //    builder: (BuildContext context) {
+  //      return NotFoundDialog(item: item);
+  //    },
+  //  ).then((value) {
+  //    if(value) Navigator.of(context).pop();
+  //    }
+  //  );
+  //}
   
   //Custom Widgets
 
@@ -115,7 +125,7 @@ class _DetailViewState extends State<DetailView>{
         item.members.length,
         (index) {
           Member m = item.members[index];
-          Color textColor = m.color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
+          Color textColor = Color(m.color).computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
           return Container(
               foregroundDecoration: !m.active ? const BoxDecoration(
@@ -124,7 +134,7 @@ class _DetailViewState extends State<DetailView>{
                   borderRadius: BorderRadius.all(Radius.circular(20))
               ) : null,
               decoration: BoxDecoration(
-                color: m.color,
+                color: Color(m.color),
                 border: Border.all(style: BorderStyle.none, width: 0),
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
@@ -178,7 +188,8 @@ class _DetailViewState extends State<DetailView>{
                                       onChanged: (bool value) {
                                         setState(() {
                                           m = Member.fromMember(m, active: value, timestamp: DateTime.now());
-                                          DatabaseHelper.instance.updateMember(m);
+                                          DatabaseHelper.instance.upsertMember(m);
+                                          //DatabaseHelper.instance.updateMember(m);
                                           setParentState((){});
                                         });
                                       },
@@ -261,11 +272,11 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Widget transactionList() {
-    Map <int, int> memberMap = {};
+    Map <String, int> memberMap = {};
 
     int a=0;
     for(Member m in item.members){
-      memberMap.addAll({m.id! : a});
+      memberMap.addAll({m.id : a});
       a++;
     }
 
@@ -281,7 +292,7 @@ class _DetailViewState extends State<DetailView>{
           child: RefreshIndicator(
             onRefresh: (){
               setState(() {
-                syncItem(item);
+                getData();
               });
               return itemFuture;
             },
@@ -328,7 +339,7 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  Widget dismissibleTile(Transaction transaction, Map <int, int> memberMap, int index) {
+  Widget dismissibleTile(Transaction transaction, Map <String, int> memberMap, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -347,11 +358,8 @@ class _DetailViewState extends State<DetailView>{
                     content: const Text('Do you really want to remove this Transaction', style: TextStyle(fontSize: 20),),
                     onConfirmed: (){
                       setState(() {
-                         if (item.deleteTransaction(transaction, memberMap, index)){
-                          DatabaseHelper.instance.update(item);
-                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete transaction. Please try again')));
-                         }
+                        item.deleteTransaction(transaction, memberMap, index);
+                        DatabaseHelper.instance.upsertTransaction(transaction);
                       });
                     }
                 );
@@ -370,8 +378,8 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  Widget expansionTile(Transaction transaction, Map <int, int> memberMap){
-    Color color = item.members[memberMap[transaction.memberId]!].color;
+  Widget expansionTile(Transaction transaction, Map <String, int> memberMap){
+    Color color = Color(item.members[memberMap[transaction.memberId]!].color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
     return Container(
@@ -435,7 +443,7 @@ class _DetailViewState extends State<DetailView>{
                             padding: const EdgeInsets.all(5),
                             margin: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
-                              color: m.color,
+                              color: Color(m.color),
                               border: Border.all(style: BorderStyle.none, width: 0),
                               borderRadius: const BorderRadius.all(Radius.circular(20)),
                             ),
@@ -548,14 +556,15 @@ class _DetailViewState extends State<DetailView>{
               List<Map<String, dynamic>> involvedMembers = item.members.asMap().entries.map((entry) {
                 int index = entry.key;  // This is the index
                 var e = entry.value;    // This is the item at that index
-                return {'listId': index, 'id': e.id!, 'balance': double.parse((22.00/item.members.length).toStringAsFixed(2))};
+                return {'listId': index, 'id': e.id, 'balance': double.parse((22.00/item.members.length).toStringAsFixed(2))};
               }).toList();
               setState(() {
-                Transaction t = Transaction('test', 22.00, DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
+                Transaction t = Transaction(description: 'test', value: 22.00, date: DateTime.now(), memberId: item.members[memberListIndex].id , itemId: item.id);
                 item.addTransaction(memberListIndex, t, involvedMembers);
+                DatabaseHelper.instance.upsertTransaction(t);
               });
                 
-              DatabaseHelper.instance.update(item);
+              //DatabaseHelper.instance.update(item);
             }
           ),
           // add more options as needed

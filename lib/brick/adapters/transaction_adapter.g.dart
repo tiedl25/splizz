@@ -27,11 +27,7 @@ Future<Map<String, dynamic>> _$TransactionToSupabase(Transaction instance,
     'date': instance.date.toIso8601String(),
     'value': instance.value,
     'deleted': instance.deleted,
-    'timestamp': instance.timestamp.toIso8601String(),
-    'operations': await Future.wait<Map<String, dynamic>>(instance.operations
-        .map((s) => OperationAdapter()
-            .toSupabase(s, provider: provider, repository: repository))
-        .toList())
+    'timestamp': instance.timestamp.toIso8601String()
   };
 }
 
@@ -46,19 +42,7 @@ Future<Transaction> _$TransactionFromSqlite(Map<String, dynamic> data,
       date: DateTime.parse(data['date'] as String),
       value: data['value'] as double,
       deleted: data['deleted'] == 1,
-      timestamp: DateTime.parse(data['timestamp'] as String),
-      operations: (await provider.rawQuery(
-              'SELECT DISTINCT `f_Operation_brick_id` FROM `_brick_Transaction_operations` WHERE l_Transaction_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
-        final ids = results.map((r) => r['f_Operation_brick_id']);
-        return Future.wait<Operation>(ids.map((primaryKey) => repository!
-            .getAssociation<Operation>(
-              Query.where('primaryKey', primaryKey, limit1: true),
-            )
-            .then((r) => r!.first)));
-      }))
-          .toList()
-          .cast<Operation>())
+      timestamp: DateTime.parse(data['timestamp'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -118,12 +102,6 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
     'timestamp': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'timestamp',
-    ),
-    'operations': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'operations',
-      associationType: Operation,
-      associationIsNullable: false,
     )
   };
   @override
@@ -185,12 +163,6 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       columnName: 'timestamp',
       iterable: false,
       type: DateTime,
-    ),
-    'operations': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'operations',
-      iterable: true,
-      type: Operation,
     )
   };
   @override
@@ -209,34 +181,6 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
 
   @override
   final String tableName = 'Transaction';
-  @override
-  Future<void> afterSave(instance, {required provider, repository}) async {
-    if (instance.primaryKey != null) {
-      final operationsOldColumns = await provider.rawQuery(
-          'SELECT `f_Operation_brick_id` FROM `_brick_Transaction_operations` WHERE `l_Transaction_brick_id` = ?',
-          [instance.primaryKey]);
-      final operationsOldIds =
-          operationsOldColumns.map((a) => a['f_Operation_brick_id']);
-      final operationsNewIds =
-          instance.operations.map((s) => s.primaryKey).whereType<int>();
-      final operationsIdsToDelete =
-          operationsOldIds.where((id) => !operationsNewIds.contains(id));
-
-      await Future.wait<void>(operationsIdsToDelete.map((id) async {
-        return await provider.rawExecute(
-            'DELETE FROM `_brick_Transaction_operations` WHERE `l_Transaction_brick_id` = ? AND `f_Operation_brick_id` = ?',
-            [instance.primaryKey, id]).catchError((e) => null);
-      }));
-
-      await Future.wait<int?>(instance.operations.map((s) async {
-        final id = s.primaryKey ??
-            await provider.upsert<Operation>(s, repository: repository);
-        return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_Transaction_operations` (`l_Transaction_brick_id`, `f_Operation_brick_id`) VALUES (?, ?)',
-            [instance.primaryKey, id]);
-      }));
-    }
-  }
 
   @override
   Future<Transaction> fromSupabase(Map<String, dynamic> input,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import 'package:splizz/Models/member.dart';
+import 'package:splizz/models/member.model.dart';
 
 class CircularSlider extends StatefulWidget {
   final double sum;
@@ -134,7 +134,7 @@ class CircularSliderPainter extends CustomPainter {
         (endAngle - startAngle) % (2 * math.pi),
         false,
       );
-      segmentPaint.color = Color.alphaBlend(this.lock ? Color.fromARGB(136, 97, 97, 97) : Color.fromARGB(0, 255, 255, 255), members[i]['color']);
+      segmentPaint.color = Color.alphaBlend(this.lock ? Color.fromARGB(136, 97, 97, 97) : Color.fromARGB(0, 255, 255, 255), Color(members[i]['color']));
       canvas.drawPath(path, segmentPaint);
     }
 

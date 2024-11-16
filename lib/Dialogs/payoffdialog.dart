@@ -4,13 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Models/transaction.dart';
-import 'package:splizz/Models/item.dart';
-import 'package:splizz/Models/member.dart';
+import 'package:splizz/models/transaction.model.dart';
+import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/member.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
 
 class PayoffDialog extends StatefulWidget {
@@ -60,11 +60,8 @@ class _PayoffDialogState extends State<PayoffDialog>{
         ),
       ),
       onConfirmed: (){
-        if (item.payoff()){
-          DatabaseHelper.instance.update(item);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete payoff. Please try again')));
-        }
+        item.payoff();
+        DatabaseHelper.instance.upsertTransaction(item.history.last);
         widget.updateItem(item);
         }
     );
@@ -85,7 +82,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
                 margin: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: m.color,
+                  color: Color(m.color),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -112,7 +109,7 @@ class _PayoffDialogState extends State<PayoffDialog>{
                         margin: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: e.color,
+                          color: Color(e.color),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -176,29 +173,33 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
     item.members = members;
   }
 
-  Future<Uint8List> transactionTable(int tId, int firstTId) async{
-    var response = await DatabaseHelper.instance.exportTransactionsSinceLastPayoff(item.id!, tId, firstTId);
-    List<String> columnLabels = response.isNotEmpty ? response[0].keys.toList() : [];
-    List<DataColumn> columns = columnLabels.map<DataColumn>((column) => DataColumn(label: Text(column))).toList();
-    List<DataRow> rows = response.map<DataRow>((row) {
-          return DataRow(
-            cells: columnLabels.map<DataCell>((label) {
-              return DataCell(Text(row[label].toString()));
-            }).toList(),
-          );
-        }).toList();
+  Future<Uint8List> transactionTable(String tId, String firstTId) async{
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not implemented yet')));
+    return Uint8List(0);
 
-    return await screenshotController.captureFromWidget(
-      FittedBox(
-        fit: BoxFit.fitWidth,
-        child: DataTable(
-          headingRowColor: MaterialStateProperty.all(Colors.grey),
-          dataRowColor: MaterialStateProperty.all(Colors.white),
-          columns: columns,
-          rows: rows,
-        )
-      )
-    );/*.then((value) async {
+    //var response = await DatabaseHelper.instance.exportTransactionsSinceLastPayoff(item.id!, tId, firstTId);
+    //List<String> columnLabels = response.isNotEmpty ? response[0].keys.toList() : [];
+    //List<DataColumn> columns = columnLabels.map<DataColumn>((column) => DataColumn(label: Text(column))).toList();
+    //List<DataRow> rows = response.map<DataRow>((row) {
+    //      return DataRow(
+    //        cells: columnLabels.map<DataCell>((label) {
+    //          return DataCell(Text(row[label].toString()));
+    //        }).toList(),
+    //      );
+    //    }).toList();
+//
+    //return await screenshotController.captureFromWidget(
+    //  FittedBox(
+    //    fit: BoxFit.fitWidth,
+    //    child: DataTable(
+    //      headingRowColor: MaterialStateProperty.all(Colors.grey),
+    //      dataRowColor: MaterialStateProperty.all(Colors.white),
+    //      columns: columns,
+    //      rows: rows,
+    //    )
+    //  )
+    //);
+    /*.then((value) async {
       print(await widgetToImageFile(value, 'transactions.png'));
     });
     */
@@ -223,7 +224,7 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
               margin: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: m.color,
+                color: Color(m.color),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -250,7 +251,7 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
                       margin: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: e.color,
+                        color: Color(e.color),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -316,7 +317,7 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
               onPressed: () async {
                 final payoffBytes = await controller.capture();
                 await widgetToImageFile(payoffBytes!, 'payoff.png');
-                final transactionsBytes = await transactionTable(item.history[widget.index].id!, item.history[0].id!);
+                final transactionsBytes = await transactionTable(item.history[widget.index].id, item.history[0].id);
                 await widgetToImageFile(transactionsBytes, 'transactions.png');
                 
                 await Share.shareXFiles([XFile(path + 'payoff.png'), XFile(path + 'transactions.png')], text: 'Payoff');

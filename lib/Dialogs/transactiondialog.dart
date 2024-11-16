@@ -3,11 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:splizz/Helper/circularSlider.dart';
 import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Models/transaction.dart';
+import 'package:splizz/models/transaction.model.dart';
+import 'package:splizz/models/member.model.dart';
+import 'package:splizz/models/item.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
-
-import '../Models/item.dart';
-import '../Models/member.dart';
 
 class TransactionDialog extends StatefulWidget {
   final Item item;
@@ -57,11 +56,12 @@ class _TransactionDialogState extends State<TransactionDialog>{
         updateBalances();
       }
       
-      int associatedId = item.members[selection].id!;
-      Transaction transaction = Transaction(descriptionController.text, currencyController.doubleValue, date[2], memberId: associatedId, itemId: item.id);
+      String associatedId = item.members[selection].id;
+      Transaction transaction = Transaction(description: descriptionController.text, value: currencyController.doubleValue, date: date[2], memberId: associatedId, itemId: item.id);
       item.addTransaction(selection, transaction, _involvedMembers);
       
-      DatabaseHelper.instance.update(item);
+      DatabaseHelper.instance.upsertTransaction(transaction);
+      //DatabaseHelper.instance.update(item);
       widget.updateItem(item);
       selection=-1;
     }
@@ -84,7 +84,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
       physics: const BouncingScrollPhysics(),
       itemCount: item.members.length,
       itemBuilder: (context, i) {
-        Color color = selection==i ? item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color color = selection==i ? Color(item.members[i].color) : Theme.of(context).colorScheme.surface;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
         return PillModel(
@@ -109,7 +109,7 @@ class _TransactionDialogState extends State<TransactionDialog>{
       physics: const BouncingScrollPhysics(),
       itemCount: item.members.length,
       itemBuilder: (context, i) {
-        Color color = _memberSelection[i] ? item.members[i].color : Theme.of(context).colorScheme.surface;
+        Color color = _memberSelection[i] ? Color(item.members[i].color) : Theme.of(context).colorScheme.surface;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
         //if (_memberBalances.length < item.members.length) {
         //  _memberBalances.add(1.0);

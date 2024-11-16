@@ -6,6 +6,7 @@ Future<Member> _$MemberFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Member(
       id: data['id'] as String?,
+      itemId: data['item_id'] as String?,
       name: data['name'] as String,
       color: data['color'] as int);
 }
@@ -15,6 +16,7 @@ Future<Map<String, dynamic>> _$MemberToSupabase(Member instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'item_id': instance.itemId,
     'name': instance.name,
     'color': instance.color,
     'active': instance.active,
@@ -27,6 +29,7 @@ Future<Member> _$MemberFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Member(
       id: data['id'] as String,
+      itemId: data['item_id'] == null ? null : data['item_id'] as String?,
       name: data['name'] as String,
       color: data['color'] as int,
       active: data['active'] == 1,
@@ -39,6 +42,7 @@ Future<Map<String, dynamic>> _$MemberToSqlite(Member instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'item_id': instance.itemId,
     'name': instance.name,
     'color': instance.color,
     'active': instance.active ? 1 : 0,
@@ -59,6 +63,10 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'itemId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'item_id',
     ),
     'name': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -92,6 +100,12 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
+      iterable: false,
+      type: String,
+    ),
+    'itemId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'item_id',
       iterable: false,
       type: String,
     ),

@@ -14,6 +14,8 @@ import 'brick.g.dart';
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _instance;
 
+  static Repository get instance => _instance!;
+
   Repository._({
     required super.supabaseProvider,
     required super.sqliteProvider,

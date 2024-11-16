@@ -22,6 +22,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   bool deleted = false;
   final DateTime timestamp;
 
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
   late List<Operation> operations;
 
   //Constructor

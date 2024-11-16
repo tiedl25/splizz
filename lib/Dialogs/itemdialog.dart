@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/colormap.dart';
 
-import 'package:splizz/Models/item.dart';
-import 'package:splizz/Models/member.dart';
-
-import '../Helper/database.dart';
+import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/member.model.dart';
 
 class ItemDialog extends StatefulWidget {
   final List<Item> items;
@@ -69,7 +68,7 @@ class _ItemDialogState extends State<ItemDialog>{
               List<Member> members = [];
               for(String name in member){
                 if(name != ''){
-                  members.add(Member(name, colormap[members.length]));
+                  members.add(Member(name:name, color: colormap[members.length].value));
                 }
               }
               if(title != '' && members.length > 1) {
@@ -83,9 +82,13 @@ class _ItemDialogState extends State<ItemDialog>{
     ByteData data = await rootBundle.load('images/image_${image+1}.jpg');
     var imageBytes = data.buffer.asUint8List();
 
-    Item newItem = Item(title, members: members, image: imageBytes);
-    DatabaseHelper.instance.add(newItem);
-    widget.updateItemList(newItem);
+    Item newItem = Item(name: title, members: members, image: imageBytes);
+    for (Member m in members){
+      m.itemId = newItem.id;
+    }
+
+    //DatabaseHelper.instance.add(newItem);
+    DatabaseHelper.instance.upsertItem(newItem);
   }
 
   void imagePicker(){

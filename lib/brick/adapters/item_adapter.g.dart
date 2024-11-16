@@ -4,7 +4,11 @@ part of '../brick.g.dart';
 Future<Item> _$ItemFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
-  return Item(id: data['id'] as String?, name: data['name'] as String?);
+  return Item(
+      id: data['id'] as String?,
+      name: data['name'] as String,
+      timestamp: DateTime.parse(data['timestamp'] as String),
+      image: data['image']);
 }
 
 Future<Map<String, dynamic>> _$ItemToSupabase(Item instance,
@@ -13,7 +17,8 @@ Future<Map<String, dynamic>> _$ItemToSupabase(Item instance,
   return {
     'id': instance.id,
     'name': instance.name,
-    'timestamp': instance.timestamp.toIso8601String()
+    'timestamp': instance.timestamp.toIso8601String(),
+    'image': instance.image
   };
 }
 
@@ -23,7 +28,8 @@ Future<Item> _$ItemFromSqlite(Map<String, dynamic> data,
   return Item(
       id: data['id'] as String,
       name: data['name'] as String,
-      timestamp: DateTime.parse(data['timestamp'] as String))
+      timestamp: DateTime.parse(data['timestamp'] as String),
+      image: data['image'] == null ? null : data['image'])
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -33,7 +39,8 @@ Future<Map<String, dynamic>> _$ItemToSqlite(Item instance,
   return {
     'id': instance.id,
     'name': instance.name,
-    'timestamp': instance.timestamp.toIso8601String()
+    'timestamp': instance.timestamp.toIso8601String(),
+    'image': instance.image
   };
 }
 
