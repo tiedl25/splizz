@@ -21,7 +21,6 @@ class DetailView extends StatefulWidget{
 
 class _DetailViewState extends State<DetailView>{
   late Item item;
-  late List<Member> members;
 
   bool unbalanced = false;
   late Future<Item> itemFuture;

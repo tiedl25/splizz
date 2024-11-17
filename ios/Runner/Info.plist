@@ -49,5 +49,17 @@
     <string>your usage description here</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>your usage description here</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Add your custom URL scheme here -->
+				<string>splizz</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

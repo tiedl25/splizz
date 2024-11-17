@@ -9,7 +9,7 @@ Future<Operation> _$OperationFromSupabase(Map<String, dynamic> data,
       itemId: data['item_id'] as String?,
       memberId: data['member_id'] as String?,
       transactionId: data['transaction_id'] as String?,
-      value: data['value'] as double,
+      value: data['value'].toDouble(),
       timestamp: data['timestamp'] == null
           ? null
           : DateTime.tryParse(data['timestamp'] as String));
@@ -61,7 +61,7 @@ class OperationAdapter extends OfflineFirstWithSupabaseAdapter<Operation> {
   OperationAdapter();
 
   @override
-  final supabaseTableName = 'items';
+  final supabaseTableName = 'operations';
   @override
   final defaultToNull = true;
   @override

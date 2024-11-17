@@ -3,8 +3,9 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
 
+
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'items'),
+  supabaseConfig: SupabaseSerializable(tableName: 'operations'),
 )
 
 class Operation extends OfflineFirstWithSupabaseModel{
@@ -15,7 +16,10 @@ class Operation extends OfflineFirstWithSupabaseModel{
   String? itemId;
   String? memberId;
   String? transactionId;
-  late double value;
+
+  @Supabase(fromGenerator: "%DATA_PROPERTY%.toDouble()")
+  final double value;
+  
   final DateTime timestamp;
 
   //Constructor

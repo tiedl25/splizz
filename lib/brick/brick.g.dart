@@ -17,7 +17,9 @@ import 'package:splizz/models/transaction.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'dart:typed_data';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:splizz/models/member.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:splizz/models/member.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_flutter/supabase_flutter.dart' as Supabase_Flutter;// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -31,18 +33,21 @@ import '../models/transaction.model.dart';
 import '../models/member.model.dart';
 import '../models/operation.model.dart';
 import '../models/item.model.dart';
+import '../models/user.model.dart';
 
 part 'adapters/transaction_adapter.g.dart';
 part 'adapters/member_adapter.g.dart';
 part 'adapters/operation_adapter.g.dart';
 part 'adapters/item_adapter.g.dart';
+part 'adapters/user_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Transaction: TransactionAdapter(),
   Member: MemberAdapter(),
   Operation: OperationAdapter(),
-  Item: ItemAdapter()
+  Item: ItemAdapter(),
+  User: UserAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -51,6 +56,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Transaction: TransactionAdapter(),
   Member: MemberAdapter(),
   Operation: OperationAdapter(),
-  Item: ItemAdapter()
+  Item: ItemAdapter(),
+  User: UserAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

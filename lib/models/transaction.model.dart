@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:splizz/models/operation.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'items'),
+  supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
 )
 
 class Transaction extends OfflineFirstWithSupabaseModel {
@@ -18,7 +18,11 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   String? itemId;
   String description;
   DateTime date;
+
+  @Supabase(fromGenerator: "%DATA_PROPERTY%.toDouble()")
   double value;
+
+  @Supabase(fromGenerator: "%DATA_PROPERTY%")
   bool deleted = false;
   final DateTime timestamp;
 
@@ -39,7 +43,6 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       value: 0.0,
       date: date ?? timestamp,
       id: id,
-      memberId: "",
       timestamp: timestamp,
       operations: operations,
     );

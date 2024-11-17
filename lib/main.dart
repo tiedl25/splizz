@@ -5,6 +5,10 @@ import 'package:splizz/Views/masterview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
 
+import 'Views/auth_screen.dart';
+import 'Views/splash_screen.dart';
+import 'Views/home_screen.dart';
+
 import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 
@@ -52,7 +56,13 @@ class _MyAppState extends State<MyApp>{
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
-      home: MasterView(updateTheme: loadSwitchValue,),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => SplashScreen(updateTheme: loadSwitchValue,),
+        '/auth': (context) => AuthScreen(),
+        '/home': (context) => MasterView(updateTheme: loadSwitchValue,),
+      },
+      //home: MasterView(updateTheme: loadSwitchValue,),
       debugShowCheckedModeBanner: false,
     );
   }

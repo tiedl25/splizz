@@ -10,7 +10,8 @@ Future<Transaction> _$TransactionFromSupabase(Map<String, dynamic> data,
       itemId: data['item_id'] as String?,
       description: data['description'] as String,
       date: DateTime.parse(data['date'] as String),
-      value: data['value'] as double,
+      value: data['value'].toDouble(),
+      deleted: data['deleted'],
       timestamp: data['timestamp'] == null
           ? null
           : DateTime.tryParse(data['timestamp'] as String));
@@ -66,7 +67,7 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
   TransactionAdapter();
 
   @override
-  final supabaseTableName = 'items';
+  final supabaseTableName = 'transactions';
   @override
   final defaultToNull = true;
   @override

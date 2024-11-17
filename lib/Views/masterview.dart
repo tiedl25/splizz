@@ -19,6 +19,10 @@ import 'package:splizz/models/member.model.dart';
 import 'package:brick_core/query.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+final supabase = Supabase.instance.client;
+final activeSession = supabase.auth.currentSession;
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;
@@ -42,6 +46,10 @@ class _MasterViewState extends State<MasterView>{
   @override
   void initState() {
     super.initState();
+    if (activeSession == null) {
+      Navigator.pushNamed(context, '/auth');
+    }
+
     itemListFuture = DatabaseHelper.instance.getItems();
     //DatabaseHelper.instance.getItems();
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
@@ -155,7 +163,6 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Future<void> deleteItem(Item i) async {
-    await DatabaseHelper.instance.deleteItem(i);
     final memberQuery = Query(where: [Where('itemId').isExactly(i.id)]);
     final members = await Repository.instance.get<Member>(query: memberQuery);
 
@@ -165,15 +172,21 @@ class _MasterViewState extends State<MasterView>{
     final operationQuery = Query(where: [Where('itemId').isExactly(i.id)]);
     final operations = await Repository.instance.get<Operation>(query: operationQuery);
 
-    for(Member m in members){
-      await DatabaseHelper.instance.deleteMember(m);
+    for(Operation o in operations){
+      await DatabaseHelper.instance.deleteOperation(o);
     }
     for(Transaction t in transactions){
       await DatabaseHelper.instance.deleteTransaction(t);
     }
-    for(Operation o in operations){
-      await DatabaseHelper.instance.deleteOperation(o);
+    for(Member m in members){
+      await DatabaseHelper.instance.deleteMember(m);
     }
+
+    await DatabaseHelper.instance.deleteImage(i.id);
+    
+    await DatabaseHelper.instance.deleteItem(i);
+
+    await DatabaseHelper.instance.deleteUser(i.id);
   }
 
   Widget dismissTile(Item item) {

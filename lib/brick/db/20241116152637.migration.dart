@@ -9,11 +9,11 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20241114185427_up = [
+const List<MigrationCommand> _migration_20241116152637_up = [
   InsertColumn('image', Column.blob, onTable: 'Item')
 ];
 
-const List<MigrationCommand> _migration_20241114185427_down = [
+const List<MigrationCommand> _migration_20241116152637_down = [
   DropColumn('image', onTable: 'Item')
 ];
 
@@ -22,15 +22,15 @@ const List<MigrationCommand> _migration_20241114185427_down = [
 //
 
 @Migratable(
-  version: '20241114185427',
-  up: _migration_20241114185427_up,
-  down: _migration_20241114185427_down,
+  version: '20241116152637',
+  up: _migration_20241116152637_up,
+  down: _migration_20241116152637_down,
 )
-class Migration20241114185427 extends Migration {
-  const Migration20241114185427()
+class Migration20241116152637 extends Migration {
+  const Migration20241116152637()
     : super(
-        version: 20241114185427,
-        up: _migration_20241114185427_up,
-        down: _migration_20241114185427_down,
+        version: 20241116152637,
+        up: _migration_20241116152637_up,
+        down: _migration_20241116152637_down,
       );
 }

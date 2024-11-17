@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:splizz/models/transaction.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'items'),
+  supabaseConfig: SupabaseSerializable(tableName: 'members'),
 )
 
 class Member extends OfflineFirstWithSupabaseModel {
@@ -14,23 +14,23 @@ class Member extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
   
-  late String? itemId;
-  late final String name;
-  late int color;
+  String? itemId;
+  final String name;
+  final int color;
   bool active = true;
   final DateTime timestamp;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
-  late double total = 0;
+  double total = 0;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
-  late double balance = 0;
+  double balance = 0;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
-  late List<Transaction> history;
+  List<Transaction> history;
 
   //Constructor
   Member({required this.name, required this.color, String? id, String? itemId, double? total, double? balance, history, active, timestamp}) : 
@@ -42,7 +42,7 @@ class Member extends OfflineFirstWithSupabaseModel {
     this.active = active ?? true,
     this.timestamp = timestamp ?? DateTime.now();
 
-  factory Member.fromMember(Member m, {name, color, id, itemId, total, balance, history, active, timestamp}){
+  factory Member.fromMember(Member m, {name, color, id, itemId, total, balance, history, active, timestamp, String? user_id}){
     return Member(
         name: name ?? m.name,
         color: color ?? m.color,
@@ -52,7 +52,7 @@ class Member extends OfflineFirstWithSupabaseModel {
         balance: balance ?? m.balance,
         history: history ?? m.history,
         active: active ?? m.active,
-        timestamp: timestamp ?? m.timestamp
+        timestamp: timestamp ?? m.timestamp,
     );
   }
 

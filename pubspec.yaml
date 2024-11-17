@@ -68,6 +68,7 @@ dependencies:
   brick_sqlite: ^3.1.0
   uuid: ^3.0.4
   supabase_flutter: ^2.8.0
+  supabase_auth_ui: ^0.5.4
 
 dev_dependencies:
   flutter_test:

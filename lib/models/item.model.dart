@@ -9,6 +9,8 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/operation.model.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart' as Supabase_Flutter;
+
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'items'),
 )
@@ -22,8 +24,10 @@ class Item extends OfflineFirstWithSupabaseModel {
   @Supabase(fromGenerator: "DateTime.parse(%DATA_PROPERTY% as String)", toGenerator: "%INSTANCE_PROPERTY%.toIso8601String()")
   final DateTime timestamp;
 
+  //@Supabase(fromGenerator: "null", toGenerator: "'test'")
+  //@Supabase(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%")
+  @Supabase(fromGenerator: "await Item.downloadImage(data['id'] as String)", toGenerator: "await Item.uploadImage(%INSTANCE_PROPERTY%!, instance.id)")
   @Sqlite(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%", columnType: Column.blob)
-  @Supabase(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%")
   final Uint8List? image;
 
   @Sqlite(ignore: true)
@@ -138,4 +142,21 @@ class Item extends OfflineFirstWithSupabaseModel {
 
   @override
   String toString() => 'Item(id: $id, name: $name)';
+
+
+  static Future<String> uploadImage(Uint8List image, String itemId) async {
+    final userId = Supabase_Flutter.Supabase.instance.client.auth.currentUser?.id;
+    final path = await Supabase_Flutter.Supabase.instance.client.storage
+        .from('images') // Replace with your storage bucket name
+        .uploadBinary('$userId/$itemId.jpg', image);
+    return path;
+  }
+
+  static Future<Uint8List> downloadImage(String itemId) async {
+    final userId = Supabase_Flutter.Supabase.instance.client.auth.currentUser?.id;
+    final image = await Supabase_Flutter.Supabase.instance.client.storage
+        .from('images') // Replace with your storage bucket name
+        .download('$userId/$itemId.jpg');
+    return image;
+  }
 }

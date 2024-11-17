@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 
 import 'package:splizz/brick/repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'package:synchronized/synchronized.dart';
 
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
+import 'package:splizz/models/user.model.dart';
 
 import 'package:brick_core/query.dart';
 
@@ -50,6 +52,8 @@ class DatabaseHelper {
     final transactionQuery = Query(where: [Where('itemId').isExactly(id)]);
     final transactions = await Repository.instance.get<Transaction>(query: transactionQuery);
 
+    transactions.sortBy((element) => element.timestamp);
+
     for(Transaction t in transactions){
       t.operations = await getTransactionOperations(t.id, db);
     }
@@ -79,6 +83,11 @@ class DatabaseHelper {
     db = db ?? await instance.database;
   
     db.upsert<Item>(item);
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    User user = User(itemId: item.id, userId: userId, fullAccess: true);
+
+    db.upsert<User>(user);
 
     for(Member member in item.members){
       upsertMember(member, db);
@@ -123,6 +132,21 @@ class DatabaseHelper {
     db = db ?? await instance.database;
   
     db.delete<Operation>(operation);
+  }
+  
+  Future<void> deleteUser(String id, [Repository? db]) async {
+    db = db ?? await instance.database;
+
+    final userQuery = Query(where: [Where('itemId').isExactly(id), Where('userId').isExactly(id)]);
+    final user = await Repository.instance.get<User>(query: userQuery);
+  
+    db.delete<User>(user[0]);
+  }
+
+  Future<void> deleteImage(String id, [Repository? db]) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+
+    await Supabase.instance.client.storage.from('images').remove(["$userId/$id.jpg"]);
   }
 
   Future<double> getBalance(String id, [Repository? db]) async {
