@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsView extends StatefulWidget{
   final Function updateTheme; //Triggers setState method of MyApp
@@ -123,6 +124,25 @@ class _SettingsViewState extends State<SettingsView>{
               ],
             ),
           ),
+          Container(
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border.all(style: BorderStyle.none, ),
+              borderRadius: BorderRadius.circular(20)
+            ),
+            child: ListTile(
+              title: const Text("Logout"),
+              trailing: Icon(Icons.logout),
+              onTap: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushReplacementNamed(context, '/');
+              },
+            )
+          )
         ]
       )
     );
