@@ -7,7 +7,6 @@ import 'package:splizz/Helper/colormap.dart';
 
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ItemDialog extends StatefulWidget {
   final List<Item> items;

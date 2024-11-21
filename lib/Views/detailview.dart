@@ -4,6 +4,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
 
 import 'package:splizz/Dialogs/payoffdialog.dart';
+import 'package:splizz/Dialogs/sharedialog.dart';
 import 'package:splizz/Dialogs/transactiondialog.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/models/transaction.model.dart';
@@ -86,14 +87,14 @@ class _DetailViewState extends State<DetailView>{
   }
 
   void _showShareDialog() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not Implemented')));
+    //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not Implemented')));
 
-    //showDialog(
-    //  context: context,
-    //  builder: (BuildContext context) {
-    //    return item.sharedId=='' ? ShareDialog(item: item) : ManageDialog(item: item);
-    //  },
-    //);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ShareDialog(item: item,);
+      },
+    );
   }
 
   void _showPastPayoffDialog(int index) {

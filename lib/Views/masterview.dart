@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/result.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/brick/repository.dart';
 import 'package:splizz/models/item.model.dart';
@@ -20,6 +22,7 @@ import 'package:brick_core/query.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uni_links/uni_links.dart';
 
 final supabase = Supabase.instance.client;
 final activeSession = supabase.auth.currentSession;
@@ -43,6 +46,8 @@ class _MasterViewState extends State<MasterView>{
   bool removeDriveFile = false;
   late PackageInfo packageInfo;
 
+  StreamSubscription? _sub;
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +58,40 @@ class _MasterViewState extends State<MasterView>{
     itemListFuture = DatabaseHelper.instance.getItems();
     //DatabaseHelper.instance.getItems();
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
+
+    _handleIncomingLinks();
   }
+
+
+
+  void _handleIncomingLinks() {
+    _sub = uriLinkStream.listen((Uri? uri) async {
+      if (uri != null) {
+        final itemId = uri.queryParameters['itemId'];
+        final userEmail = uri.queryParameters['userEmail'];
+        final fullAccess = uri.queryParameters['fullAccess'];
+
+        if (itemId != null && userEmail != null && fullAccess != null) {
+          final Result result = await DatabaseHelper.instance.upsertUser(itemId, userEmail: userEmail, fullAccess: fullAccess=="true");
+          if (!result.isSuccess){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message!)));
+          }
+        }
+      }
+    }, onError: (err) {
+      print('Error occurred: $err');
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+
+
+
 
   Future<void> addDebugItem(members) async {
     ByteData data = await rootBundle.load('images/image_${Random().nextInt(6)+1}.jpg');
