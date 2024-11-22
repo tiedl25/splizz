@@ -11,6 +11,7 @@ import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DetailView extends StatefulWidget{
   final Item item;
@@ -40,30 +41,7 @@ class _DetailViewState extends State<DetailView>{
     item = widget.item;
 
     itemFuture = getData();
-    
-    //itemFuture = DatabaseHelper.instance.getItem(item.id!).then((item) {
-    //  setState(() {
-    //    itemFuture = syncItem(item);
-    //  });
-    //  return item;
-    //});
   }
-
-  //Future<Item> syncItem(Item item) async {
-  //  try{
-  //    Item i = await DatabaseHelper.instance.itemSync(item);
-  //    return i;
-  //  }catch(e){
-  //    if (e is gd.DetailedApiRequestError && e.status == 404) {
-  //      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(seconds: 1), content: Text('Item not found in GoogleDrive')));
-  //      Future.delayed(const Duration(seconds: 1)).then((_) => _showNotFoundDialog());
-  //    } else {
-  //      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item sync failed')));
-  //    }
-  //  }finally{
-  //    return item;
-  //  }
-  //}
 
   // Important to grey out payoff button
   bool _checkBalances(){
@@ -87,12 +65,10 @@ class _DetailViewState extends State<DetailView>{
   }
 
   void _showShareDialog() {
-    //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not Implemented')));
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ShareDialog(item: item,);
+        return Supabase.instance.client.auth.currentUser == null ? const AuthDialog() : ShareDialog(item: item,);
       },
     );
   }
@@ -105,18 +81,6 @@ class _DetailViewState extends State<DetailView>{
       },
     );
   }
-  
-  //void _showNotFoundDialog() {
-  //  showDialog(
-  //    context: context,
-  //    builder: (BuildContext context) {
-  //      return NotFoundDialog(item: item);
-  //    },
-  //  ).then((value) {
-  //    if(value) Navigator.of(context).pop();
-  //    }
-  //  );
-  //}
   
   //Custom Widgets
 

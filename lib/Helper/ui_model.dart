@@ -15,6 +15,7 @@ class DialogModel extends StatelessWidget {
   final EdgeInsets contentPadding;
   final Alignment alignment;
   final bool scrollable;
+  final bool pop;
 
   const DialogModel({
     super.key,
@@ -28,7 +29,8 @@ class DialogModel extends StatelessWidget {
     this.contentPadding=const EdgeInsets.all(20),
     this.alignment=Alignment.bottomCenter,
     this.scrollable=true, 
-    this.returnValue
+    this.returnValue,
+    this.pop=true
   });
 
   @override
@@ -76,7 +78,7 @@ class DialogModel extends StatelessWidget {
                           child: Text(rightText, style: Theme.of(context).textTheme.labelLarge,),
                           onPressed: () {
                             onConfirmed!();
-                            Navigator.of(context).pop(returnValue ?? true);
+                            if (pop) Navigator.of(context).pop(returnValue ?? true);
                           }
                       ),
                     ),

@@ -4,6 +4,19 @@ import 'package:splizz/Helper/ui_model.dart';
 
 import 'package:splizz/models/item.model.dart';
 
+class AuthDialog extends StatelessWidget {
+  const AuthDialog({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogModel(
+      content: const Text('Do you want to sign in to share your items and sync them across devices?', style: TextStyle(fontSize: 20),),
+      onConfirmed: () => Navigator.pushReplacementNamed(context, '/auth'),
+      pop: false
+    );
+  }
+}
+
 class ShareDialog extends StatefulWidget {
   final Item item;
 

@@ -212,7 +212,6 @@ class _MasterViewState extends State<MasterView>{
         direction: DismissDirection.endToStart,
         onDismissed: (dismissDirection) async {
           setState(() {
-
             DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {
               itemListFuture = DatabaseHelper.instance.getItems();
             }));
@@ -288,7 +287,9 @@ class _MasterViewState extends State<MasterView>{
             for(int i=0; i<Random().nextInt(6)+2; ++i){
               members.add(Member(name: names[Random().nextInt(100)], color: colormap[Random().nextInt(16)].value));
             }
-            addDebugItem(members);
+            addDebugItem(members).then((value) => setState(() {
+              itemListFuture = DatabaseHelper.instance.getItems();
+            }));
           }
         ),
         if(kDebugMode) SpeedDialChild(
