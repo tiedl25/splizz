@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/ui_model.dart';
-import 'package:splizz/Helper/colormap.dart';
 
 import 'package:splizz/models/item.model.dart';
-import 'package:splizz/models/member.model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ShareDialog extends StatefulWidget {
   final Item item;
@@ -47,9 +42,9 @@ class _ShareDialogState extends State<ShareDialog>{
                       decoration: TfDecorationModel(
                         context: context,
                         title: 'Share by entering the users email address',
-                        icon: IconButton(icon: const Icon(Icons.email), color: Colors.black45, onPressed: () => DatabaseHelper.instance.shareItem(widget.item, tfController.text),),
+                        icon: IconButton(icon: const Icon(Icons.email), color: Colors.black45, onPressed: () => {},),
                       ),
-                      onSubmitted: (value) => DatabaseHelper.instance.shareItem(widget.item, tfController.text),
+                      onSubmitted: (value) => {},
                     ),
                     SizedBox(height: 10,),
                     TextField(

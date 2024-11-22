@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/result.dart';
 import 'package:splizz/Views/detailview.dart';
-import 'package:splizz/brick/repository.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/Views/settingsview.dart';
 
@@ -18,21 +18,19 @@ import 'package:splizz/Helper/colormap.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/models/member.model.dart';
 
-import 'package:brick_core/query.dart';
-import 'package:splizz/models/operation.model.dart';
-import 'package:splizz/models/transaction.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
-final supabase = Supabase.instance.client;
-final activeSession = supabase.auth.currentSession;
+final activeSession = Supabase.instance.client.auth.currentSession;
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;
+  final SharedPreferences prefs;
 
   const MasterView({
     super.key,
     required this.updateTheme,
+    required this.prefs,
   });
 
   @override
@@ -51,8 +49,8 @@ class _MasterViewState extends State<MasterView>{
   @override
   void initState() {
     super.initState();
-    if (activeSession == null) {
-      Navigator.pushNamed(context, '/auth');
+    if (activeSession == null && widget.prefs.getBool('offline') == false) {
+      Navigator.pushReplacementNamed(context, '/auth');
     }
 
     itemListFuture = DatabaseHelper.instance.getItems();
@@ -178,7 +176,7 @@ class _MasterViewState extends State<MasterView>{
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context){
-          return SettingsView(updateTheme: widget.updateTheme, version: packageInfo.version);
+          return SettingsView(updateTheme: widget.updateTheme, version: packageInfo.version, prefs: widget.prefs,);
         },
       ),
     );
@@ -200,33 +198,6 @@ class _MasterViewState extends State<MasterView>{
     });
   }
 
-  Future<void> deleteItem(Item i) async {
-    final memberQuery = Query(where: [Where('itemId').isExactly(i.id)]);
-    final members = await Repository.instance.get<Member>(query: memberQuery);
-
-    final transactionQuery = Query(where: [Where('itemId').isExactly(i.id)]);
-    final transactions = await Repository.instance.get<Transaction>(query: transactionQuery);
-
-    final operationQuery = Query(where: [Where('itemId').isExactly(i.id)]);
-    final operations = await Repository.instance.get<Operation>(query: operationQuery);
-
-    for(Operation o in operations){
-      await DatabaseHelper.instance.deleteOperation(o);
-    }
-    for(Transaction t in transactions){
-      await DatabaseHelper.instance.deleteTransaction(t);
-    }
-    for(Member m in members){
-      await DatabaseHelper.instance.deleteMember(m);
-    }
-
-    await DatabaseHelper.instance.deleteImage(i.id);
-    
-    await DatabaseHelper.instance.deleteItem(i);
-
-    await DatabaseHelper.instance.deleteUser(i.id);
-  }
-
   Widget dismissTile(Item item) {
     //removeDriveFile = item.owner;
 
@@ -242,14 +213,9 @@ class _MasterViewState extends State<MasterView>{
         onDismissed: (dismissDirection) async {
           setState(() {
 
-            deleteItem(item).then((value) => setState(() {
+            DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {
               itemListFuture = DatabaseHelper.instance.getItems();
-              //DatabaseHelper.instance.getItems();
             }));
-            //if(item.sharedId != '' && removeDriveFile && item.owner){
-            //  GoogleDrive.instance.deleteFile(item.sharedId);
-            //  GoogleDrive.instance.deleteFile(item.imageSharedId);
-            //}
           });
         },
         confirmDismiss: (direction){
@@ -331,7 +297,6 @@ class _MasterViewState extends State<MasterView>{
             for(int i=0; i<items.length; ++i){
               DatabaseHelper.instance.deleteItem(items[i]).then((value) => setState(() {
                 itemListFuture = DatabaseHelper.instance.getItems();
-                //DatabaseHelper.instance.getItems();
               }));
             }
             setState(() {

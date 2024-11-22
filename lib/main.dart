@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Views/masterview.dart';
+import 'package:splizz/Views/settingsview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
 
 import 'Views/auth_screen.dart';
-import 'Views/splash_screen.dart';
-import 'Views/home_screen.dart';
 
 import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
@@ -18,12 +17,20 @@ Future main() async {
 
   await dotenv.load(fileName: 'keys.env');
 
+  final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(MyApp(sharedPreferences: sharedPreferences,));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  //const MyApp({Key? key}) : super(key: key);
+
+  final SharedPreferences? sharedPreferences;
+
+  const MyApp({Key? key, this.sharedPreferences})
+      : assert(sharedPreferences != null),
+        super(key: key);
 
   @override
   State<StatefulWidget> createState() => _MyAppState();
@@ -37,6 +44,9 @@ class _MyAppState extends State<MyApp>{
   void initState() {
     super.initState();
     loadSwitchValue(); // Load the switch value from SharedPreferences
+    if (widget.sharedPreferences!.getBool('offline') == null) {
+      widget.sharedPreferences!.setBool('offline', false);
+    }
   }
 
   Future<void> loadSwitchValue() async {
@@ -56,11 +66,11 @@ class _MyAppState extends State<MyApp>{
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
-      initialRoute: '/',
+      initialRoute: '/home',
       routes: {
-        '/': (context) => SplashScreen(updateTheme: loadSwitchValue,),
-        '/auth': (context) => AuthScreen(),
-        '/home': (context) => MasterView(updateTheme: loadSwitchValue,),
+        '/auth': (context) => AuthScreen(prefs: widget.sharedPreferences!,),
+        '/home': (context) => MasterView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
+        '/settings': (context) => SettingsView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!, version: '',),
       },
       //home: MasterView(updateTheme: loadSwitchValue,),
       debugShowCheckedModeBanner: false,

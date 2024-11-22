@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthScreen extends StatelessWidget {
-  const AuthScreen({super.key});
+  final SharedPreferences prefs;
+
+  const AuthScreen({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +17,7 @@ class AuthScreen extends StatelessWidget {
           Column(
             children: [
               const Text(
-                'Supabase Auth UI',
+                'Sign in / Sign up',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -22,29 +25,36 @@ class AuthScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24.0),
               SupaEmailAuth(
-                redirectTo:
-                    kIsWeb ? null : "splizz://de.tmc.splizz",
-                onSignInComplete: (res) => Navigator.pushNamed(context, '/home'),
-                onSignUpComplete: (res) => Navigator.pushNamed(context, '/home'),
+                redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
+                onSignInComplete: (res) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+                onSignUpComplete: (res) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
                 onError: (error) => SnackBar(content: Text(error.toString())),
               ),
               SupaSocialsAuth(
-                socialProviders: const [
-                  OAuthProvider.google,
-                  OAuthProvider.github,
-                ],
-                redirectUrl:
-                    kIsWeb ? null : "splizz://de.tmc.splizz",
-                onSuccess: (session) => Navigator.pushNamed(
-                  context,
-                  '/home',
-                ),
-                onError: (error) => SnackBar(
-                  content: Text(
-                    error.toString(),
-                  ),
-                ),
+                socialProviders: const [OAuthProvider.google],
+                redirectUrl: kIsWeb ? null : "splizz://de.tmc.splizz",
+                onSuccess: (session) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+                onError: (error) => SnackBar(content: Text(error.toString())),
               ),
+              const SizedBox(height: 24.0),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  minimumSize: const Size(double.infinity, 30),
+                ),
+                onPressed: () {
+                  prefs.setBool('offline', true);
+                  Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                }, 
+                child: Text(
+                  'Continue without an account',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  )
+                )
+              )
             ],
           ),
         ],

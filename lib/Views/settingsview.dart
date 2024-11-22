@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsView extends StatefulWidget{
   final Function updateTheme; //Triggers setState method of MyApp
   final String version;
+  final SharedPreferences prefs;
 
   const SettingsView({
     super.key,
     required this.updateTheme,
-    required this.version
+    required this.version,
+    required this.prefs
   });
 
   @override
@@ -132,14 +135,23 @@ class _SettingsViewState extends State<SettingsView>{
               border: Border.all(style: BorderStyle.none, ),
               borderRadius: BorderRadius.circular(20)
             ),
-            child: ListTile(
+            child: Supabase.instance.client.auth.currentSession != null ? ListTile(
               title: const Text("Logout"),
               trailing: Icon(Icons.logout),
               onTap: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
                 await Supabase.instance.client.auth.signOut();
-                Navigator.pushReplacementNamed(context, '/');
+                await DatabaseHelper.instance.deleteDatabase();
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ) : 
+            ListTile(
+              title: const Text("Login"),
+              trailing: Icon(Icons.login),
+              onTap: () {
+                widget.prefs.setBool('offline', false);
+                Navigator.pushReplacementNamed(context, '/auth');
               },
             )
           )
