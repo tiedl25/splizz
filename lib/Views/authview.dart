@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
-class AuthScreen extends StatelessWidget {
+class AuthView extends StatelessWidget {
   final SharedPreferences prefs;
 
-  const AuthScreen({super.key, required this.prefs});
+  const AuthView({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {

@@ -3,10 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Views/masterview.dart';
 import 'package:splizz/Views/settingsview.dart';
+import 'package:splizz/Views/authview.dart';
 import 'package:splizz/theme/dark_theme.dart';
 import 'package:splizz/theme/light_theme.dart';
-
-import 'Views/auth_screen.dart';
 
 import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
@@ -68,7 +67,7 @@ class _MyAppState extends State<MyApp>{
       themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
       initialRoute: '/home',
       routes: {
-        '/auth': (context) => AuthScreen(prefs: widget.sharedPreferences!,),
+        '/auth': (context) => AuthView(prefs: widget.sharedPreferences!,),
         '/home': (context) => MasterView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
         '/settings': (context) => SettingsView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!, version: '',),
       },
