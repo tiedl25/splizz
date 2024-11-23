@@ -15,12 +15,21 @@ import 'package:splizz/models/user.model.dart';
 
 bool isSignedIn = Supabase.instance.client.auth.currentSession != null;
 
+bool switchRepository() {
+  if (isSignedIn != (Supabase.instance.client.auth.currentSession != null))
+  {
+    isSignedIn = Supabase.instance.client.auth.currentSession != null;
+    return true;
+  }
+  return false;
+}
+
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   static dynamic _database;
-  Future<dynamic> get database async => _database ??= await _initDatabase();
+  Future<dynamic> get database async => _database = _database == null || switchRepository() ? await _initDatabase() : _database;//_database ??= await _initDatabase();
 
   static var lock = Lock(reentrant: true);
 
@@ -86,7 +95,7 @@ class DatabaseHelper {
   }
 
   Future<void> upsertItem(Item item, {dynamic db}) async {
-    db = db ?? await instance.database;
+    db ??= await instance.database;
   
     db.upsert<Item>(item);
 
@@ -94,6 +103,9 @@ class DatabaseHelper {
 
     for(Member member in item.members){
       upsertMember(member, db: db);
+    }
+    for(Transaction transaction in item.history){
+      upsertTransaction(transaction, db: db);
     }
   }
 
@@ -103,7 +115,7 @@ class DatabaseHelper {
     db.upsert<Transaction>(transaction);
 
     for(Operation operation in transaction.operations){
-      db.upsert<Operation>(operation);
+      upsertOperation(operation, db: db);
     }
   }
 
@@ -132,6 +144,27 @@ class DatabaseHelper {
     db.upsert<User>(user);
 
     return Result.success(null);
+  }
+
+  Future<void> upsertOperation(Operation operation, {dynamic db}) async {
+    db = db ?? await instance.database;
+  
+    db.upsert<Operation>(operation);
+  }
+
+  Future<void> uploadData() async {
+    dynamic db = await Repository.instance.sqliteProvider;
+    
+    final items = await getItems(db: db);
+
+    for(Item item in items){
+      item.members = await getMembers(item.id, db: db);
+      item.history = await getTransactions(item.id, db: db);
+    }
+    db = await Repository.instance.remoteProvider;
+    for(Item item in items){
+      upsertItem(item, db: db);
+    }
   }
 
   Future<void> deleteItem(Item item, {dynamic db}) async {
@@ -210,6 +243,6 @@ class DatabaseHelper {
 
   Future <void> deleteDatabase() async {
     dynamic db = await instance.database;
-    await db.reset();
+    if (db.runtimeType.toString() != "SqliteProvider<SqliteModel>") await db.reset();
   }
 }

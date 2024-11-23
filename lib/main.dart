@@ -65,8 +65,9 @@ class _MyAppState extends State<MyApp>{
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
-      initialRoute: '/home',
+      initialRoute: '/',
       routes: {
+        '/': (context) => SplashView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
         '/auth': (context) => AuthView(prefs: widget.sharedPreferences!,),
         '/home': (context) => MasterView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
         '/settings': (context) => SettingsView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!, version: '',),

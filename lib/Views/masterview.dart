@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/result.dart';
+import 'package:splizz/Views/authview.dart';
 import 'package:splizz/Views/detailview.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/Views/settingsview.dart';
@@ -22,6 +23,24 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
 final activeSession = Supabase.instance.client.auth.currentSession;
+
+class SplashView extends StatelessWidget {
+  final Function updateTheme;
+  final SharedPreferences prefs;
+
+  const SplashView({
+    super.key,
+    required this.updateTheme,
+    required this.prefs,
+    });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(child: activeSession == null && prefs.getBool('offline') == false ? AuthView(prefs: prefs) : MasterView(updateTheme: updateTheme, prefs: prefs,)),
+    );
+  }
+}
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;

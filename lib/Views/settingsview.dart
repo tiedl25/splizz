@@ -143,7 +143,7 @@ class _SettingsViewState extends State<SettingsView>{
                 await prefs.clear();
                 await Supabase.instance.client.auth.signOut();
                 await DatabaseHelper.instance.deleteDatabase();
-                Navigator.pushReplacementNamed(context, '/home');
+                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
               },
             ) : 
             ListTile(
@@ -151,7 +151,7 @@ class _SettingsViewState extends State<SettingsView>{
               trailing: Icon(Icons.login),
               onTap: () {
                 widget.prefs.setBool('offline', false);
-                Navigator.pushReplacementNamed(context, '/auth');
+                Navigator.pushNamedAndRemoveUntil(context, '/auth', (route) => false);
               },
             )
           )

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthView extends StatelessWidget {
@@ -26,14 +27,23 @@ class AuthView extends StatelessWidget {
               const SizedBox(height: 24.0),
               SupaEmailAuth(
                 redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
-                onSignInComplete: (res) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
-                onSignUpComplete: (res) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+                onSignInComplete: (res) {
+                  DatabaseHelper.instance.uploadData();
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                },
+                onSignUpComplete: (res) {
+                  DatabaseHelper.instance.uploadData();
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                },
                 onError: (error) => SnackBar(content: Text(error.toString())),
               ),
               SupaSocialsAuth(
                 socialProviders: const [OAuthProvider.google],
                 redirectUrl: kIsWeb ? null : "splizz://de.tmc.splizz",
-                onSuccess: (session) => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+                onSuccess: (session) {
+                  DatabaseHelper.instance.uploadData();
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                },
                 onError: (error) => SnackBar(content: Text(error.toString())),
               ),
               const SizedBox(height: 24.0),
@@ -45,7 +55,7 @@ class AuthView extends StatelessWidget {
                 ),
                 onPressed: () {
                   prefs.setBool('offline', true);
-                  Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 }, 
                 child: Text(
                   'Continue without an account',
