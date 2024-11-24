@@ -145,9 +145,17 @@ class Item extends OfflineFirstWithSupabaseModel {
 
 
   static Future<String> uploadImage(Uint8List image, String itemId) async {
-    final path = await Supabase_Flutter.Supabase.instance.client.storage
-        .from('images') // Replace with your storage bucket name
-        .uploadBinary('$itemId.jpg', image);
+    String path;
+    try{
+      path = await Supabase_Flutter.Supabase.instance.client.storage
+          .from('images') // Replace with your storage bucket name
+          .uploadBinary('$itemId.jpg', image);
+    } catch (e) {
+      path = await Supabase_Flutter.Supabase.instance.client.storage
+          .from('images') // Replace with your storage bucket name
+          .updateBinary('$itemId.jpg', image);
+    }
+            
     return path;
   }
 

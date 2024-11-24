@@ -3,7 +3,6 @@ gradle-wrapper.jar
 /captures/
 /gradlew
 /gradlew.bat
-/local.properties
 GeneratedPluginRegistrant.java
 
 # Remember to never publicly share your keystore.
@@ -11,3 +10,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release

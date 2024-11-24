@@ -162,19 +162,53 @@ class DatabaseHelper {
       item.history = await getTransactions(item.id, db: db);
     }
     db = await Repository.instance.remoteProvider;
+
+    final items2 = await getItems(db: db);
+
+    for(Item item in items2){
+      item.members = await getMembers(item.id, db: db);
+      item.history = await getTransactions(item.id, db: db);
+    }
+
+    db = await Repository.instance;
+
     for(Item item in items){
+      upsertItem(item, db: db);
+    }
+
+    for(Item item in items2){
       upsertItem(item, db: db);
     }
   }
 
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
-  
+
+    item.members = await getMembers(item.id, db: db);
+    item.history = await getTransactions(item.id, db: db);
+
+    for(Transaction transaction in item.history){
+      deleteTransaction(transaction, db: db);
+    }
+    for(Member member in item.members){
+      deleteMember(member, db: db);
+    }
+
+    deleteImage(item.id, db: db);
+
     db.delete<Item>(item);
+
+    deleteUser(item.id, db: db);
   }
 
   Future<void> deleteTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    transaction.operations = await getTransactionOperations(transaction.id, db: db);
+
+    for(Operation operation in transaction.operations){
+      deleteOperation(operation, db: db);
+    }
   
     db.delete<Transaction>(transaction);
   }
@@ -194,16 +228,16 @@ class DatabaseHelper {
   Future<void> deleteUser(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    final userQuery = Query(where: [Where('itemId').isExactly(id), Where('userId').isExactly(id)]);
+    final userQuery = Query(where: [Where('itemId').isExactly(id)]);
     final user = await db.get<User>(query: userQuery);
-  
-    db.delete<User>(user[0]);
+
+    for (User u in user){
+      db.delete<User>(u);
+    }
   }
 
   Future<void> deleteImage(String id, {dynamic db}) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-
-    await Supabase.instance.client.storage.from('images').remove(["$userId/$id.jpg"]);
+    await Supabase.instance.client.storage.from('images').remove(["$id.jpg"]);
   }
 
   Future<double> getBalance(String id, {dynamic db}) async {

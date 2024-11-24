@@ -22,7 +22,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
-final activeSession = Supabase.instance.client.auth.currentSession;
+var activeSession = Supabase.instance.client.auth.currentSession;
 
 class SplashView extends StatelessWidget {
   final Function updateTheme;
@@ -36,6 +36,7 @@ class SplashView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    activeSession = Supabase.instance.client.auth.currentSession;
     return Scaffold(
       body: Center(child: activeSession == null && prefs.getBool('offline') == false ? AuthView(prefs: prefs) : MasterView(updateTheme: updateTheme, prefs: prefs,)),
     );
