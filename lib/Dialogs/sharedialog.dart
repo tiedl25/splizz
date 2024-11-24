@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:splizz/Helper/ui_model.dart';
 
 import 'package:splizz/models/item.model.dart';
@@ -54,35 +55,28 @@ class _ShareDialogState extends State<ShareDialog>{
                       controller: tfController,
                       decoration: TfDecorationModel(
                         context: context,
-                        title: 'Share by entering the users email address',
-                        icon: IconButton(icon: const Icon(Icons.email), color: Colors.black45, onPressed: () => {},),
+                        title: 'Email',
+                        icon: IconButton(icon: const Icon(Icons.copy), color: Colors.black45, onPressed: () => {Share.share(generateLink())},),
                       ),
                       onSubmitted: (value) => {},
                     ),
                     SizedBox(height: 10,),
-                    TextField(
-                      readOnly: false,
-                      decoration: TfDecorationModel(
-                        context: context,
-                        title: 'Create link',
-                        icon: IconButton(icon: const Icon(Icons.email), color: Colors.black45, onPressed: () => Clipboard.setData(ClipboardData(text: generateLink())),),
+                    ListTile(
+                      title: const Text('Full Access', style: TextStyle(fontSize: 20),),
+                      contentPadding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                      trailing: Switch(
+                        value: fullAccess, 
+                        onChanged: ((value) => setState(() {
+                          fullAccess = value;
+                        })
+                        )
                       ),
                     ),
-                    SizedBox(height: 10,),
-                    Checkbox(
-                      value: fullAccess, 
-                      onChanged: ((value) => setState(() {
-                        fullAccess = value!;
-                      })
-                      )
-                    )
                   ]
                 ),
               ),
             ),
-            onConfirmed:  (){
-
-            }
+            onConfirmed:  () => Share.share(generateLink())
             );
   }
 }
