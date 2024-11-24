@@ -152,7 +152,7 @@ class DatabaseHelper {
     db.upsert<Operation>(operation);
   }
 
-  Future<void> uploadData() async {
+  Future<void> syncData() async {
     dynamic db = await Repository.instance.sqliteProvider;
     
     final items = await getItems(db: db);
@@ -276,7 +276,7 @@ class DatabaseHelper {
   }
 
   Future <void> deleteDatabase() async {
-    dynamic db = await instance.database;
-    if (db.runtimeType.toString() != "SqliteProvider<SqliteModel>") await db.reset();
+    await Repository.instance.reset();
+    await Repository().initialize();
   }
 }

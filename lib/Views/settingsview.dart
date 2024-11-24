@@ -140,7 +140,7 @@ class _SettingsViewState extends State<SettingsView>{
               trailing: Icon(Icons.logout),
               onTap: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
+                await prefs.setBool('offline', false);
                 await Supabase.instance.client.auth.signOut();
                 await DatabaseHelper.instance.deleteDatabase();
                 Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);

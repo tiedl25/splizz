@@ -28,11 +28,11 @@ class AuthView extends StatelessWidget {
               SupaEmailAuth(
                 redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
                 onSignInComplete: (res) {
-                  DatabaseHelper.instance.uploadData();
+                  DatabaseHelper.instance.syncData();
                   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 },
                 onSignUpComplete: (res) {
-                  DatabaseHelper.instance.uploadData();
+                  DatabaseHelper.instance.syncData();
                   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 },
                 onError: (error) => SnackBar(content: Text(error.toString())),
@@ -41,7 +41,7 @@ class AuthView extends StatelessWidget {
                 socialProviders: const [OAuthProvider.google],
                 redirectUrl: kIsWeb ? null : "splizz://de.tmc.splizz",
                 onSuccess: (session) {
-                  DatabaseHelper.instance.uploadData();
+                  DatabaseHelper.instance.syncData();
                   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 },
                 onError: (error) => SnackBar(content: Text(error.toString())),
