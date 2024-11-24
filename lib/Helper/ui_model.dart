@@ -40,6 +40,7 @@ class DialogModel extends StatelessWidget {
         child: AlertDialog(
           elevation: 0,
           alignment: alignment,
+          actionsPadding: const EdgeInsets.fromLTRB(20, 5, 20, 15),
           insetPadding: insetPadding,
           contentPadding: contentPadding,
           scrollable: scrollable,

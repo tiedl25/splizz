@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:splizz/Helper/database.dart';
+import 'package:splizz/Helper/ui_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsView extends StatefulWidget{
@@ -37,6 +38,25 @@ class _SettingsViewState extends State<SettingsView>{
       _darkModeToggle = prefs.getBool('darkMode') ?? false;
     });
   }
+
+  Future<void> showLogoutDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return DialogModel(
+          content: Text("Are you sure you want to log out?", style: TextStyle(fontSize: 20),),
+          onConfirmed: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('offline', false);
+            await Supabase.instance.client.auth.signOut();
+            await DatabaseHelper.instance.deleteDatabase();
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          },
+          pop: false
+        );
+      },
+    );
+  } 
 
   @override
   Widget build(BuildContext context) {
@@ -138,13 +158,7 @@ class _SettingsViewState extends State<SettingsView>{
             child: Supabase.instance.client.auth.currentSession != null ? ListTile(
               title: const Text("Logout"),
               trailing: Icon(Icons.logout),
-              onTap: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('offline', false);
-                await Supabase.instance.client.auth.signOut();
-                await DatabaseHelper.instance.deleteDatabase();
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-              },
+              onTap: () => showLogoutDialog(),
             ) : 
             ListTile(
               title: const Text("Login"),
