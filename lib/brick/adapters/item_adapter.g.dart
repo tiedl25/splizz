@@ -18,7 +18,9 @@ Future<Map<String, dynamic>> _$ItemToSupabase(Item instance,
     'id': instance.id,
     'name': instance.name,
     'timestamp': instance.timestamp.toIso8601String(),
-    'image': await Item.uploadImage(instance.image!, instance.id)
+    'image': instance.upload
+        ? await Item.uploadImage(instance.image!, instance.id)
+        : null
   };
 }
 

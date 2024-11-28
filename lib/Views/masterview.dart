@@ -72,7 +72,7 @@ class _MasterViewState extends State<MasterView>{
     if (activeSession == null && widget.prefs.getBool('offline') == false) {
       Navigator.pushReplacementNamed(context, '/auth');
     }
-
+    
     itemListFuture = DatabaseHelper.instance.getItems();
     //DatabaseHelper.instance.getItems();
     PackageInfo.fromPlatform().then((value) => packageInfo = value);

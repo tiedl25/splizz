@@ -184,21 +184,23 @@ class DatabaseHelper {
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
 
+    item.upload = false;
+
     item.members = await getMembers(item.id, db: db);
     item.history = await getTransactions(item.id, db: db);
 
     for(Transaction transaction in item.history){
-      deleteTransaction(transaction, db: db);
+      await deleteTransaction(transaction, db: db);
     }
     for(Member member in item.members){
-      deleteMember(member, db: db);
+      await deleteMember(member, db: db);
     }
 
-    deleteImage(item.id, db: db);
+    await deleteImage(item.id, db: db);
 
-    db.delete<Item>(item);
+    await db.delete<Item>(item);
 
-    deleteUser(item.id, db: db);
+    await deleteUser(item.id, db: db);
   }
 
   Future<void> deleteTransaction(Transaction transaction, {dynamic db}) async {
@@ -207,22 +209,22 @@ class DatabaseHelper {
     transaction.operations = await getTransactionOperations(transaction.id, db: db);
 
     for(Operation operation in transaction.operations){
-      deleteOperation(operation, db: db);
+      await deleteOperation(operation, db: db);
     }
   
-    db.delete<Transaction>(transaction);
+    await db.delete<Transaction>(transaction);
   }
 
   Future<void> deleteMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
   
-    db.delete<Member>(member);
+    await db.delete<Member>(member);
   }
 
   Future<void> deleteOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
   
-    db.delete<Operation>(operation);
+    await db.delete<Operation>(operation);
   }
   
   Future<void> deleteUser(String id, {dynamic db}) async {
@@ -232,12 +234,12 @@ class DatabaseHelper {
     final user = await db.get<User>(query: userQuery);
 
     for (User u in user){
-      db.delete<User>(u);
+      await db.delete<User>(u);
     }
   }
 
   Future<void> deleteImage(String id, {dynamic db}) async {
-    await Supabase.instance.client.storage.from('images').remove(["$id.jpg"]);
+    await Repository.instance.remoteProvider.client.storage.from('images').remove(['$id.jpg']);
   }
 
   Future<double> getBalance(String id, {dynamic db}) async {

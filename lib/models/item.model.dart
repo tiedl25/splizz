@@ -24,15 +24,17 @@ class Item extends OfflineFirstWithSupabaseModel {
   @Supabase(fromGenerator: "DateTime.parse(%DATA_PROPERTY% as String)", toGenerator: "%INSTANCE_PROPERTY%.toIso8601String()")
   final DateTime timestamp;
 
-  //@Supabase(fromGenerator: "null", toGenerator: "'test'")
-  //@Supabase(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%")
-  @Supabase(fromGenerator: "await Item.downloadImage(data['id'] as String)", toGenerator: "await Item.uploadImage(%INSTANCE_PROPERTY%!, instance.id)")
+  @Supabase(fromGenerator: "await Item.downloadImage(data['id'] as String)", toGenerator: "instance.upload ? await Item.uploadImage(%INSTANCE_PROPERTY%!, instance.id) : null")
   @Sqlite(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%", columnType: Column.blob)
   final Uint8List? image;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
   bool owner;
+
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  bool upload=true;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
