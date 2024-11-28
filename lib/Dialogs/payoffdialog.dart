@@ -173,36 +173,44 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
     item.members = members;
   }
 
-  Future<Uint8List> transactionTable(String tId, String firstTId) async{
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not implemented yet')));
-    return Uint8List(0);
+  Future<Uint8List> transactionTable(Transaction payoff) async {
+    var payoffBefore = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && element.description == "payoff").toList();
+    if (payoffBefore.isNotEmpty) payoffBefore.sort((element, other) => element.timestamp.compareTo(other.timestamp));
+    List<Transaction> transactions = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && 
+      (payoffBefore.isNotEmpty ? element.timestamp.compareTo(payoffBefore.last.timestamp) > 0 : true) && 
+      element.description != "payoff" &&
+      element.deleted == false).toList();
+ 
+    List<DataColumn> columns = [
+      const DataColumn(label: Text('Date')),
+      const DataColumn(label: Text('Description')),
+      const DataColumn(label: Text('Value')),
+      const DataColumn(label: Text('Person who payed')),
+      const DataColumn(label: Text('Member')) 
+    ];
+    List<DataRow> rows = transactions.map<DataRow>((row) {
+      return DataRow(
+        cells: [
+          DataCell(Text(row.timestamp.toString())),
+          DataCell(Text(row.description)),
+          DataCell(Text(row.value.toString())),
+          DataCell(Text(item.members.firstWhere((element) => element.id == row.memberId).name)),
+          DataCell(Text(row.operations.where((element) => element.value != row.value).map((e) => item.members.firstWhere((m) => m.id == e.memberId).name).toList().join(', ')))
+        ],
+      );
+    }).toList();
 
-    //var response = await DatabaseHelper.instance.exportTransactionsSinceLastPayoff(item.id!, tId, firstTId);
-    //List<String> columnLabels = response.isNotEmpty ? response[0].keys.toList() : [];
-    //List<DataColumn> columns = columnLabels.map<DataColumn>((column) => DataColumn(label: Text(column))).toList();
-    //List<DataRow> rows = response.map<DataRow>((row) {
-    //      return DataRow(
-    //        cells: columnLabels.map<DataCell>((label) {
-    //          return DataCell(Text(row[label].toString()));
-    //        }).toList(),
-    //      );
-    //    }).toList();
-//
-    //return await screenshotController.captureFromWidget(
-    //  FittedBox(
-    //    fit: BoxFit.fitWidth,
-    //    child: DataTable(
-    //      headingRowColor: MaterialStateProperty.all(Colors.grey),
-    //      dataRowColor: MaterialStateProperty.all(Colors.white),
-    //      columns: columns,
-    //      rows: rows,
-    //    )
-    //  )
-    //);
-    /*.then((value) async {
-      print(await widgetToImageFile(value, 'transactions.png'));
-    });
-    */
+    return await screenshotController.captureFromWidget(
+      FittedBox(
+        fit: BoxFit.fitWidth,
+        child: DataTable(
+          headingRowColor: WidgetStatePropertyAll(Colors.grey),
+          dataRowColor: WidgetStatePropertyAll(Colors.white),
+          columns: columns,
+          rows: rows,
+        ),
+      ),
+    );
   }
 
   Future<File> widgetToImageFile(Uint8List capturedImage, String filename) async {   
@@ -317,7 +325,7 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
               onPressed: () async {
                 final payoffBytes = await controller.capture();
                 await widgetToImageFile(payoffBytes!, 'payoff.png');
-                final transactionsBytes = await transactionTable(item.history[widget.index].id, item.history[0].id);
+                final transactionsBytes = await transactionTable(item.history[widget.index]);
                 await widgetToImageFile(transactionsBytes, 'transactions.png');
                 
                 await Share.shareXFiles([XFile(path + 'payoff.png'), XFile(path + 'transactions.png')], text: 'Payoff');
