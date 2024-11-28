@@ -70,6 +70,7 @@ dependencies:
   supabase_flutter: ^2.8.0
   supabase_auth_ui: ^0.5.4
   uni_links: ^0.5.1
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:

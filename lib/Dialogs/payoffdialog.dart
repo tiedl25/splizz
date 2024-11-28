@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:excel/excel.dart';
 
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/item.model.dart';
@@ -173,13 +174,55 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
     item.members = members;
   }
 
-  Future<Uint8List> transactionTable(Transaction payoff) async {
-    var payoffBefore = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && element.description == "payoff").toList();
+  Future<Uint8List> exportTransactionTableToExcel(Transaction payoff) async {
+    List<Transaction> transactions = await getPayoffTransactions(payoff);
+
+    // Create a new Excel document
+    var excel = Excel.createExcel();
+    var sheet = excel['Sheet1'];
+
+    List<CellValue> headers = [
+      TextCellValue('Date'),
+      TextCellValue('Description'),
+      TextCellValue('Value'),
+      TextCellValue('Person who payed'),
+      TextCellValue('Member')
+    ];
+
+    // Add column headers
+    sheet.appendRow(headers);
+
+    List<List<CellValue>> rows = transactions.map<List<CellValue>>((row) {
+      return [
+          DateTimeCellValue.fromDateTime(row.timestamp),
+          TextCellValue(row.description),
+          DoubleCellValue(row.value),
+          TextCellValue(item.members.firstWhere((element) => element.id == row.memberId).name),
+          TextCellValue(row.operations.where((element) => element.value != row.value).map((e) => item.members.firstWhere((m) => m.id == e.memberId).name).toList().join(', '))
+        ];
+    }).toList();
+
+    // Add data rows
+    for (var row in rows) {
+      sheet.appendRow(row);
+    }
+    
+    return Uint8List.fromList(excel.save()!); 
+  }
+
+  Future<List<Transaction>> getPayoffTransactions(Transaction payoff) async {
+    List<Transaction> payoffBefore = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && element.description == "payoff").toList();
     if (payoffBefore.isNotEmpty) payoffBefore.sort((element, other) => element.timestamp.compareTo(other.timestamp));
     List<Transaction> transactions = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && 
       (payoffBefore.isNotEmpty ? element.timestamp.compareTo(payoffBefore.last.timestamp) > 0 : true) && 
       element.description != "payoff" &&
       element.deleted == false).toList();
+
+    return transactions;
+  }
+
+  Future<Uint8List> transactionTable(Transaction payoff) async {
+    List<Transaction> transactions = await getPayoffTransactions(payoff);
  
     List<DataColumn> columns = [
       const DataColumn(label: Text('Date')),
@@ -324,11 +367,14 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
             IconButton(
               onPressed: () async {
                 final payoffBytes = await controller.capture();
-                await widgetToImageFile(payoffBytes!, 'payoff.png');
                 final transactionsBytes = await transactionTable(item.history[widget.index]);
-                await widgetToImageFile(transactionsBytes, 'transactions.png');
+                final excelBytes = await exportTransactionTableToExcel(item.history[widget.index]);
                 
-                await Share.shareXFiles([XFile(path + 'payoff.png'), XFile(path + 'transactions.png')], text: 'Payoff');
+                await Share.shareXFiles([XFile.fromData(payoffBytes!, mimeType: 'image/png'), 
+                                          XFile.fromData(transactionsBytes, mimeType: 'image/png'), 
+                                          XFile.fromData(excelBytes, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')], 
+                                          text: 'Payoff',
+                                          fileNameOverrides: ['Payoff', 'Transactions (Image)', 'Transactions (Excel)']);
                 Navigator.of(context).pop();
               },
               icon: Icon(Icons.import_export)
