@@ -37,7 +37,8 @@ class _ShareDialogState extends State<ShareDialog>{
   bool fullAccess = false;
 
   String generateLink() {
-    return 'splizz://de.tmc.splizz?itemId=${widget.item.id}&userEmail=${tfController.text}&fullAccess=$fullAccess';
+    String message = 'You are invited to a Splizz. Accept by opening this link.\n\n';
+    return message + 'splizz://de.tmc.splizz?itemId=${widget.item.id}&userEmail=${tfController.text}&fullAccess=$fullAccess';
   }
 
   @override
