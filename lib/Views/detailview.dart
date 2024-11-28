@@ -27,20 +27,13 @@ class _DetailViewState extends State<DetailView>{
   bool unbalanced = false;
   late Future<Item> itemFuture;
 
-  Future<Item> getData() async {
-    item.members = await DatabaseHelper.instance.getMembers(item.id);
-    item.history = await DatabaseHelper.instance.getTransactions(item.id);
-
-    return item;
-  }
-
   @override
   void initState() {
     super.initState();
 
     item = widget.item;
 
-    itemFuture = getData();
+    itemFuture = DatabaseHelper.instance.getItem(widget.item.id);
   }
 
   // Important to grey out payoff button
@@ -256,7 +249,7 @@ class _DetailViewState extends State<DetailView>{
           child: RefreshIndicator(
             onRefresh: (){
               setState(() {
-                getData();
+                itemFuture = DatabaseHelper.instance.getItem(widget.item.id);
               });
               return itemFuture;
             },

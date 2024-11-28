@@ -37,11 +37,25 @@ class DatabaseHelper {
     return isSignedIn ? Repository.instance : Repository.instance.sqliteProvider;
   }
 
-  Future<List<Item>> getItems({dynamic db}) async {
+  Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+
+    if (sync) await syncData();
 
     final items = await db.get<Item>();
     return items;
+  }
+
+  Future<Item> getItem(String id, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    final itemQuery = Query(where: [Where('id').isExactly(id)]);
+    final item = (await db.get<Item>(query: itemQuery))[0];
+
+    item.members = await getMembers(id, db: db);
+    item.history = await getTransactions(id, db: db);
+
+    return item;
   }
 
   Future<List<Member>> getMembers(String id, {dynamic db}) async {

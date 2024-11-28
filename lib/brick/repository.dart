@@ -1,5 +1,4 @@
 // Saved in my_app/lib/src/brick/repository.dart
-import 'dart:typed_data';
 
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
@@ -13,7 +12,6 @@ import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'brick.g.dart';
-import 'dart:io';
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _instance;

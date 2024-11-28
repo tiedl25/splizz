@@ -73,7 +73,7 @@ class _MasterViewState extends State<MasterView>{
       Navigator.pushReplacementNamed(context, '/auth');
     }
     
-    itemListFuture = DatabaseHelper.instance.getItems();
+    itemListFuture = DatabaseHelper.instance.getItems(sync: true);
     //DatabaseHelper.instance.getItems();
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
 
@@ -359,8 +359,7 @@ class _MasterViewState extends State<MasterView>{
               ),
               onRefresh: (){
                 setState(() {
-                  itemListFuture = DatabaseHelper.instance.getItems();
-                  //DatabaseHelper.instance.getItems();
+                  itemListFuture = DatabaseHelper.instance.getItems(sync: true);
                 });
                 return itemListFuture;
               });
