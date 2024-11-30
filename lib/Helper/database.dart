@@ -40,7 +40,7 @@ class DatabaseHelper {
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
 
-    if (sync) await syncData();
+    if (sync) await downloadData();
 
     final items = await db.get<Item>();
     return items;
@@ -191,6 +191,23 @@ class DatabaseHelper {
     }
 
     for(Item item in items2){
+      upsertItem(item, db: db);
+    }
+  }
+
+  Future<void> downloadData() async {
+    dynamic db = await Repository.instance.remoteProvider;
+
+    final items = await getItems(db: db);
+
+    for(Item item in items){
+      item.members = await getMembers(item.id, db: db);
+      item.history = await getTransactions(item.id, db: db);
+    }
+
+    db = await Repository.instance.sqliteProvider;
+
+    for(Item item in items){
       upsertItem(item, db: db);
     }
   }
