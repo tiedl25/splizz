@@ -133,13 +133,13 @@ class _SettingsViewState extends State<SettingsView>{
                   title: Text("Privacy Policy"),
                   trailing: Icon(Icons.open_in_browser),
                   onTap: () {
-                    launch(
-                      "https://tmc.tiedl.rocks/splizz/dsgvo",
-                      customTabsOption: CustomTabsOption(
-                        enableUrlBarHiding: false,
-                        enableInstantApps: true,
-                        closeButtonPosition: CustomTabsCloseButtonPosition.end,
-                        showPageTitle: true,
+                    launchUrl(
+                      Uri.https("https://tmc.tiedl.rocks/splizz/dsgvo"),
+                      customTabsOptions: CustomTabsOptions(
+                        urlBarHidingEnabled: false,
+                        instantAppsEnabled: true,
+                        closeButton: CustomTabsCloseButton(position: CustomTabsCloseButtonPosition.end),
+                        showTitle: true,
                       )
                     );                  
                   },
