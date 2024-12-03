@@ -32,19 +32,9 @@ class AuthView extends StatelessWidget {
                   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 },
                 onSignUpComplete: (res) {
-                  DatabaseHelper.instance.syncData();
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please check your email to verify your account.")));
                 },
-                onError: (error) => SnackBar(content: Text(error.toString())),
-              ),
-              SupaSocialsAuth(
-                socialProviders: const [OAuthProvider.google],
-                redirectUrl: kIsWeb ? null : "splizz://de.tmc.splizz",
-                onSuccess: (session) {
-                  DatabaseHelper.instance.syncData();
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-                },
-                onError: (error) => SnackBar(content: Text(error.toString())),
+                onError: (error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((error as AuthApiException).message))),
               ),
               const SizedBox(height: 24.0),
               TextButton(
