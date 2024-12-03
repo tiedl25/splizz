@@ -43,6 +43,9 @@ class DatabaseHelper {
     if (sync) await downloadData();
 
     final items = await db.get<Item>();
+
+    if(!sync) unawaited(downloadData());
+    
     return items;
   }
 
