@@ -528,11 +528,10 @@ class _DetailViewState extends State<DetailView>{
         ],
       ) : FloatingActionButton(
         onPressed: _showAddDialog,
-        tooltip: 'Add Transaction',
+        tooltip: 'Add Item',
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
-
     );
   }
 }

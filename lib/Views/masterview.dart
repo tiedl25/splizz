@@ -138,16 +138,6 @@ class _MasterViewState extends State<MasterView>{
         });
   }
 
-  void _showImportDialog(){
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete payoff. Please try again')));
-    //showDialog(
-    //    context: context,
-    //    barrierDismissible: true,
-    //    builder: (BuildContext context){
-    //      return ImportDialog();
-    //    });
-  }
-
   Future<bool?> _showDismissDialog(String sharedId) {
     return showDialog(
       context: context,
@@ -275,7 +265,7 @@ class _MasterViewState extends State<MasterView>{
   }
 
   Widget speedDial() {
-    return SpeedDial(
+    return kDebugMode ? SpeedDial(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
       spacing: 5,
       animatedIcon: AnimatedIcons.menu_close,
@@ -295,12 +285,6 @@ class _MasterViewState extends State<MasterView>{
           onTap: _showAddDialog,
         ),
         SpeedDialChild(
-          backgroundColor: Colors.purple,
-          foregroundColor: Colors.white,
-          child: const Icon(Icons.import_export),
-          onTap: _showImportDialog,
-        ),
-        if(kDebugMode) SpeedDialChild(
           child: const Icon(Icons.bug_report),
           onTap: () async {
             List<Member> members = [];
@@ -312,7 +296,7 @@ class _MasterViewState extends State<MasterView>{
             }));
           }
         ),
-        if(kDebugMode) SpeedDialChild(
+        SpeedDialChild(
           child: const Icon(Icons.remove),
           onTap: () async {
             for(int i=0; i<items.length; ++i){
@@ -327,6 +311,11 @@ class _MasterViewState extends State<MasterView>{
         ),
         // add more options as needed
       ],
+    ) : FloatingActionButton(
+        onPressed: _showAddDialog,
+        tooltip: 'Add Transaction',
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
     );
   }
 
