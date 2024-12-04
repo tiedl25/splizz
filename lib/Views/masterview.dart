@@ -72,9 +72,11 @@ class _MasterViewState extends State<MasterView>{
     if (activeSession == null && widget.prefs.getBool('offline') == false) {
       Navigator.pushReplacementNamed(context, '/auth');
     }
+
+    DatabaseHelper.instance.destructiveSync();
     
-    itemListFuture = DatabaseHelper.instance.getItems();
-    //DatabaseHelper.instance.getItems();
+    itemListFuture = DatabaseHelper.instance.getItems(sync: true);
+
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
 
     _handleIncomingLinks();
@@ -138,42 +140,25 @@ class _MasterViewState extends State<MasterView>{
         });
   }
 
-  Future<bool?> _showDismissDialog(String sharedId) {
+  Future<bool?> _showDismissDialog() {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-            builder: (context, setState){
-              return DialogModel(
-                  title: 'Confirm Dismiss',
-                  content: Column(
-                    children: [
-                      Container(
-                          padding: const EdgeInsets.all(5),
-                          child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
-                      ),
-
-                      //if(sharedId != '') Container(
-                      //  padding: const EdgeInsets.all(5),
-                      //  child: Row(
-                      //    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //    children: [
-                      //      const Text('Remove file in Google Drive'),
-                      //      Switch(
-                      //          value: removeDriveFile,
-                      //          onChanged: (value){
-                      //            setState((){
-                      //              removeDriveFile = value;
-                      //            });
-                      //          })
-                      //    ],
-                      //  ),
-                      //)
-                    ],
+          builder: (context, setState){
+            return DialogModel(
+              title: 'Confirm Dismiss',
+              content: Column(
+                children: [
+                  Container(
+                      padding: const EdgeInsets.all(5),
+                      child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
                   ),
-                  onConfirmed: (){}
-              );
-            }
+                ],
+              ),
+              onConfirmed: () {}
+            );
+          }
         );
       },
     );
@@ -201,11 +186,6 @@ class _MasterViewState extends State<MasterView>{
         },
       ),
     );
-    itemListFuture = DatabaseHelper.instance.getItems();
-    //DatabaseHelper.instance.getItems();
-    setState(() {
-      
-    });
   }
 
   Widget dismissTile(Item item) {
@@ -221,14 +201,10 @@ class _MasterViewState extends State<MasterView>{
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
         onDismissed: (dismissDirection) async {
-          setState(() {
-            DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {
-              itemListFuture = DatabaseHelper.instance.getItems();
-            }));
-          });
+          DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {}));
         },
         confirmDismiss: (direction){
-          return _showDismissDialog("");
+          return _showDismissDialog();
         },
         background: Container(
           padding: const EdgeInsets.only(right: 20),
@@ -286,7 +262,7 @@ class _MasterViewState extends State<MasterView>{
         ),
         SpeedDialChild(
           child: const Icon(Icons.bug_report),
-          onTap: () async {
+          onTap: () {
             List<Member> members = [];
             for(int i=0; i<Random().nextInt(6)+2; ++i){
               members.add(Member(name: names[Random().nextInt(100)], color: colormap[Random().nextInt(16)].value));
@@ -298,7 +274,7 @@ class _MasterViewState extends State<MasterView>{
         ),
         SpeedDialChild(
           child: const Icon(Icons.remove),
-          onTap: () async {
+          onTap: () {
             for(int i=0; i<items.length; ++i){
               DatabaseHelper.instance.deleteItem(items[i]).then((value) => setState(() {
                 itemListFuture = DatabaseHelper.instance.getItems();

@@ -33,7 +33,7 @@ class _DetailViewState extends State<DetailView>{
 
     item = widget.item;
 
-    itemFuture = DatabaseHelper.instance.getItem(widget.item.id);
+    itemFuture = DatabaseHelper.instance.getItem(widget.item.id, sync: true);
   }
 
   // Important to grey out payoff button
@@ -249,7 +249,7 @@ class _DetailViewState extends State<DetailView>{
           child: RefreshIndicator(
             onRefresh: (){
               setState(() {
-                itemFuture = DatabaseHelper.instance.getItem(widget.item.id);
+                itemFuture = DatabaseHelper.instance.getItem(widget.item.id, sync: true);
               });
               return itemFuture;
             },

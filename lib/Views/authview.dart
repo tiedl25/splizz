@@ -28,7 +28,6 @@ class AuthView extends StatelessWidget {
               SupaEmailAuth(
                 redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
                 onSignInComplete: (res) {
-                  DatabaseHelper.instance.syncData();
                   Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                 },
                 onSignUpComplete: (res) {

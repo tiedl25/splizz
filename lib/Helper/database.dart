@@ -37,35 +37,44 @@ class DatabaseHelper {
     return isSignedIn ? Repository.instance : Repository.instance.sqliteProvider;
   }
 
+  Future<void> destructiveSync() async {
+    final db = await Repository.instance;
+
+    db.destructiveLocalSyncFromRemote<Item>();
+    db.destructiveLocalSyncFromRemote<User>();
+    db.destructiveLocalSyncFromRemote<Member>();
+    db.destructiveLocalSyncFromRemote<Operation>();
+    db.destructiveLocalSyncFromRemote<Transaction>();
+  }
+
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+    sync = sync && isSignedIn;
 
-    if (sync) await downloadData();
-
-    final items = await db.get<Item>();
-
-    if(!sync) unawaited(downloadData());
-    
+    final items = sync ? await db.destructiveLocalSyncFromRemote<Item>() : await db.get<Item>();
+   
     return items;
   }
 
-  Future<Item> getItem(String id, {dynamic db}) async {
+  Future<Item> getItem(String id, {dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+    sync = sync && isSignedIn;
 
     final itemQuery = Query(where: [Where('id').isExactly(id)]);
-    final item = (await db.get<Item>(query: itemQuery))[0];
+    final item = (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
 
-    item.members = await getMembers(id, db: db);
-    item.history = await getTransactions(id, db: db);
+    item.members = await getMembers(id, db: db, sync: sync);
+    item.history = await getTransactions(id, db: db, sync: sync);
 
     return item;
   }
 
-  Future<List<Member>> getMembers(String id, {dynamic db}) async {
+  Future<List<Member>> getMembers(String id, {dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+    sync = sync && isSignedIn;
 
     final memberQuery = Query(where: [Where('itemId').isExactly(id)]);
-    final members = await db.get<Member>(query: memberQuery);
+    final members = await db.get<Member>(query: memberQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     for(Member m in members){
       m.balance = await getBalance(m.id, db: db);
@@ -76,18 +85,17 @@ class DatabaseHelper {
     return members;
   }
 
-  Future<List<Transaction>> getTransactions(String id, {dynamic db}) async {
+  Future<List<Transaction>> getTransactions(String id, {dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+    sync = sync && isSignedIn;
 
     final transactionQuery = Query(where: [Where('itemId').isExactly(id)], providerArgs: {'orderBy': 'timestamp ASC'});
-    final transactions = await db.get<Transaction>(query: transactionQuery);
+    final transactions = await db.get<Transaction>(query: transactionQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     if (transactions.isEmpty) return [];
 
-    //transactions.sortBy((element) => element.timestamp);
-
     for(Transaction t in transactions){
-      t.operations = await getTransactionOperations(t.id, db: db);
+      t.operations = await getTransactionOperations(t.id, db: db, sync: sync);
     }
 
     return transactions;
@@ -102,11 +110,12 @@ class DatabaseHelper {
     return transactions;
   }
 
-  Future<List<Operation>> getTransactionOperations(String id, {dynamic db}) async {
+  Future<List<Operation>> getTransactionOperations(String id, {dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+    sync = sync && isSignedIn;
 
     final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
-    final operations = await db.get<Operation>(query: operationQuery); 
+    final operations = await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist); 
 
     return operations;  
   }
@@ -114,22 +123,22 @@ class DatabaseHelper {
   Future<void> upsertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
   
-    db.upsert<Item>(item);
+    await db.upsert<Item>(item);
 
-    upsertUser(item.id, db: db, fullAccess: true);
+    await upsertUser(item.id, db: db, fullAccess: true);
 
     for(Member member in item.members){
-      upsertMember(member, db: db);
+      await upsertMember(member, db: db);
     }
     for(Transaction transaction in item.history){
-      upsertTransaction(transaction, db: db);
+      await upsertTransaction(transaction, db: db);
     }
   }
 
   Future<void> upsertTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
   
-    db.upsert<Transaction>(transaction);
+    await db.upsert<Transaction>(transaction);
 
     for(Operation operation in transaction.operations){
       upsertOperation(operation, db: db);
@@ -139,7 +148,7 @@ class DatabaseHelper {
   Future<void> upsertMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
   
-    db.upsert<Member>(member);
+    await db.upsert<Member>(member);
   }
 
   Future<Result> upsertUser(String itemId, {bool fullAccess = false, String? userEmail, dynamic db}) async {
@@ -158,7 +167,7 @@ class DatabaseHelper {
 
     User user = User(itemId: itemId, userId: userId, fullAccess: fullAccess);
 
-    db.upsert<User>(user);
+    await db.upsert<User>(user);
 
     return Result.success(null);
   }
@@ -166,53 +175,7 @@ class DatabaseHelper {
   Future<void> upsertOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
   
-    db.upsert<Operation>(operation);
-  }
-
-  Future<void> syncData() async {
-    dynamic db = await Repository.instance.sqliteProvider;
-    
-    final items = await getItems(db: db);
-
-    for(Item item in items){
-      item.members = await getMembers(item.id, db: db);
-      item.history = await getTransactions(item.id, db: db);
-    }
-    db = await Repository.instance.remoteProvider;
-
-    final items2 = await getItems(db: db);
-
-    for(Item item in items2){
-      item.members = await getMembers(item.id, db: db);
-      item.history = await getTransactions(item.id, db: db);
-    }
-
-    db = await Repository.instance;
-
-    for(Item item in items){
-      upsertItem(item, db: db);
-    }
-
-    for(Item item in items2){
-      upsertItem(item, db: db);
-    }
-  }
-
-  Future<void> downloadData() async {
-    dynamic db = await Repository.instance.remoteProvider;
-
-    final items = await getItems(db: db);
-
-    for(Item item in items){
-      item.members = await getMembers(item.id, db: db);
-      item.history = await getTransactions(item.id, db: db);
-    }
-
-    db = await Repository.instance.sqliteProvider;
-
-    for(Item item in items){
-      upsertItem(item, db: db);
-    }
+    await db.upsert<Operation>(operation);
   }
 
   Future<void> deleteItem(Item item, {dynamic db}) async {
@@ -279,7 +242,6 @@ class DatabaseHelper {
   Future<double> getBalance(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    //select sum(value) from Operation where transaction_id in (select id from "Transaction" where deleted==0) and member_id=="5c5aa3b7-b8c0-4020-8a0c-e52e76cb75e2"
     var query = Query.where('deleted', false);
     final transactions = await db.get<Transaction>(query: query);
 
@@ -300,7 +262,6 @@ class DatabaseHelper {
   Future<double> getTotal(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    //select sum(value) from Operation where transaction_id in (select id from "Transaction" where deleted==0) and member_id=="5c5aa3b7-b8c0-4020-8a0c-e52e76cb75e2"
     var query = Query(where: [Where('deleted').isExactly(false), Where('memberId').isExactly(id)]);
     final transactions = await db.get<Transaction>(query: query);
 
