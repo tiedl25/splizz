@@ -381,7 +381,8 @@ class _DetailViewState extends State<DetailView>{
                     borderRadius: const BorderRadius.all(Radius.circular(20)),
                   ),
                   child: Row(
-                    children: List.generate(
+                    children: 
+                    List.generate(
                         transaction.operations.length,
                             (index) {
                           if(index==0){
@@ -391,11 +392,7 @@ class _DetailViewState extends State<DetailView>{
                               child:Text(item.members[memberMap[transaction.memberId]!].name, style: const TextStyle(color: Colors.black),),
                             );
                           }
-                          // if payer is not in involved in transactions except for paying
-                          if(transaction.value == transaction.operations[index-1].value){
-                            return Container();
-                          }
-                          Member m = item.members.firstWhere((Member m) => m.id == transaction.operations[index-1].memberId );
+                          Member m = item.members[memberMap[transaction.operations[index].memberId]!];
                           return Container(
                             padding: const EdgeInsets.all(5),
                             margin: const EdgeInsets.all(2),
@@ -407,7 +404,7 @@ class _DetailViewState extends State<DetailView>{
                             child: Text(m.name, style: const TextStyle(color: Colors.black),),
                           );
                         }),
-                  ),
+                    ),
                 ),
           )
         ],

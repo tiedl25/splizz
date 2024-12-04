@@ -115,7 +115,9 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
-    final operations = await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist); 
+    List<Operation> operations = await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
 
     return operations;  
   }

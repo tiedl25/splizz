@@ -67,6 +67,7 @@ class Item extends OfflineFirstWithSupabaseModel {
 
       t.addOperation(Operation(value: t.value, memberId: members[associatedId].id, itemId: this.id, transactionId: t.id));
     }
+    t.operations.sort((a,b) => b.value.compareTo(a.value));
   }
 
   void addMember(Member m){
