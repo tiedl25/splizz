@@ -6,6 +6,7 @@ import 'package:brick_sqlite/memory_cache_provider.dart';
 // This hide is for Brick's @Supabase annotation; in most cases,
 // supabase_flutter **will not** be imported in application code.
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:brick_offline_first/mixins.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:splizz/brick/db/schema.g.dart';
 import 'package:sqflite_common/sqlite_api.dart';
@@ -13,7 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'brick.g.dart';
 
-class Repository extends OfflineFirstWithSupabaseRepository {
+class Repository extends OfflineFirstWithSupabaseRepository with DestructiveLocalSyncFromRemoteMixin {
   static late Repository? _instance;
 
   static Repository get instance => _instance!;
