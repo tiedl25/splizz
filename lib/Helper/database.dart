@@ -13,6 +13,8 @@ import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+
 bool isSignedIn = Supabase.instance.client.auth.currentSession != null;
 
 bool switchRepository() {
@@ -49,7 +51,10 @@ class DatabaseHelper {
 
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
-    sync = sync && isSignedIn;
+
+    final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
+
+    sync = sync && isSignedIn && connection;
 
     final items = sync ? await db.destructiveLocalSyncFromRemote<Item>() : await db.get<Item>();
    
@@ -58,7 +63,10 @@ class DatabaseHelper {
 
   Future<Item> getItem(String id, {dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
-    sync = sync && isSignedIn;
+
+    final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
+
+    sync = sync && isSignedIn && connection;
 
     final itemQuery = Query(where: [Where('id').isExactly(id)]);
     final item = (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
