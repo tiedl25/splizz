@@ -74,20 +74,40 @@ class _CircularSliderState extends State<CircularSlider> {
     final offset = renderBox.globalToLocal(details.globalPosition);
     final center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
     final angle = (math.atan2(offset.dy - center.dy, offset.dx - center.dx) + 2 * math.pi) % (2 * math.pi);
+
+    double minDistance = 0.3;
+
+    double arreaToMove = math.pi/2;
+
     setState(() {
       for (int i = 0; i < members.length; i++) {
 
         double mAngle = members[i]['angle'];
 
-        if ((angle - mAngle).abs() < 0.2 || (angle - mAngle + 2 * math.pi).abs() < 0.2 || (angle - mAngle - 2 * math.pi).abs() < 0.2) {
-          
-          if ((members[i+1 >= members.length ? 0 : i+1]['angle'] - mAngle).abs() < 0.25 && angle > mAngle) {
-            //lock = true;
+        if ((angle - mAngle).abs() < 0.25 || (angle - mAngle + 2 * math.pi).abs() < 0.25 || (angle - mAngle - 2 * math.pi).abs() < 0.25) {
+          bool clockwise = ((angle-mAngle > 0 && angle-mAngle < arreaToMove) || angle-mAngle < -arreaToMove);
+          bool counterClockwise = ((angle-mAngle < 0 && angle-mAngle > -arreaToMove) || angle-mAngle > arreaToMove);
+
+          double nextMAngle = members[i+1 >= members.length ? 0 : i+1]['angle'];
+          double prevMAngle = members[i-1 < 0 ? members.length-1 : i-1]['angle'];
+
+          // break if nextAngle is too close
+          if ((nextMAngle - mAngle) < minDistance && nextMAngle - mAngle > 0 && clockwise) {
             break;
           }
 
-          if ((mAngle - members[i-1 < 0 ? members.length-1 : i-1]['angle']).abs() < 0.25 && angle < mAngle) {
-            //lock = true;
+          // break if nextAngle is too close but with the next angle bigger than 2pi, appearing as a smaller angle
+          if (-(nextMAngle - mAngle) > 2 * math.pi - minDistance && (nextMAngle - mAngle) < 2 * math.pi && clockwise) {
+            break;
+          }
+
+          // break if prevAngle is too close
+          if ((mAngle - prevMAngle) < minDistance && mAngle - prevMAngle > 0 && counterClockwise) {
+            break;
+          }
+
+          // break if prevAngle is too close but with the prev angle smaller than 0, appearing as a bigger angle
+          if (-(mAngle - prevMAngle) > 2 * math.pi - minDistance && (mAngle - prevMAngle) < 2 * math.pi && counterClockwise) {
             break;
           }
 
