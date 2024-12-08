@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
 import 'package:splizz/Helper/result.dart';
@@ -280,6 +281,17 @@ class DatabaseHelper {
     final total = List<double>.from(transactions.map((t) => t.value)).sum;
 
     return total;
+  }
+
+  Future<Uint8List?> getLocalImage(String id) async {
+    final db = await Repository.instance.sqliteProvider;
+
+    final Query query = Query(where: [Where('id').isExactly(id)]);
+    final items = await db.get<Item>(query: query);
+
+    if (items.isEmpty) return null;
+
+    return items[0].image;
   }
 
   Future <void> deleteDatabase() async {

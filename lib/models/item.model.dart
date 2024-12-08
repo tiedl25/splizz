@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:splizz/models/member.model.dart';
@@ -154,18 +155,22 @@ class Item extends OfflineFirstWithSupabaseModel {
           .from('images') // Replace with your storage bucket name
           .uploadBinary('$itemId.jpg', image);
     } catch (e) {
-      path = await Supabase_Flutter.Supabase.instance.client.storage
-          .from('images') // Replace with your storage bucket name
-          .updateBinary('$itemId.jpg', image);
+      //path = await Supabase_Flutter.Supabase.instance.client.storage
+      //    .from('images') // Replace with your storage bucket name
+      //    .updateBinary('$itemId.jpg', image);
+      path = 'images/$itemId.jpg';
     }
             
     return path;
   }
 
   static Future<Uint8List> downloadImage(String path) async {
-    final image = await Supabase_Flutter.Supabase.instance.client.storage
+    Uint8List? image = await DatabaseHelper.instance.getLocalImage(path);
+
+    if (image == null) image = await Supabase_Flutter.Supabase.instance.client.storage
         .from('images') // Replace with your storage bucket name
         .download(path + ".jpg");
+        
     return image;
   }
 }
