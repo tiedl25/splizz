@@ -114,7 +114,7 @@ class _MasterViewState extends State<MasterView>{
 
 
   Future<void> addDebugItem(members) async {
-    ByteData data = await rootBundle.load('images/image_${Random().nextInt(6)+1}.jpg');
+    ByteData data = await rootBundle.load('images/image_${Random().nextInt(9)+1}.jpg');
     final imageBytes = data.buffer.asUint8List();
     Item newItem = Item(name: 'Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
 

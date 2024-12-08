@@ -109,7 +109,7 @@ class _ItemDialogState extends State<ItemDialog>{
                           mainAxisSpacing: 10,
                           crossAxisSpacing: 20,
                         ),
-                        itemCount: 6,
+                        itemCount: 9,
                         itemBuilder: (BuildContext context, int index) {
                           return GestureDetector(
                               onTap: (){
