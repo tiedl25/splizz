@@ -43,6 +43,8 @@ class DatabaseHelper {
   Future<void> destructiveSync() async {
     final db = await Repository.instance;
 
+    if (!isSignedIn) return;
+
     db.destructiveLocalSyncFromRemote<Item>();
     db.destructiveLocalSyncFromRemote<User>();
     db.destructiveLocalSyncFromRemote<Member>();
@@ -70,7 +72,10 @@ class DatabaseHelper {
     sync = sync && isSignedIn && connection;
 
     final itemQuery = Query(where: [Where('id').isExactly(id)]);
-    final item = (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
+
+    final item = !isSignedIn ? (await db.get<Item>(query: itemQuery))[0] : (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
+
+    final a = Repository.instance.sqliteProvider;
 
     item.members = await getMembers(id, db: db, sync: sync);
     item.history = await getTransactions(id, db: db, sync: sync);
@@ -83,7 +88,7 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final memberQuery = Query(where: [Where('itemId').isExactly(id)]);
-    final members = await db.get<Member>(query: memberQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final members = !isSignedIn ? await db.get<Member>(query: memberQuery) : await db.get<Member>(query: memberQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     for(Member m in members){
       m.balance = await getBalance(m.id, db: db);
@@ -99,7 +104,7 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final transactionQuery = Query(where: [Where('itemId').isExactly(id)], providerArgs: {'orderBy': 'timestamp ASC'});
-    final transactions = await db.get<Transaction>(query: transactionQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final transactions = !isSignedIn ? await db.get<Transaction>(query: transactionQuery) : await db.get<Transaction>(query: transactionQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     if (transactions.isEmpty) return [];
 
@@ -124,7 +129,7 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
-    List<Operation> operations = await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    List<Operation> operations = !isSignedIn ? await db.get<Operation>(query: operationQuery) : await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
 
