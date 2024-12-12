@@ -424,7 +424,7 @@ class _DetailViewState extends State<DetailView>{
               child: Image.memory(
                   item.image!,
                   width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height/5,
+                  height: MediaQuery.of(context).size.width/2.2,
                   fit: BoxFit.fill
               ),
             ),

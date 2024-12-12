@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/colormap.dart';
@@ -27,8 +29,12 @@ class ItemDialog extends StatefulWidget {
 class _ItemDialogState extends State<ItemDialog>{
   String title = '';
   List<String> member = [];
-  int count = 2;
-  int image = 0;
+  int count = 3;
+  int image = 1;
+
+  Image? croppedImage;
+  final ImagePicker picker = ImagePicker();
+  Uint8List? imageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -79,8 +85,14 @@ class _ItemDialogState extends State<ItemDialog>{
   }
 
   Future<void> saveItem(members) async {
-    ByteData data = await rootBundle.load('images/image_${image+1}.jpg');
-    var imageBytes = data.buffer.asUint8List();
+    Uint8List? imageBytes;
+
+    if(image == 0){
+      imageBytes = imageFile;
+    } else {
+      ByteData data = await rootBundle.load('images/image_${image}.jpg');
+      imageBytes = data.buffer.asUint8List();
+    }
 
     Item newItem = Item(name: title, members: members, image: imageBytes);
     for (Member m in members){
@@ -93,53 +105,107 @@ class _ItemDialogState extends State<ItemDialog>{
 
   void imagePicker(){
     showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return StatefulBuilder(
-              builder: (context, setState){
-                return DialogModel(
-                  content: SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height/3,
-                      child: GridView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 200,
-                          childAspectRatio: 1.5,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 20,
-                        ),
-                        itemCount: 9,
-                        itemBuilder: (BuildContext context, int index) {
-                          return GestureDetector(
-                              onTap: (){
-                                setState((){
-                                  image = index;
-                                  //Navigator.of(context).pop();
-                                });
-                              },
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                    border: image==index ? Border.all(color: Colors.red, width: 3) : Border.all(style: BorderStyle.none),
-                                    borderRadius: const BorderRadius.all(Radius.circular(17)),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
-                                    child: Image(
-                                        fit: BoxFit.cover,
-                                        image: AssetImage('images/image_${index+1}.jpg')
-                                    ),
-                                  )
-                              )
-                          );
-                        },
-                      )
-                  ),
-                  onConfirmed: (){},
-                );
-              }
-          );
-        });
+      context: context,
+      builder: (BuildContext context){
+        return StatefulBuilder(
+            builder: (context, setState){
+              return DialogModel(
+                content: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height/3,
+                    child: GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 200,
+                        childAspectRatio: 1.5,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 20,
+                      ),
+                      itemCount: 10,
+                      itemBuilder: (BuildContext context, int index) {
+                        return imageTile(index, setState);
+                      },
+                    )
+                ),
+                onConfirmed: (){},
+              );
+            }
+        );
+      }
+    );
+  }
+
+  Widget imageTile(int index, setState) {
+    return Container(
+      decoration: BoxDecoration(
+        border: image==index ? Border.all(color: Colors.red, width: 3) : Border.all(style: index == 0 && imageFile == null ? BorderStyle.solid : BorderStyle.none, width: 2, color: Colors.black45),
+        borderRadius: const BorderRadius.all(Radius.circular(17)),
+        image: index > 0 || imageFile == null ? null : DecorationImage(
+          image: MemoryImage(imageFile!),//croppedImage!.image,
+          fit: BoxFit.cover
+        )
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(15)),
+        child: index > 0 ? GestureDetector(
+              onTap: () async{
+                setState((){
+                  image = index;
+                  //Navigator.of(context).pop();
+                });
+              },
+              child: Image(
+                  fit: BoxFit.cover,
+                  image: AssetImage('images/image_${index}.jpg')
+              ),
+          )
+          : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              GestureDetector(
+                  onTap: () async{
+                    await imagePickCropper(ImageSource.camera);
+                    if (imageFile == null) return;
+                    setState((){image=index;});
+                  },
+                  child: Icon(Icons.camera_alt, color: imageFile == null ? Colors.black45 : Colors.black87, size: 50),
+              ),
+              GestureDetector(
+                  onTap: () async{
+                    await imagePickCropper(ImageSource.gallery);
+                    if (imageFile == null) return;
+                    setState((){image=index;});
+                  },
+                  child: Icon(Icons.image, color: imageFile == null ? Colors.black45 : Colors.black87, size: 50),
+              )
+          ]
+        ),
+      )
+    );
+  }
+
+  Future<void> imagePickCropper(imageSource) async {
+    final imageFilePath = (await picker.pickImage(source: imageSource));
+    if (imageFilePath == null) return;
+
+    final croppedImage = await ImageCropper().cropImage(
+      sourcePath: imageFilePath.path, 
+      aspectRatio: const CropAspectRatio(ratioX: 2.2, ratioY: 1), 
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop',
+          toolbarColor: Theme.of(context).colorScheme.background,
+          toolbarWidgetColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.background
+        ),
+        IOSUiSettings(
+          title: 'Crop',
+        ),
+      ],
+    );
+    if (croppedImage == null) return;
+
+    imageFile = await (croppedImage.readAsBytes());
   }
 
   void colorPicker(int i){

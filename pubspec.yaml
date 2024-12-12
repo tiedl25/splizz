@@ -51,7 +51,8 @@ dependencies:
   multi_dropdown: ^2.0.1
   calendar_date_picker2: ^0.5.3
   flutter_rounded_date_picker: ^3.0.4
-  image_picker: ^1.0.2
+  image_picker: ^1.1.2
+  image_cropper: ^8.0.2
   http: ^1.1.0
   flutter_inappwebview: ^5.7.2+3
   flutter_dotenv: ^5.1.0
