@@ -134,7 +134,7 @@ class _SettingsViewState extends State<SettingsView>{
                   trailing: Icon(Icons.open_in_browser),
                   onTap: () {
                     launchUrl(
-                      Uri.https("https://tmc.tiedl.rocks/splizz/dsgvo"),
+                      Uri.parse("https://tmc.tiedl.rocks/splizz/dsgvo"),
                       customTabsOptions: CustomTabsOptions(
                         urlBarHidingEnabled: false,
                         instantAppsEnabled: true,
