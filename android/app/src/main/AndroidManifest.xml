@@ -33,6 +33,18 @@
                 android:scheme="splizz"
                 android:host="de.tmc.splizz" />
             </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+
+                <!-- Include one or more domains that should be verified. -->
+                <data android:host="tmc.tiedl.rocks"
+                    android:pathPrefix="/splizz" />
+            </intent-filter>
         </activity>
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

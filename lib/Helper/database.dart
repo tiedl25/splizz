@@ -75,8 +75,6 @@ class DatabaseHelper {
 
     final item = !isSignedIn ? (await db.get<Item>(query: itemQuery))[0] : (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
 
-    final a = Repository.instance.sqliteProvider;
-
     item.members = await getMembers(id, db: db, sync: sync);
     item.history = await getTransactions(id, db: db, sync: sync);
 
@@ -136,12 +134,21 @@ class DatabaseHelper {
     return operations;  
   }
 
+  Future<User> getPermission(String itemId, String userId, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    final userQuery = Query(where: [Where('itemId').isExactly(itemId), Where('userId').isExactly(userId)]);
+    return (await db.get<User>(query: userQuery))[0];
+  }
+
   Future<void> upsertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
   
     await db.upsert<Item>(item);
 
-    await upsertUser(item.id, db: db, fullAccess: true);
+    final currentUser = Supabase.instance.client.auth.currentUser!;
+
+    await db.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true));
 
     for(Member member in item.members){
       await upsertMember(member, db: db);
@@ -167,23 +174,56 @@ class DatabaseHelper {
     await db.upsert<Member>(member);
   }
 
-  Future<Result> upsertUser(String itemId, {bool fullAccess = false, String? userEmail, dynamic db}) async {
+  Future<Result> addPermission(User permission, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    if(userEmail != null){
-      if (userEmail != Supabase.instance.client.auth.currentUser?.email) return Result.failure("You are not authorized for this action!");
+    final existingPermission = await db.get<User>(query: Query(where: [Where("itemId").isExactly(permission.itemId), Where("userEmail").isExactly(permission.userEmail)]));
+
+    if (existingPermission.isNotEmpty){
+      if (existingPermission[0].expirationDate == null) return Result.failure("User is already granted access!");
+
+      existingPermission[0].fullAccess = permission.fullAccess;
+      existingPermission[0].expirationDate = permission.expirationDate;
+
+      permission = existingPermission[0];
     }
 
-    final userId = Supabase.instance.client.auth.currentUser?.id;
+    await db.upsert<User>(permission);
 
-    Query query = Query(where: [Where("itemId").isExactly(itemId), Where("userId").isExactly(userId)]);
-    final u = await db.get<User>(query: query);
+    return Result.success(null);
+  }
 
-    if (u.isNotEmpty) return Result.failure("The item has already been added");
+  Future<Result> confirmPermission(String permissionId, {dynamic db}) async {
+    db = db ?? await instance.database;
 
-    User user = User(itemId: itemId, userId: userId, fullAccess: fullAccess);
+    final currentUser = Supabase.instance.client.auth.currentUser!;
 
-    await db.upsert<User>(user);
+    final permissions = await db.get<User>(query: Query(where: [Where('id').isExactly(permissionId)]));
+
+    if (permissions.isEmpty) return Result.failure("You are not authorized for this action!");
+    
+    User permission = permissions[0];
+
+    if(permission.userEmail != null){
+      if (permission.userEmail != currentUser.email) return Result.failure("You are not authorized for this action!");
+
+      permission.userId = currentUser.id;
+      permission.expirationDate = null;
+    } else {
+      permission = User(
+        itemId: permission.itemId,
+        userId: permission.userId,
+        fullAccess: permission.fullAccess,
+        userEmail: currentUser.email,
+      );
+    }
+
+    Query query = Query(where: [Where("itemId").isExactly(permission.itemId), Where("userId").isExactly(permission.userId)]);
+    final existingPermissions = await db.get<User>(query: query);
+
+    if (existingPermissions.isNotEmpty) return Result.failure("The item has already been added");    
+
+    await db.upsert<User>(permission);
 
     return Result.success(null);
   }

@@ -8,7 +8,11 @@ Future<User> _$UserFromSupabase(Map<String, dynamic> data,
       id: data['id'] as String?,
       itemId: data['item_id'] as String?,
       userId: data['user_id'] as String?,
-      fullAccess: data['full_access'] as bool);
+      fullAccess: data['full_access'] as bool,
+      userEmail: data['user_email'] as String?,
+      expirationDate: data['expiration_date'] == null
+          ? null
+          : DateTime.tryParse(data['expiration_date'] as String));
 }
 
 Future<Map<String, dynamic>> _$UserToSupabase(User instance,
@@ -18,7 +22,9 @@ Future<Map<String, dynamic>> _$UserToSupabase(User instance,
     'id': instance.id,
     'item_id': instance.itemId,
     'user_id': instance.userId,
-    'full_access': instance.fullAccess
+    'full_access': instance.fullAccess,
+    'user_email': instance.userEmail,
+    'expiration_date': instance.expirationDate?.toIso8601String()
   };
 }
 
@@ -29,7 +35,14 @@ Future<User> _$UserFromSqlite(Map<String, dynamic> data,
       id: data['id'] as String,
       itemId: data['item_id'] == null ? null : data['item_id'] as String?,
       userId: data['user_id'] == null ? null : data['user_id'] as String?,
-      fullAccess: data['full_access'] == 1)
+      fullAccess: data['full_access'] == 1,
+      userEmail:
+          data['user_email'] == null ? null : data['user_email'] as String?,
+      expirationDate: data['expiration_date'] == null
+          ? null
+          : data['expiration_date'] == null
+              ? null
+              : DateTime.tryParse(data['expiration_date'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -40,7 +53,9 @@ Future<Map<String, dynamic>> _$UserToSqlite(User instance,
     'id': instance.id,
     'item_id': instance.itemId,
     'user_id': instance.userId,
-    'full_access': instance.fullAccess ? 1 : 0
+    'full_access': instance.fullAccess ? 1 : 0,
+    'user_email': instance.userEmail,
+    'expiration_date': instance.expirationDate?.toIso8601String()
   };
 }
 
@@ -69,6 +84,14 @@ class UserAdapter extends OfflineFirstWithSupabaseAdapter<User> {
     'fullAccess': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'full_access',
+    ),
+    'userEmail': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'user_email',
+    ),
+    'expirationDate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'expiration_date',
     )
   };
   @override
@@ -106,6 +129,18 @@ class UserAdapter extends OfflineFirstWithSupabaseAdapter<User> {
       columnName: 'full_access',
       iterable: false,
       type: bool,
+    ),
+    'userEmail': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'user_email',
+      iterable: false,
+      type: String,
+    ),
+    'expirationDate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'expiration_date',
+      iterable: false,
+      type: DateTime,
     )
   };
   @override

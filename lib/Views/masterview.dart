@@ -20,7 +20,7 @@ import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/models/member.model.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 
 var activeSession = Supabase.instance.client.auth.currentSession;
 
@@ -63,6 +63,7 @@ class _MasterViewState extends State<MasterView>{
   late Future<List<Item>> itemListFuture;
   bool removeDriveFile = false;
   late PackageInfo packageInfo;
+  final appLinks = AppLinks();
 
   StreamSubscription? _sub;
 
@@ -85,17 +86,24 @@ class _MasterViewState extends State<MasterView>{
 
 
   void _handleIncomingLinks() {
-    _sub = uriLinkStream.listen((Uri? uri) async {
+    _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
-        final itemId = uri.queryParameters['itemId'];
-        final userEmail = uri.queryParameters['userEmail'];
-        final fullAccess = uri.queryParameters['fullAccess'];
+        final permissionId = uri.queryParameters['id'];
 
-        if (itemId != null && userEmail != null && fullAccess != null) {
-          final Result result = await DatabaseHelper.instance.upsertUser(itemId, userEmail: userEmail, fullAccess: fullAccess=="true");
-          if (!result.isSuccess){
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message!)));
-          }
+        if (permissionId != null) {
+          showDialog(
+            context: context, builder: (BuildContext context){
+              return DialogModel(
+                content: Text('You are invited to a Splizz. Do you want to join?', style: TextStyle(fontSize: 20),), 
+                onConfirmed: () async {
+                  final Result result = await DatabaseHelper.instance.confirmPermission(permissionId);
+                  if (!result.isSuccess){
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message!)));
+                  }
+                }
+              );
+            },
+          );
         }
       }
     }, onError: (err) {

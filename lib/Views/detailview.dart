@@ -11,7 +11,8 @@ import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:splizz/models/user.model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class DetailView extends StatefulWidget{
   final Item item;
@@ -57,7 +58,13 @@ class _DetailViewState extends State<DetailView>{
     );
   }
 
-  void _showShareDialog() {
+  Future<void> _showShareDialog() async {
+    User permission = await DatabaseHelper.instance.getPermission(item.id, Supabase.instance.client.auth.currentUser!.id);
+    if (!permission.fullAccess){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("You are not authorized to share this item!")));
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {

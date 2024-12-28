@@ -17,6 +17,8 @@ import 'package:splizz/models/transaction.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'dart:typed_data';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:splizz/Helper/database.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:splizz/models/member.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_flutter/supabase_flutter.dart' as Supabase_Flutter;// GENERATED CODE DO NOT EDIT

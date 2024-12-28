@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/ui_model.dart';
 
 import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/user.model.dart';
 
 class AuthDialog extends StatelessWidget {
   const AuthDialog({Key? key}) : super(key: key);
@@ -36,9 +37,15 @@ class _ShareDialogState extends State<ShareDialog>{
   TextEditingController tfController = TextEditingController();
   bool fullAccess = false;
 
-  String generateLink() {
-    String message = 'You are invited to a Splizz. Accept by opening this link.\n\n';
-    return message + 'splizz://de.tmc.splizz?itemId=${widget.item.id}&userEmail=${tfController.text}&fullAccess=$fullAccess';
+  Future<void> showLink() async {
+    User permission = User(itemId: widget.item.id, fullAccess: fullAccess, userEmail: tfController.text, expirationDate: DateTime.now().add(const Duration(days: 1)));
+    final result = await DatabaseHelper.instance.addPermission(permission);
+
+    if (!result.isSuccess) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message!)));
+    else {
+      String message = 'You are invited to a Splizz. Accept by opening this link.\n\n';
+      Share.share(message + 'https://tmc.tiedl.rocks/splizz?id=${permission.id}');
+    }
   }
 
   @override
@@ -57,7 +64,8 @@ class _ShareDialogState extends State<ShareDialog>{
                       decoration: TfDecorationModel(
                         context: context,
                         title: 'Email',
-                        icon: IconButton(icon: const Icon(Icons.copy), color: Colors.black45, onPressed: () => {Share.share(generateLink())},),
+                        icon: IconButton(icon: const Icon(Icons.copy), color: Colors.black45, onPressed: () async => showLink(),
+                        ),
                       ),
                       onSubmitted: (value) => {},
                     ),
@@ -77,7 +85,7 @@ class _ShareDialogState extends State<ShareDialog>{
                 ),
               ),
             ),
-            onConfirmed:  () => Share.share(generateLink())
+            onConfirmed:  () async => showLink(),
             );
   }
 }
