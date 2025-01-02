@@ -121,7 +121,7 @@ class _MasterViewState extends State<MasterView>{
 
 
 
-  Future<void> addDebugItem(members) async {
+  Future<Item> addDebugItem(members) async {
     ByteData data = await rootBundle.load('images/image_${Random().nextInt(9)+1}.jpg');
     final imageBytes = data.buffer.asUint8List();
     Item newItem = Item(name: 'Test ${Random().nextInt(9999)}', members: members, image: imageBytes);
@@ -132,20 +132,19 @@ class _MasterViewState extends State<MasterView>{
 
     DatabaseHelper.instance.upsertItem(newItem);
 
-    setState(() {
-      items.add(newItem);
-    });
+    return newItem;
   }
 
   //Dialogs
 
   void _showAddDialog(){
     showDialog(
-        context: context,
-        barrierDismissible: true, // user must tap button!
-        builder: (BuildContext context){
-          return ItemDialog(items: items, updateItemList: (item) => setState(() => items.add(item)));
-        });
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context){
+        return ItemDialog(items: items, updateItemList: (item) => setState(() => items.add(item)));
+      }
+    );
   }
 
   Future<bool?> _showDismissDialog() {
@@ -209,7 +208,9 @@ class _MasterViewState extends State<MasterView>{
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
         onDismissed: (dismissDirection) async {
-          DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {}));
+          DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {
+            items.remove(item);
+          }));
         },
         confirmDismiss: (direction){
           return _showDismissDialog();
@@ -275,9 +276,7 @@ class _MasterViewState extends State<MasterView>{
             for(int i=0; i<Random().nextInt(6)+2; ++i){
               members.add(Member(name: names[Random().nextInt(100)], color: colormap[Random().nextInt(16)].value));
             }
-            addDebugItem(members).then((value) => setState(() {
-              itemListFuture = DatabaseHelper.instance.getItems();
-            }));
+            addDebugItem(members).then((item) => setState(() {items.add(item);}));
           }
         ),
         SpeedDialChild(

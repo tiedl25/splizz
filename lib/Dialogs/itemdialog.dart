@@ -39,52 +39,52 @@ class _ItemDialogState extends State<ItemDialog>{
   @override
   Widget build(BuildContext context) {
     return DialogModel(
-            title: 'Create a new Splizz',
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  children: List.generate(
-                      count,
-                          (i) {
-                        if(i == 0) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: TextField(
-                              onChanged: (value) {
-                                setState(() {
-                                  title = value;
-                                });
-                              },
-                              decoration: TfDecorationModel(
-                                  context: context,
-                                  title: 'Title',
-                                  icon: IconButton(onPressed: imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
-                            ),
-                          );
-                        }
-                        return textField(i);
-                      }
-                  ),
-                ),
-              ),
-            ),
-            onConfirmed:  (){
-              List<Member> members = [];
-              for(String name in member){
-                if(name != ''){
-                  members.add(Member(name:name, color: colormap[members.length].value));
+      title: 'Create a new Splizz',
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: List.generate(
+                count,
+                    (i) {
+                  if(i == 0) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            title = value;
+                          });
+                        },
+                        decoration: TfDecorationModel(
+                            context: context,
+                            title: 'Title',
+                            icon: IconButton(onPressed: imagePicker, icon: const Icon(Icons.camera_alt, color: Colors.black45,))),
+                      ),
+                    );
+                  }
+                  return textField(i);
                 }
-              }
-              if(title != '' && members.length > 1) {
-                saveItem(members);
-              }
-            }
-            );
+            ),
+          ),
+        ),
+      ),
+      onConfirmed:  () async {
+        List<Member> members = [];
+        for(String name in member){
+          if(name != ''){
+            members.add(Member(name:name, color: colormap[members.length].value));
+          }
+        }
+        if(title != '' && members.length > 1) {
+          saveItem(members).then((item) => widget.updateItemList(item));
+        }
+      }
+    );
   }
 
-  Future<void> saveItem(members) async {
+  Future<Item> saveItem(members) async {
     Uint8List? imageBytes;
 
     if(image == 0){
@@ -100,7 +100,9 @@ class _ItemDialogState extends State<ItemDialog>{
     }
 
     //DatabaseHelper.instance.add(newItem);
-    DatabaseHelper.instance.upsertItem(newItem);
+    await DatabaseHelper.instance.upsertItem(newItem);
+
+    return newItem;
   }
 
   void imagePicker(){
