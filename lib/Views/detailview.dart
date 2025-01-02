@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:splizz/Dialogs/payoffdialog.dart';
 import 'package:splizz/Dialogs/sharedialog.dart';
@@ -247,10 +248,11 @@ class _DetailViewState extends State<DetailView>{
     return Expanded(
       flex: 50,
       child: Container(
+          clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border.all(style: BorderStyle.none),
-            borderRadius: const BorderRadius.all(Radius.circular(15)),
+            borderRadius: const BorderRadius.all(Radius.circular(25)),
           ),
           margin: const EdgeInsets.all(10),
           child: RefreshIndicator(
@@ -307,7 +309,7 @@ class _DetailViewState extends State<DetailView>{
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
         color: Colors.red,
       ),
       child: Dismissible(
@@ -347,14 +349,15 @@ class _DetailViewState extends State<DetailView>{
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
     return Container(
+      clipBehavior: Clip.hardEdge,
       foregroundDecoration: transaction.deleted ? const BoxDecoration(
           color: Color(0x99000000),
           backgroundBlendMode: BlendMode.darken,
-          borderRadius: BorderRadius.all(Radius.circular(15))
+          borderRadius: BorderRadius.all(Radius.circular(20))
       ) : null,
       decoration: BoxDecoration(
           color: color,
-          borderRadius: const BorderRadius.all(Radius.circular(15))
+          borderRadius: const BorderRadius.all(Radius.circular(20))
       ),
       child: ExpansionTile(
         //expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -420,6 +423,7 @@ class _DetailViewState extends State<DetailView>{
   }
 
   Widget body() {
+    double imageRadius = window.viewPadding.top - AppBar().preferredSize.height - MediaQuery.of(context).viewPadding.top;
     return Column(
       children: [
         Row(
@@ -427,7 +431,7 @@ class _DetailViewState extends State<DetailView>{
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(20)),
+                  bottom: Radius.circular(25)),
               child: Image.memory(
                   item.image!,
                   width: MediaQuery.of(context).size.width,
@@ -491,7 +495,7 @@ class _DetailViewState extends State<DetailView>{
       ),
       body: body(),
       floatingActionButton: kDebugMode ? SpeedDial(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         spacing: 5,
         animatedIcon: AnimatedIcons.menu_close,
         animatedIconTheme: const IconThemeData(size: 22.0),
@@ -502,7 +506,7 @@ class _DetailViewState extends State<DetailView>{
         children: [
           SpeedDialChild(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15)),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
             backgroundColor: Colors.purple,
             foregroundColor: Colors.white,
@@ -531,6 +535,9 @@ class _DetailViewState extends State<DetailView>{
           // add more options as needed
         ],
       ) : FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
         onPressed: _showAddDialog,
         tooltip: 'Add Item',
         foregroundColor: Colors.white,

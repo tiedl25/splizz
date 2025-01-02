@@ -203,7 +203,7 @@ class _MasterViewState extends State<MasterView>{
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
         color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
       child: Dismissible(
         key: UniqueKey(),
@@ -232,12 +232,12 @@ class _MasterViewState extends State<MasterView>{
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border.all(style: BorderStyle.none),
-        borderRadius: const BorderRadius.all(Radius.circular(15)),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(15)),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
           tileColor: Theme.of(context).colorScheme.surface,
           title: Text(item.name, style: const TextStyle(fontSize: 20),),
@@ -250,7 +250,7 @@ class _MasterViewState extends State<MasterView>{
 
   Widget speedDial() {
     return kDebugMode ? SpeedDial(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       spacing: 5,
       animatedIcon: AnimatedIcons.menu_close,
       animatedIconTheme: const IconThemeData(size: 22.0),
@@ -261,7 +261,7 @@ class _MasterViewState extends State<MasterView>{
       children: [
         SpeedDialChild(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(15)),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
           backgroundColor: Colors.purple,
           foregroundColor: Colors.white,
@@ -296,6 +296,9 @@ class _MasterViewState extends State<MasterView>{
         // add more options as needed
       ],
     ) : FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
         onPressed: _showAddDialog,
         tooltip: 'Add Transaction',
         foregroundColor: Colors.white,
