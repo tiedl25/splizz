@@ -40,10 +40,31 @@ class DatabaseHelper {
     return isSignedIn ? Repository.instance : Repository.instance.sqliteProvider;
   }
 
+  Future<bool> checkQueue() async {
+    if (!isSignedIn) return true;
+
+    // ignore: invalid_use_of_protected_member
+    final queue = Repository.instance.offlineRequestQueue;
+    final unprocessedRequests = await queue.requestManager.unprocessedRequests();
+
+    for (final sqliteRequest in unprocessedRequests) {
+      
+
+      final request = queue.requestManager.sqliteToRequest(sqliteRequest);
+      final response = await queue.transmitRequest(request);
+      if(sqliteRequest["attempts"] < 3) continue;
+      if(response.reasonPhrase == "Unauthorized") {
+        await queue.requestManager.deleteUnprocessedRequest(sqliteRequest["id"]);
+      }
+    }
+
+    return (await queue.requestManager.unprocessedRequests()).length > 0;
+  }
+
   Future<void> destructiveSync() async {
     final db = await Repository.instance;
 
-    if (!isSignedIn) return;
+    if (await checkQueue()) return;
 
     db.destructiveLocalSyncFromRemote<Item>();
     db.destructiveLocalSyncFromRemote<User>();
@@ -54,6 +75,8 @@ class DatabaseHelper {
 
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
+
+    checkQueue();
 
     final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
 
