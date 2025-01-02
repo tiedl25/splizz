@@ -76,7 +76,7 @@ class _MasterViewState extends State<MasterView>{
 
     DatabaseHelper.instance.destructiveSync();
     
-    itemListFuture = DatabaseHelper.instance.getItems(sync: false);
+    itemListFuture = DatabaseHelper.instance.getItems();
 
     PackageInfo.fromPlatform().then((value) => packageInfo = value);
 
@@ -335,7 +335,7 @@ class _MasterViewState extends State<MasterView>{
               ),
               onRefresh: (){
                 setState(() {
-                  itemListFuture = DatabaseHelper.instance.getItems(sync: true);
+                  itemListFuture = DatabaseHelper.instance.getItems();
                 });
                 return itemListFuture;
               });
