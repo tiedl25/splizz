@@ -169,9 +169,9 @@ class DatabaseHelper {
   
     await db.upsert<Item>(item);
 
-    final currentUser = Supabase.instance.client.auth.currentUser!;
+    final currentUser = Supabase.instance.client.auth.currentUser;
 
-    await db.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true));
+    if (currentUser != null) await db.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true));
 
     for(Member member in item.members){
       await upsertMember(member, db: db);
