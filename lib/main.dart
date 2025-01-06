@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/Views/masterview.dart';
+import 'package:splizz/ui/views/masterview.dart';
 import 'package:splizz/Views/settingsview.dart';
 import 'package:splizz/Views/authview.dart';
 import 'package:splizz/theme/dark_theme.dart';

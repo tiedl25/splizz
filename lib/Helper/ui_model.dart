@@ -8,6 +8,7 @@ class DialogModel extends StatelessWidget {
   final Widget? header;
   final Widget content;
   final Function? onConfirmed;
+  final Function? onDismissed;
   final returnValue;
   final String leftText;
   final String rightText;
@@ -23,6 +24,7 @@ class DialogModel extends StatelessWidget {
     this.header,
     required this.content,
     this.onConfirmed,
+    this.onDismissed,
     this.leftText='Cancel',
     this.rightText='OK',
     this.insetPadding=const EdgeInsets.all(15),
@@ -65,6 +67,7 @@ class DialogModel extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 0),
                           child: Text(leftText, style: Theme.of(context).textTheme.labelLarge,),
                           onPressed: () {
+                            onDismissed!();
                             Navigator.of(context).pop(false);
                           },
                         )
