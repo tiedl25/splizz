@@ -7,220 +7,316 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 
 abstract class DetailViewState {
-  final Item item;
+  Item item;
 
-  const DetailViewState(this.item);
+  DetailViewState({required this.item});
+
+  DetailViewState copyWith({Item? item}) {
+    this.item = item ?? this.item;
+
+    return this;
+  }
 }
 
 class DetailViewLoading extends DetailViewState {
-  const DetailViewLoading(super.item);
+  DetailViewLoading({required super.item});
 }
 
 class DetailViewLoaded extends DetailViewState {
   bool unbalanced;
 
-  DetailViewLoaded(super.item, this.unbalanced);
+  DetailViewLoaded({required super.item, this.unbalanced = false});
+
+  factory DetailViewLoaded.fromDetailViewState(DetailViewState state,
+          {unbalanced = false}) =>
+      DetailViewLoaded(item: state.item, unbalanced: unbalanced);
+
+  @override
+  DetailViewLoaded copyWith({Item? item, bool? unbalanced}) {
+    return DetailViewLoaded(
+        item: item ?? this.item, unbalanced: unbalanced ?? this.unbalanced);
+  }
 }
 
-class TransactionDialogState extends DetailViewState {
-  final bool currency;
-  final bool extend;
-  final double scale;
-  final int selection;
-  final int dateSelection;
-  final List<dynamic> date;
-  final List<bool> memberSelection;
-  final List<double> memberBalances;
-  final List<Map<String, dynamic>> involvedMembers;
+class TransactionDialogState extends DetailViewLoaded {
+  bool currency;
+  bool extend;
+  double scale;
+  int selection;
+  int dateSelection;
+  List<dynamic> date;
+  List<bool> memberSelection;
+  List<double> memberBalances;
+  List<Map<String, dynamic>> involvedMembers;
 
-  const TransactionDialogState(super.item, this.memberSelection, this.memberBalances, this.involvedMembers, this.date, {this.currency=false, this.extend=false, this.scale=1.0, this.selection=-1, this.dateSelection=0});
+  TransactionDialogState(
+      {required super.item,
+      super.unbalanced,
+      required this.memberSelection,
+      required this.memberBalances,
+      required this.involvedMembers,
+      required this.date,
+      this.currency = false,
+      this.extend = false,
+      this.scale = 1.0,
+      this.selection = -1,
+      this.dateSelection = 0});
+
+  factory TransactionDialogState.fromDetailViewState(DetailViewState state) =>
+      TransactionDialogState(
+          item: state.item,
+          memberSelection:
+              state.item.members.map((Member m) => m.active).toList(),
+          memberBalances:
+              List.generate(state.item.members.length, (index) => 0.0),
+          involvedMembers: [],
+          date: ["Today", "Yesterday", DateTime.now()]);
+
+  @override
+  TransactionDialogState copyWith(
+      {Item? item,
+      bool? unbalanced,
+      bool? currency,
+      bool? extend,
+      double? scale,
+      int? selection,
+      int? dateSelection,
+      List<bool>? memberSelection,
+      List<double>? memberBalances,
+      List<Map<String, dynamic>>? involvedMembers,
+      List<dynamic>? date}) {
+    return TransactionDialogState(
+        item: item ?? this.item,
+        unbalanced: unbalanced ?? this.unbalanced,
+        currency: currency ?? this.currency,
+        extend: extend ?? this.extend,
+        scale: scale ?? this.scale,
+        selection: selection ?? this.selection,
+        dateSelection: dateSelection ?? this.dateSelection,
+        memberSelection: memberSelection ?? this.memberSelection,
+        memberBalances: memberBalances ?? this.memberBalances,
+        involvedMembers: involvedMembers ?? this.involvedMembers,
+        date: date ?? this.date);
+  }
 }
 
-class DateSelectionDialog extends DetailViewState {
-  final DateTime day;
+class DetailViewCubit extends Cubit<DetailViewState> {
+  DetailViewCubit(Item item) : super(DetailViewLoading(item: item));
 
-  const DateSelectionDialog(super.item, this.day);
-}
+  fetchData() async {
+    final newState = DetailViewLoaded(
+        item: await DatabaseHelper.instance.getItem(state.item.id),
+        unbalanced: checkBalances(state.item.members));
 
-class DetailViewBloc extends Cubit<DetailViewState> {
-  Item item;
-
-  bool unbalanced = false;
-
-  bool currency = false;
-  bool extend = false;
-  double scale = 1.0;
-  int selection = -1;
-  int _dateSelection = 0;
-  List<bool> _memberSelection = [];
-  List<double> _memberBalances = [];
-  List<Map<String, dynamic>> _involvedMembers = [];
-  List<dynamic> date = ["Today", "Yesterday"];
-
-  DetailViewBloc(this.item) : super(DetailViewLoading(item));
-
-  fetchData () async {
-    item = await DatabaseHelper.instance.getItem(state.item.id);
-    emit(DetailViewLoaded(item, checkBalances(item.members)));
-  }
-
-  addDebugTransaction() async {
-    int memberListIndex = Random().nextInt(state.item.members.length);
-    List<Map<String, dynamic>> involvedMembers = state.item.members.asMap().entries.map((entry) {
-      int index = entry.key;  // This is the index
-      var e = entry.value;    // This is the item at that index
-      return {'listId': index, 'id': e.id, 'balance': double.parse((22.00/state.item.members.length).toStringAsFixed(2))};
-    }).toList();
-
-    Transaction t = Transaction(description: 'test', value: 22.00, date: DateTime.now(), memberId: state.item.members[memberListIndex].id , itemId: state.item.id);
-    state.item.addTransaction(memberListIndex, t, involvedMembers);
-    await DatabaseHelper.instance.upsertTransaction(t);
-
-    emit(state);
-  }
-
-  deleteTransaction(Transaction transaction, memberMap, memberListIndex) {
-    state.item.deleteTransaction(transaction, memberMap, memberListIndex);
-    DatabaseHelper.instance.deleteTransaction(transaction);
-    emit(state);
-  }
-
-  setMemberActivity(Member member, bool value) {
-    member = Member.fromMember(member, active: value, timestamp: DateTime.now());
-    DatabaseHelper.instance.upsertMember(member);
-    state.item.members[state.item.members.indexWhere((element) => element.id == member.id)] = member;
-    emit(state);
-  }
-
-  toggleCurrency() {
-    currency = !currency;
-
-    TransactionDialogState newState = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
     emit(newState);
   }
 
-  toggleShowLess() {
-    extend = !extend;
-    scale = 1.0;
+  addDebugTransaction() async {
+    final newState = (state as DetailViewLoaded).copyWith();
 
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+    final int memberListIndex = Random().nextInt(newState.item.members.length);
 
-    emit(dialog);
+    List<Map<String, dynamic>> involvedMembers = newState.item.members
+        .asMap()
+        .entries
+        .map((entry) => {
+              'listId': entry.key,
+              'id': entry.value.id,
+              'balance': double.parse(
+                  (22.00 / newState.item.members.length).toStringAsFixed(2))
+            })
+        .toList();
+
+    Transaction transaction = Transaction(
+        description: 'test',
+        value: 22.00,
+        date: DateTime.now(),
+        memberId: newState.item.members[memberListIndex].id,
+        itemId: newState.item.id);
+    newState.item.addTransaction(memberListIndex, transaction, involvedMembers);
+
+    newState.unbalanced = checkBalances(newState.item.members);
+
+    await DatabaseHelper.instance.upsertTransaction(transaction);
+
+    emit(newState);
   }
 
-  toggleExtend() {
-    scale = 0.7;
+  deleteTransaction(Transaction transaction, memberMap, memberListIndex) {
+    final newState = (state as DetailViewLoaded).copyWith();
 
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
-
-    emit(dialog);
+    newState.item.deleteTransaction(transaction, memberMap, memberListIndex);
+    DatabaseHelper.instance.deleteTransaction(transaction);
+    emit(newState);
   }
 
-  toggleExtendDelayed() {
-    extend = !extend;
+  setMemberActivity(Member member, bool value) {
+    final newState = (state as DetailViewLoaded).copyWith();
 
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
-
-    emit(dialog);
+    member =
+        Member.fromMember(member, active: value, timestamp: DateTime.now());
+    DatabaseHelper.instance.upsertMember(member);
+    newState.item.members[newState.item.members
+        .indexWhere((element) => element.id == member.id)] = member;
+    emit(newState);
   }
 
-  changeDate(int index) {
-    DateTime day = DateTime.now().subtract(Duration(days: index));
+  showTransactionDialog() {
+    final newState = TransactionDialogState.fromDetailViewState(state);
 
-    if(index==2){
-      DateSelectionDialog dialog = DateSelectionDialog(state.item, day);
-      emit(dialog);
-    } else {
-      date[2] = day;
-    }
-    _dateSelection = index;
+    emit(newState);
+  }
 
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+  closeTranscationDialog() async {
+    final newState = DetailViewLoaded(
+        item: state.item, unbalanced: checkBalances(state.item.members));
 
-    emit(dialog);
+    emit(newState);
+  }
+
+  toggleCurrency() {
+    final newState = (state as TransactionDialogState).copyWith();
+    newState.currency = !newState.currency;
+
+    emit(state);
+  }
+
+  showLess() {
+    final newState = (state as TransactionDialogState).copyWith(scale: 1.0);
+    newState.extend = !newState.extend;
+
+    emit(newState);
+  }
+
+  showMore() async {
+    final newState = (state as TransactionDialogState).copyWith(scale: 0.9);
+
+    emit(newState);
+
+    await Future.delayed(const Duration(milliseconds: 100), () {
+      final newState2 = newState.copyWith();
+      newState2.scale = 1.0;
+      newState2.extend = !newState.extend;
+      emit(newState2);
+    });
+  }
+
+  changeDay(int index) {
+    final newState =
+        (state as TransactionDialogState).copyWith(dateSelection: index);
+    newState.date[2] = DateTime.now().subtract(Duration(days: index));
+
+    emit(newState);
   }
 
   setDate(DateTime? day) {
     if (day == null) return;
 
-    date[2] = date;
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+    final newState =
+        (state as TransactionDialogState).copyWith(dateSelection: 2);
+    newState.date[2] = day;
 
-    emit(dialog);
+    DateTime now = DateTime.now();
+
+    if (day.day == now.day && day.month == now.month && day.year == now.year) {
+      newState.dateSelection = 0;
+    } else if (day.day == now.subtract(Duration(days: 1)).day &&
+        day.month == now.subtract(Duration(days: 1)).month &&
+        day.year == now.subtract(Duration(days: 1)).year) {
+      newState.dateSelection = 1;
+    }
+
+    emit(newState);
   }
 
   selectMember(int index) {
-    _memberSelection[index] = !_memberSelection[index];
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+    final newState = (state as TransactionDialogState).copyWith();
+    newState.memberSelection[index] = !newState.memberSelection[index];
 
-    emit(dialog);
+    emit(newState);
   }
 
   changePayer(int index) {
-    selection = index;
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+    final newState =
+        (state as TransactionDialogState).copyWith(selection: index);
 
-    emit(dialog);
-  }
-
-  addTransaction(double value, String description) async {
-    if(value != 0 && description.isNotEmpty && selection!=-1 && _memberSelection.contains(true)) {
-      if (_involvedMembers.isEmpty) {
-        updateBalances(item, value);
-      }
-      
-      String associatedId = item.members[selection].id;
-      Transaction transaction = Transaction(description: description, value: value, date: date[2], memberId: associatedId, itemId: item.id);
-      item.addTransaction(selection, transaction, _involvedMembers);
-      
-      DatabaseHelper.instance.upsertTransaction(transaction);
-
-      selection=-1;
-
-      DetailViewLoaded newState = DetailViewLoaded(item, checkBalances(item.members));
-
-      emit(newState);
-    }
-  }
-
-  updateBalances(Item item, double value){
-    int memberCount = _memberSelection.where((element) => element==true).length;
-    for (int i=0; i<_memberSelection.length; i++){
-      if (_memberSelection[i]){
-        _involvedMembers.add({'listId': i, 'id': item.members[i].id, 'balance': value/memberCount});
-      }
-    } 
-  }
-
-  addPayoff() {
-    item.payoff();
-    DatabaseHelper.instance.upsertTransaction(item.history.last);
-
-    emit(DetailViewLoaded(item, checkBalances(item.members)));
+    emit(newState);
   }
 
   getInvolvedMembers(final involvedMembers) {
-    _involvedMembers = involvedMembers;
-    TransactionDialogState dialog = TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection);
+    final newState = (state as TransactionDialogState)
+        .copyWith(involvedMembers: involvedMembers);
 
-    emit(dialog);
+    emit(newState);
   }
 
-  showTransactionDialog() {
-    _memberSelection = item.members.map((Member m) => m.active).toList();
-    _memberBalances = List.generate(_memberSelection.length, (index) => 0.0);
-    date.add(DateTime.now()); 
+  addTransaction(double value, String description) async {
+    final newState = (state as TransactionDialogState).copyWith();
 
-    emit(TransactionDialogState(state.item, _memberSelection, _memberBalances, _involvedMembers, date, currency: currency, extend: extend, scale: scale, selection: selection, dateSelection: _dateSelection));
+    if (value != 0 &&
+        description.isNotEmpty &&
+        newState.selection != -1 &&
+        newState.memberSelection.contains(true)) {
+      if (newState.involvedMembers.isEmpty) {
+        updateBalances(newState, value);
+      }
+
+      String associatedId = newState.item.members[newState.selection].id;
+      Transaction transaction = Transaction(
+          description: description,
+          value: value,
+          date: newState.date[2],
+          memberId: associatedId,
+          itemId: newState.item.id);
+
+      newState.item.addTransaction(
+          newState.selection, transaction, newState.involvedMembers);
+
+      DatabaseHelper.instance.upsertTransaction(transaction);
+
+      newState.selection = -1;
+
+      final newState2 = DetailViewLoaded(
+          item: state.item, unbalanced: checkBalances(state.item.members));
+
+      emit(newState2);
+    }
   }
 
-  closeTranscationDialog() async {
-    emit(DetailViewLoaded(state.item, checkBalances(state.item.members)));
+  updateBalances(TransactionDialogState state, double value) {
+    int memberCount =
+        state.memberSelection.where((element) => element == true).length;
+    for (int i = 0; i < state.memberSelection.length; i++) {
+      if (state.memberSelection[i]) {
+        state.involvedMembers.add({
+          'listId': i,
+          'id': state.item.members[i].id,
+          'balance': value / memberCount
+        });
+      }
+    }
   }
 
-  bool checkBalances(members){
-    for(var m in members){
-      if(m.balance > 1e-6 || m.balance < -1e-6){
+  addPayoff() {
+    final newState = (state as DetailViewLoaded).copyWith();
+
+    newState.item.payoff();
+    newState.unbalanced = checkBalances(newState.item.members);
+
+    DatabaseHelper.instance.upsertTransaction(newState.item.history.last);
+
+    emit(newState);
+  }
+
+  updateDetailViewLoaded() {
+    final newState = (state as DetailViewLoaded).copyWith();
+
+    emit(newState);
+  }
+
+  bool checkBalances(members) {
+    for (var m in members) {
+      if (m.balance > 1e-6 || m.balance < -1e-6) {
         return true;
       }
     }

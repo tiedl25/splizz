@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthView extends StatelessWidget {
@@ -28,32 +27,37 @@ class AuthView extends StatelessWidget {
               SupaEmailAuth(
                 redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
                 onSignInComplete: (res) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/', (route) => false);
                 },
                 onSignUpComplete: (res) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please check your email to verify your account.")));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          "Please check your email to verify your account.")));
                 },
-                onError: (error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((error as AuthApiException).message))),
+                onError: (error) => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text((error as AuthApiException).message))),
               ),
               const SizedBox(height: 24.0),
               TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  minimumSize: const Size(double.infinity, 30),
-                ),
-                onPressed: () {
-                  prefs.setBool('offline', true);
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-                }, 
-                child: Text(
-                  'Continue without an account',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  )
-                )
-              )
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        Theme.of(context).textTheme.labelMedium!.color,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    minimumSize: const Size(double.infinity, 30),
+                  ),
+                  onPressed: () {
+                    prefs.setBool('offline', true);
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/', (route) => false);
+                  },
+                  child: Text('Continue without an account',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      )))
             ],
           ),
         ],

@@ -4,17 +4,123 @@ import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/member.model.dart';
 
-class MemberBar extends StatelessWidget{
-  final List<Member> members;
-  final BuildContext context;
-  late final detailViewBloc;
+class MemberBar extends StatelessWidget {
+  late DetailViewCubit detailViewCubit;
+  late BuildContext context;
 
-  MemberBar({required this.members, required this.context});
+  MemberBar({required this.context});
 
-  void showMemberDialog(Member member){
+  void showMemberDialog(Member member) {
     showDialog(
-      context: context, 
-      builder: (BuildContext context){
+      context: context,
+      builder: (_) {
+        return BlocProvider.value(
+          value: detailViewCubit,
+          child: MemberDialog(memberId: member.id, detailViewCubit: detailViewCubit));
+      });
+  }
+
+  List<Container> memberBar(state) {
+    List<Member> members = state.item.members;
+
+    return List.generate(members.length, (index) {
+      Member member = members[index];
+      Color textColor = Color(member.color).computeLuminance() > 0.2
+        ? Colors.black
+        : Colors.white;
+
+      return Container(
+        foregroundDecoration: !member.active
+          ? const BoxDecoration(
+            color: Color(0x99000000),
+            backgroundBlendMode: BlendMode.darken,
+            borderRadius: BorderRadius.all(Radius.circular(20)))
+          : null,
+        decoration: BoxDecoration(
+          color: Color(member.color),
+          border: Border.all(style: BorderStyle.none, width: 0),
+          borderRadius: const BorderRadius.all(Radius.circular(20)),
+        ),
+        margin: const EdgeInsets.all(2),
+        child: IntrinsicWidth(
+          child: GestureDetector(
+            onTap: () => showMemberDialog(member),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    member.name,
+                    style: TextStyle(fontSize: 20, color: textColor),
+                  ),
+                ),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xAAD5D5D5),
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        member.balance >= 0
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                        color: member.balance >= 0
+                          ? Colors.green[700]
+                          : Colors.red[700]),
+                      Text('${member.balance.abs().toStringAsFixed(2)}€',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: member.balance >= 0
+                            ? Colors.green[700]
+                            : Colors.red[700])),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          )
+        )  
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    this.context = context;
+    detailViewCubit = context.read<DetailViewCubit>();
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      scrollDirection: Axis.horizontal,
+      child: BlocBuilder(
+        bloc: detailViewCubit,
+        builder: (context, state) => Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: memberBar(state),
+        ),
+      ));
+  }
+}
+
+class MemberDialog extends StatelessWidget {
+  const MemberDialog({
+    super.key,
+    required this.memberId,
+    required this.detailViewCubit,
+  });
+
+  final String memberId;
+  final DetailViewCubit detailViewCubit;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DetailViewCubit, DetailViewState>(
+      bloc: detailViewCubit,
+      builder: (context, state) {
+        Member member = state.item.members.firstWhere((element) => element.id == memberId);
+
         return DialogModel(
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -27,7 +133,7 @@ class MemberBar extends StatelessWidget{
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Name'),
+                        const Text('Name'), 
                         Text(member.name)
                       ],
                     ),
@@ -55,82 +161,14 @@ class MemberBar extends StatelessWidget{
                   SwitchListTile(
                     title: const Text("Active"),
                     value: member.active,
-                    onChanged: (bool value) => detailViewBloc.setMemberActivity(member, value),
+                    onChanged: (bool value) => detailViewCubit.setMemberActivity(member, value),
                   ),
                 ],
               ),
             ),
           ),
-      );
-    });
-  }
-
-  List<Container> memberBar(){
-    return List.generate(
-        members.length,
-        (index) {
-          Member member = members[index];
-          Color textColor = Color(member.color).computeLuminance() > 0.2 ? Colors.black : Colors.white;
-
-          return Container(
-              foregroundDecoration: !member.active ? const BoxDecoration(
-                  color: Color(0x99000000),
-                  backgroundBlendMode: BlendMode.darken,
-                  borderRadius: BorderRadius.all(Radius.circular(20))
-              ) : null,
-              decoration: BoxDecoration(
-                color: Color(member.color),
-                border: Border.all(style: BorderStyle.none, width: 0),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-              margin: const EdgeInsets.all(2),
-              child: IntrinsicWidth(
-                child: GestureDetector(
-                  onTap: () => showMemberDialog(member),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(member.name, style: TextStyle(fontSize: 20, color: textColor),),
-                      ),
-                      Container(
-                        decoration: const BoxDecoration(
-                            color: Color(0xAAD5D5D5),
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                                member.balance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                                color: member.balance >= 0 ? Colors.green[700] : Colors.red[700]),
-                            Text(
-                                '${member.balance.abs().toStringAsFixed(2)}€',
-                                style: TextStyle(fontSize: 20, color: member.balance >= 0 ? Colors.green[700] : Colors.red[700])),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              )
-          );
-        }
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    detailViewBloc = BlocProvider.of<DetailViewBloc>(context);
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: memberBar(),
-      ),
+        );
+      },
     );
   }
 }

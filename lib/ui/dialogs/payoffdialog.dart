@@ -15,145 +15,146 @@ import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
 
-class PayoffDialog extends StatelessWidget{
-  final Item item;
+class PayoffDialog extends StatelessWidget {
   final BuildContext context;
   late final detailViewBloc;
 
-  PayoffDialog({Key? key, required this.item, required this.context}) : super(key: key);
+  PayoffDialog({Key? key, required this.context}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    detailViewBloc = BlocProvider.of<DetailViewBloc>(context);
+    detailViewBloc = BlocProvider.of<DetailViewCubit>(context);
 
-    var paymap = item.calculatePayoff();
-    return DialogModel(
-      title: 'Payoff',
-      scrollable: false,
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: FittedBox(
-            fit: BoxFit.fitWidth,
-            clipBehavior: Clip.none,
-            alignment: Alignment.topCenter,
-            child: Column(
-              children: List.generate(
-                  paymap.length,
-                      (i) {
+    return BlocBuilder<DetailViewCubit, DetailViewState>(
+      bloc: detailViewBloc,
+      builder: (context, state) {
+        var paymap = state.item.calculatePayoff();
+
+        return DialogModel(
+          title: 'Payoff',
+          scrollable: false,
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  children: List.generate(paymap.length, (i) {
                     Member m = paymap.keys.toList()[i];
                     return listElement(m, paymap[m]!);
-                  }
+                  }),
+                ),
               ),
+            ),
           ),
-        ),
-        ),
-      ),
-      onConfirmed: () => detailViewBloc.addPayoff(),
+          onConfirmed: () => detailViewBloc.addPayoff(),
+        );
+      },
     );
   }
 
-  Widget listElement(Member m, List<Member> paylist){
-      return Container(
-          margin: const EdgeInsets.symmetric(vertical: 5),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
+  Widget listElement(Member m, List<Member> paylist) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Color(m.color),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  m.name,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.black,
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white54),
+                  child: Text('${m.total.abs().toStringAsFixed(2)}€',
+                      style: TextStyle(color: Colors.red.shade700))),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(left: 10),
+          Column(
+            children: List.generate(paylist.length, (index) {
+              final e = paylist[index];
+              return Container(
+                padding: const EdgeInsets.only(right: 10),
                 margin: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Color(m.color),
+                  color: Color(e.color),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(m.name, style: const TextStyle(color: Colors.black),),
-                    const Icon(Icons.arrow_forward, color: Colors.black,),
                     Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: Colors.white54
-                        ),
-                        child: Text('${m.total.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
+                            color: Colors.white54),
+                        child: Text('${e.balance.abs().toStringAsFixed(2)}€',
+                            style: TextStyle(color: Colors.green.shade700))),
+                    const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.black,
+                    ),
+                    Text(
+                      e.name,
+                      style: const TextStyle(color: Colors.black),
+                    ),
                   ],
                 ),
-              ),
-              Column(
-                children: List.generate(
-                    paylist.length,
-                    (index) {
-                      final e = paylist[index];
-                      return Container(
-                        padding: const EdgeInsets.only(right: 10),
-                        margin: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Color(e.color),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Colors.white54
-                                ),
-                                child: Text('${e.balance.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.green.shade700))),
-                            const Icon(Icons.arrow_forward, color: Colors.black,),
-                            Text(e.name, style: const TextStyle(color: Colors.black),),
-
-                          ],
-                        ),
-                      );
-                    }
-                )
-              )
-            ],
-          ),
-      );
+              );
+            })
+          )
+        ],
+      ),
+    );
   }
 }
 
-class PastPayoffDialog extends StatefulWidget {
-  final Item item;
-  final int index;
-
-  const PastPayoffDialog({
-    Key? key,
-    required this.item,
-    required this.index
-  }) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() {
-    return _PastPayoffDialogState();
-  }
-}
-
-class _PastPayoffDialogState extends State<PastPayoffDialog>{
+class PastPayoffDialog extends StatelessWidget {
   late Item item;
   late Transaction transaction;
   late String path;
+  final index;
 
   Uint8List? bytes;
   WidgetsToImageController controller = WidgetsToImageController();
   ScreenshotController screenshotController = ScreenshotController();
+  
+  late DetailViewCubit detailViewBloc;
+  
+  late BuildContext context;
 
-  late final detailViewBloc;
+  PastPayoffDialog({super.key, required this.index});
 
-  setBalance(Transaction transaction){
+  setBalance(Transaction transaction) {
     List<Member> members = [];
-    for (var member in item.members){
-      double balance = transaction.operations.where((element) => element.memberId == member.id).fold(0, (a,b) => a+b.value);
+    for (var member in item.members) {
+      double balance = transaction.operations
+          .where((element) => element.memberId == member.id)
+          .fold(0, (a, b) => a + b.value);
       Member m = Member.fromMember(member);
       m.balance = -balance;
       members.add(m);
@@ -182,42 +183,60 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
 
     List<List<CellValue>> rows = transactions.map<List<CellValue>>((row) {
       return [
-          DateTimeCellValue.fromDateTime(row.timestamp),
-          TextCellValue(row.description),
-          DoubleCellValue(row.value),
-          TextCellValue(item.members.firstWhere((element) => element.id == row.memberId).name),
-          TextCellValue(row.operations.where((element) => element.value != row.value).map((e) => item.members.firstWhere((m) => m.id == e.memberId).name).toList().join(', '))
-        ];
+        DateTimeCellValue.fromDateTime(row.timestamp),
+        TextCellValue(row.description),
+        DoubleCellValue(row.value),
+        TextCellValue(item.members
+          .firstWhere((element) => element.id == row.memberId)
+          .name),
+        TextCellValue(row.operations
+          .where((element) => element.value != row.value)
+          .map((e) => item.members.firstWhere((m) => m.id == e.memberId).name)
+          .toList()
+          .join(', '))
+      ];
     }).toList();
 
     // Add data rows
     for (var row in rows) {
       sheet.appendRow(row);
     }
-    
-    return Uint8List.fromList(excel.save()!); 
+
+    return Uint8List.fromList(excel.save()!);
   }
 
   Future<List<Transaction>> getPayoffTransactions(Transaction payoff) async {
-    List<Transaction> payoffBefore = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && element.description == "payoff").toList();
-    if (payoffBefore.isNotEmpty) payoffBefore.sort((element, other) => element.timestamp.compareTo(other.timestamp));
-    List<Transaction> transactions = item.history.where((element) => element.timestamp.compareTo(payoff.timestamp) < 0 && 
-      (payoffBefore.isNotEmpty ? element.timestamp.compareTo(payoffBefore.last.timestamp) > 0 : true) && 
-      element.description != "payoff" &&
-      element.deleted == false).toList();
+    List<Transaction> payoffBefore = item.history
+      .where((element) =>
+        element.timestamp.compareTo(payoff.timestamp) < 0 &&
+        element.description == "payoff")
+      .toList();
+      
+    if (payoffBefore.isNotEmpty)
+      payoffBefore.sort((element, other) => element.timestamp.compareTo(other.timestamp));
+
+    List<Transaction> transactions = item.history
+      .where((element) =>
+        element.timestamp.compareTo(payoff.timestamp) < 0 &&
+        (payoffBefore.isNotEmpty
+          ? element.timestamp.compareTo(payoffBefore.last.timestamp) > 0
+          : true) &&
+        element.description != "payoff" &&
+        element.deleted == false)
+      .toList();
 
     return transactions;
   }
 
   Future<Uint8List> transactionTable(Transaction payoff) async {
     List<Transaction> transactions = await getPayoffTransactions(payoff);
- 
+
     List<DataColumn> columns = [
       const DataColumn(label: Text('Date')),
       const DataColumn(label: Text('Description')),
       const DataColumn(label: Text('Value')),
       const DataColumn(label: Text('Person who payed')),
-      const DataColumn(label: Text('Member')) 
+      const DataColumn(label: Text('Member'))
     ];
     List<DataRow> rows = transactions.map<DataRow>((row) {
       return DataRow(
@@ -225,9 +244,16 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
           DataCell(Text(row.timestamp.toString())),
           DataCell(Text(row.description)),
           DataCell(Text(row.value.toString())),
-          DataCell(Text(item.members.firstWhere((element) => element.id == row.memberId).name)),
-          DataCell(Text(row.operations.where((element) => element.value != row.value).map((e) => item.members.firstWhere((m) => m.id == e.memberId).name).toList().join(', ')))
-        ],
+          DataCell(Text(item.members
+            .firstWhere((element) => element.id == row.memberId)
+            .name)),
+          DataCell(Text(row.operations
+            .where((element) => element.value != row.value)
+            .map((e) =>
+              item.members.firstWhere((m) => m.id == e.memberId).name)
+            .toList()
+            .join(', ')))
+      ],
       );
     }).toList();
 
@@ -244,146 +270,161 @@ class _PastPayoffDialogState extends State<PastPayoffDialog>{
     );
   }
 
-  Future<File> widgetToImageFile(Uint8List capturedImage, String filename) async {   
+  Future<File> widgetToImageFile(Uint8List capturedImage, String filename) async {
     return await File(path + filename).writeAsBytes(capturedImage);
   }
 
-  Widget paymapRelation(Member m, List<Member> paylist){
+  Widget paymapRelation(Member m, List<Member> paylist) {
     return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.only(left: 10),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Color(m.color),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(m.name, style: const TextStyle(color: Colors.black),),
-                  const Icon(Icons.arrow_forward, color: Colors.black,),
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white54
-                      ),
-                      child: Text('${m.total.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.red.shade700))),
-                ],
-              ),
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Color(m.color),
             ),
-            Column(
-              children: List.generate(
-                  paylist.length,
-                  (index) {
-                    final e = paylist[index];
-                    return Container(
-                      padding: const EdgeInsets.only(right: 10),
-                      margin: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Color(e.color),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.white54
-                              ),
-                              child: Text('${e.balance.abs().toStringAsFixed(2)}€', style: TextStyle(color: Colors.green.shade700))),
-                          const Icon(Icons.arrow_forward, color: Colors.black,),
-                          Text(e.name, style: const TextStyle(color: Colors.black),),
-
-                        ],
-                      ),
-                    );
-                  }
-              )
-            )
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  m.name,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.black,
+                ),
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white54),
+                    child: Text('${m.total.abs().toStringAsFixed(2)}€',
+                      style: TextStyle(color: Colors.red.shade700))),
+              ],
+            ),
+          ),
+          Column(
+            children: List.generate(paylist.length, (index) {
+              final e = paylist[index];
+              return Container(
+                padding: const EdgeInsets.only(right: 10),
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Color(e.color),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white54),
+                        child: Text('${e.balance.abs().toStringAsFixed(2)}€',
+                            style: TextStyle(color: Colors.green.shade700))),
+                    const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.black,
+                    ),
+                    Text(
+                      e.name,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ],
+                ),
+              );
+            })
+          )
+        ],
+      ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    item = Item.copy(widget.item);
-    transaction = item.history[widget.index];
-    setBalance(transaction);
-    getApplicationDocumentsDirectory().then((value) {path = value.path;});
-  }
-
-  Widget paymapWidget(paymap){
+  Widget paymapWidget(paymap) {
     return WidgetsToImage(
-        controller: controller,
-        child: Column(
-          children: [
-            ...List.generate(
-              paymap.length,
-                  (i) {
-                Member m = paymap.keys.toList()[i];
-                return paymapRelation(m, paymap[m]!);
-              }
-            ),
-            if(bytes != null) Image.memory(bytes!),
-          ],
+      controller: controller,
+      child: Column(
+        children: [
+          ...List.generate(paymap.length, (i) {
+            Member m = paymap.keys.toList()[i];
+            return paymapRelation(m, paymap[m]!);
+          }),
+          if (bytes != null) Image.memory(bytes!),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    detailViewBloc = BlocProvider.of<DetailViewBloc>(context);
+    this.context = context;
+    this.detailViewBloc = context.read<DetailViewCubit>();
 
-    var paymap = item.calculatePayoff();
+    return BlocBuilder<DetailViewCubit, DetailViewState>(
+      builder: (context, state) {
+        item = state.item;
+        transaction = item.history[index];
+        var paymap = item.calculatePayoff();
 
-    return DialogModel(
-        header: Row(
-          children: [
-            const Text('Payoff'), 
-            const Spacer(), 
+        setBalance(transaction);
+        getApplicationDocumentsDirectory().then((value) {
+          path = value.path;
+        });
+
+        return DialogModel(
+          header: Row(children: [
+            const Text('Payoff'),
+            const Spacer(),
             IconButton(
               onPressed: () async {
                 final payoffBytes = await controller.capture();
-                final transactionsBytes = await transactionTable(item.history[widget.index]);
-                final excelBytes = await exportTransactionTableToExcel(item.history[widget.index]);
-                
-                await Share.shareXFiles([XFile.fromData(payoffBytes!, mimeType: 'image/png'), 
-                                          XFile.fromData(transactionsBytes, mimeType: 'image/png'), 
-                                          XFile.fromData(excelBytes, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')], 
-                                          text: 'Payoff',
-                                          fileNameOverrides: ['Payoff', 'Transactions (Image)', 'Transactions (Excel)']);
+                final transactionsBytes = await transactionTable(item.history[index]);
+                final excelBytes = await exportTransactionTableToExcel(item.history[index]);
+
+                await Share.shareXFiles(
+                  [
+                    XFile.fromData(payoffBytes!, mimeType: 'image/png'),
+                    XFile.fromData(transactionsBytes,
+                        mimeType: 'image/png'),
+                    XFile.fromData(excelBytes,
+                        mimeType:
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                  ],
+                  text: 'Payoff',
+                  fileNameOverrides: [
+                    'Payoff',
+                    'Transactions (Image)',
+                    'Transactions (Excel)'
+                  ]);
                 Navigator.of(context).pop();
               },
-              icon: Icon(Icons.import_export)
-            )
-          ]
-        ),
-        scrollable: false,
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: FittedBox(
-              fit: BoxFit.fitWidth,
-              clipBehavior: Clip.none,
-              alignment: Alignment.topCenter,
-              child: paymapWidget(paymap),
-          ),
-        ),
-      )
+              icon: Icon(Icons.import_export))
+          ]),
+          scrollable: false,
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                child: paymapWidget(paymap),
+              ),
+            ),
+          )
+        );
+      },
     );
   }
 }
