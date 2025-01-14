@@ -1,0 +1,188 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/bloc/settingsview_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class SettingsView extends StatelessWidget {
+  late final context;
+  late final SettingsViewCubit cubit;
+
+  Future<void> showLogoutDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return DialogModel(
+          content: Text(
+            "Are you sure you want to log out?",
+            style: TextStyle(fontSize: 20),
+          ),
+          pop: false,
+          onConfirmed: () async => cubit.confirmLogout(),
+          onDismissed: () async => cubit.dismissLogout(),
+        );
+      },
+    );
+  }
+
+  Future<void> showPrivacyPolicy() async {
+    await launchUrl(
+      Uri.parse("https://tmc.tiedl.rocks/splizz/dsgvo"),
+      customTabsOptions: CustomTabsOptions(
+        urlBarHidingEnabled: false,
+        instantAppsEnabled: true,
+        closeButton: CustomTabsCloseButton(position: CustomTabsCloseButtonPosition.end),
+        showTitle: true,
+      )
+    );
+
+    cubit.closePrivacyPolicy();
+  }
+
+  Widget themeSegment(systemTheme, darkMode) {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border.all(
+          style: BorderStyle.none,
+        ),
+        borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: const Text("Use system theme"),
+            value: systemTheme,
+            onChanged: (_) async => cubit.updateTheme(),
+          ),
+          const Divider(
+            thickness: 0.2,
+            indent: 15,
+            endIndent: 15,
+          ),
+          SwitchListTile(
+            title: const Text("Dark Mode"),
+            value: darkMode,
+            tileColor: systemTheme
+              ? Theme.of(context).colorScheme.surfaceContainer
+              : null,
+            onChanged: systemTheme
+              ? null
+              : (_) async => cubit.updateDarkMode()
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget infoSegment(String version) {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border.all(
+          style: BorderStyle.none,
+        ),
+        borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text("Version"),
+            subtitle: Text(version),
+          ),
+          const Divider(
+            thickness: 0.2,
+            indent: 15,
+            endIndent: 15,
+          ),
+          ListTile(
+            title: Text("Privacy Policy"),
+            trailing: Icon(Icons.open_in_browser),
+            onTap: () => cubit.showPrivacyPolicy(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget userSegment() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          border: Border.all(
+            style: BorderStyle.none,
+          ),
+          borderRadius: BorderRadius.circular(20)),
+      child: Supabase.instance.client.auth.currentSession != null
+        ? ListTile(
+            title: const Text("Logout"),
+            trailing: Icon(Icons.logout),
+            onTap: () => cubit.logout(),
+          )
+        : ListTile(
+            title: const Text("Login"),
+            trailing: Icon(Icons.login),
+            onTap: () async => cubit.login(),
+          ),
+    );
+  }
+
+  bool listenStates(current) => current is SettingsViewLogin || 
+    current is SettingsViewLogoutDialog || 
+    current is SettingsViewPrivacyPolicy || 
+    current is SettingsViewLogout;
+
+  bool buildStates(current) => current is SettingsViewLoaded ||
+    current is SettingsViewLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    this.context = context;
+    this.cubit = context.read<SettingsViewCubit>();
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: BlocConsumer<SettingsViewCubit, SettingsViewState>(
+        bloc: cubit,
+        listenWhen: (_, current) => listenStates(current),
+        listener: (context, state) {
+          switch (state.runtimeType) {
+            case SettingsViewPrivacyPolicy:
+              showPrivacyPolicy();
+              break;
+            case SettingsViewLogoutDialog:
+              showLogoutDialog();
+              break;
+            case SettingsViewLogin:
+              Navigator.pushNamedAndRemoveUntil(context, '/auth', (route) => false);
+              break;
+            case SettingsViewLogout:
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+              break;
+          }
+        },
+        buildWhen: (_, current) => buildStates(current),
+        builder: (context, state) {
+
+          return state.runtimeType == SettingsViewLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode),
+                  infoSegment(state.version),
+                  userSegment(),
+                ]
+              );
+        },
+      ),
+    );
+  }
+}

@@ -12,9 +12,10 @@ import 'package:splizz/Helper/database.dart';
 import 'package:splizz/Helper/result.dart';
 import 'package:splizz/Views/authview.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
+import 'package:splizz/bloc/settingsview_bloc.dart';
 import 'package:splizz/ui/views/detailview.dart';
 import 'package:splizz/models/item.model.dart';
-import 'package:splizz/Views/settingsview.dart';
+import 'package:splizz/ui/views/settingsview.dart';
 
 import 'package:splizz/Dialogs/itemdialog.dart';
 import 'package:splizz/Helper/colormap.dart';
@@ -189,10 +190,9 @@ class _MasterViewState extends State<MasterView> {
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          return SettingsView(
-            updateTheme: widget.updateTheme,
-            version: packageInfo.version,
-            prefs: widget.prefs,
+          return BlocProvider(
+            create: (context) => SettingsViewCubit(),
+            child: SettingsView(),
           );
         },
       ),
@@ -205,8 +205,8 @@ class _MasterViewState extends State<MasterView> {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return BlocProvider(
-              create: (context) => DetailViewCubit(i)..fetchData(),
-              child: DetailView());
+            create: (context) => DetailViewCubit(i)..fetchData(),
+            child: DetailView());
         },
       ),
     );
