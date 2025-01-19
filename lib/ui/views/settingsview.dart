@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
-import 'package:splizz/Helper/ui_model.dart';
-import 'package:splizz/bloc/settingsview_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+
+import 'package:splizz/bloc/settingsview_bloc.dart';
+import 'package:splizz/Helper/ui_model.dart';
 
 class SettingsView extends StatelessWidget {
   late final context;
@@ -122,7 +124,7 @@ class SettingsView extends StatelessWidget {
         ? ListTile(
             title: const Text("Logout"),
             trailing: Icon(Icons.logout),
-            onTap: () => cubit.logout(),
+            onTap: () => cubit.showLogoutDialog(),
           )
         : ListTile(
             title: const Text("Login"),
@@ -131,14 +133,6 @@ class SettingsView extends StatelessWidget {
           ),
     );
   }
-
-  bool listenStates(current) => current is SettingsViewLogin || 
-    current is SettingsViewLogoutDialog || 
-    current is SettingsViewPrivacyPolicy || 
-    current is SettingsViewLogout;
-
-  bool buildStates(current) => current is SettingsViewLoaded ||
-    current is SettingsViewLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -152,13 +146,13 @@ class SettingsView extends StatelessWidget {
       ),
       body: BlocConsumer<SettingsViewCubit, SettingsViewState>(
         bloc: cubit,
-        listenWhen: (_, current) => listenStates(current),
+        listenWhen: (_, current) => current is SettingsViewListener,
         listener: (context, state) {
           switch (state.runtimeType) {
-            case SettingsViewPrivacyPolicy:
+            case SettingsViewShowPrivacyPolicy:
               showPrivacyPolicy();
               break;
-            case SettingsViewLogoutDialog:
+            case SettingsViewShowLogoutDialog:
               showLogoutDialog();
               break;
             case SettingsViewLogin:
@@ -169,9 +163,8 @@ class SettingsView extends StatelessWidget {
               break;
           }
         },
-        buildWhen: (_, current) => buildStates(current),
+        buildWhen: (_, current) => current is SettingsViewLoaded || current is SettingsViewLoading,
         builder: (context, state) {
-
           return state.runtimeType == SettingsViewLoading
             ? Center(child: CircularProgressIndicator())
             : Column(

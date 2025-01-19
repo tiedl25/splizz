@@ -1,12 +1,26 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+
+import 'package:splizz/Helper/database.dart';
 
 abstract class SettingsViewState {
   SettingsViewState();
 }
+
+abstract class SettingsViewListener extends SettingsViewState {}
+
+class SettingsViewShowPrivacyPolicy extends SettingsViewListener {}
+
+class SettingsViewShowLogoutDialog extends SettingsViewListener {}
+
+class SettingsViewLogin extends SettingsViewListener {}
+
+class SettingsViewLogout extends SettingsViewListener {}
+
+
 
 class SettingsViewLoading extends SettingsViewState {}
 
@@ -46,37 +60,11 @@ class SettingsViewLoaded extends SettingsViewState {
   }
 }
 
-class SettingsViewLogin extends SettingsViewLoaded {
-  SettingsViewLogin({required super.sharedPreferences, required super.version, required super.systemTheme, required super.darkMode});
-
-  factory SettingsViewLogin.from(SettingsViewLoaded state) {
-    return SettingsViewLogin(
-      sharedPreferences: state.sharedPreferences,
-      version: state.version,
-      systemTheme: state.systemTheme,
-      darkMode: state.darkMode
-    );
-  }
-}
-
 class SettingsViewLogoutDialog extends SettingsViewLoaded {
   SettingsViewLogoutDialog({required super.sharedPreferences, required super.version, required super.systemTheme, required super.darkMode});
 
   factory SettingsViewLogoutDialog.from(SettingsViewLoaded state) {
     return SettingsViewLogoutDialog(
-      sharedPreferences: state.sharedPreferences,
-      version: state.version,
-      systemTheme: state.systemTheme,
-      darkMode: state.darkMode
-    );
-  }
-}
-
-class SettingsViewLogout extends SettingsViewLoaded {
-  SettingsViewLogout({required super.sharedPreferences, required super.version, required super.systemTheme, required super.darkMode});
-
-  factory SettingsViewLogout.from(SettingsViewLoaded state) {
-    return SettingsViewLogout(
       sharedPreferences: state.sharedPreferences,
       version: state.version,
       systemTheme: state.systemTheme,
@@ -139,27 +127,25 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
   }
 
   Future<void> login() async {
-    final newState = SettingsViewLogin.from(state as SettingsViewLoaded);
+    await (state as SettingsViewLoaded).sharedPreferences.setBool('offline', false);
 
-    await newState.sharedPreferences.setBool('offline', false);
-
-    emit(newState);
+    emit(SettingsViewLogin());
   }
 
-  void logout() {
+  void showLogoutDialog() {
     final newState = SettingsViewLogoutDialog.from(state as SettingsViewLoaded);
+
+    emit(SettingsViewShowLogoutDialog());
 
     emit(newState);
   }
 
   Future<void> confirmLogout() async {
-    final newState = SettingsViewLogout.from(state as SettingsViewLogoutDialog);
-
-    await newState.sharedPreferences.setBool('offline', false);
+    await (state as SettingsViewLogoutDialog).sharedPreferences.setBool('offline', false);
     await Supabase.instance.client.auth.signOut();
     await DatabaseHelper.instance.deleteDatabase();
 
-    emit(newState);
+    emit(SettingsViewLogout());
   }
 
   void dismissLogout() {
@@ -170,6 +156,8 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
 
   void showPrivacyPolicy() {
     final newState = SettingsViewPrivacyPolicy.from(state as SettingsViewLoaded);
+
+    emit(SettingsViewShowPrivacyPolicy());
 
     emit(newState);
   }
