@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/ui/views/masterview.dart';
-import 'package:splizz/Views/settingsview.dart';
-import 'package:splizz/Views/authview.dart';
-import 'package:splizz/theme/dark_theme.dart';
-import 'package:splizz/theme/light_theme.dart';
-
 import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
+
+import 'package:splizz/bloc/masterview_bloc.dart';
+import 'package:splizz/bloc/settingsview_bloc.dart';
+
+import 'package:splizz/ui/views/masterview.dart';
+import 'package:splizz/ui/views/settingsview.dart';
+import 'package:splizz/ui/views/authview.dart';
+
+import 'package:splizz/theme/dark_theme.dart';
+import 'package:splizz/theme/light_theme.dart';
 
 Future main() async {
   await Repository.configure(databaseFactory);
@@ -69,8 +74,14 @@ class _MyAppState extends State<MyApp>{
       routes: {
         '/': (context) => SplashView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
         '/auth': (context) => AuthView(prefs: widget.sharedPreferences!,),
-        '/home': (context) => MasterView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
-        '/settings': (context) => SettingsView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!, version: '',),
+        '/home': (context) => BlocProvider(
+          create: (context) => MasterViewCubit(widget.sharedPreferences!,), 
+          child: MasterView()
+        ),
+        '/settings': (context) => BlocProvider(
+          create: (context) => SettingsViewCubit(),
+          child: SettingsView(),
+        ),
       },
       //home: MasterView(updateTheme: loadSwitchValue,),
       debugShowCheckedModeBanner: false,

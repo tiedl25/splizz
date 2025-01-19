@@ -1,29 +1,22 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/Helper/database.dart';
-import 'package:splizz/Helper/result.dart';
-import 'package:splizz/Views/authview.dart';
-import 'package:splizz/bloc/detailview_bloc.dart';
-import 'package:splizz/bloc/settingsview_bloc.dart';
-import 'package:splizz/ui/views/detailview.dart';
-import 'package:splizz/models/item.model.dart';
-import 'package:splizz/ui/views/settingsview.dart';
-
-import 'package:splizz/Dialogs/itemdialog.dart';
-import 'package:splizz/Helper/colormap.dart';
-import 'package:splizz/Helper/ui_model.dart';
-import 'package:splizz/models/member.model.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:app_links/app_links.dart';
+
+import 'package:splizz/bloc/detailview_bloc.dart';
+import 'package:splizz/bloc/masterview_bloc.dart';
+import 'package:splizz/bloc/settingsview_bloc.dart';
+
+import 'package:splizz/ui/views/authview.dart';
+import 'package:splizz/ui/views/detailview.dart';
+import 'package:splizz/ui/views/settingsview.dart';
+import 'package:splizz/ui/dialogs/itemdialog.dart';
+
+import 'package:splizz/models/item.model.dart';
+import 'package:splizz/Helper/ui_model.dart';
 
 var activeSession = Supabase.instance.client.auth.currentSession;
 
@@ -42,150 +35,76 @@ class SplashView extends StatelessWidget {
     activeSession = Supabase.instance.client.auth.currentSession;
     return Scaffold(
       body: Center(
-          child: activeSession == null && prefs.getBool('offline') == false
-              ? AuthView(prefs: prefs)
-              : MasterView(
-                  updateTheme: updateTheme,
-                  prefs: prefs,
-                )),
+        child: activeSession == null && prefs.getBool('offline') == false
+          ? AuthView(prefs: prefs)
+          : BlocProvider(
+              create: (context) => MasterViewCubit(prefs,), 
+              child: MasterView()
+            ),
+      ),
     );
   }
 }
 
-class MasterView extends StatefulWidget {
-  final Function updateTheme;
-  final SharedPreferences prefs;
-
-  const MasterView({
-    super.key,
-    required this.updateTheme,
-    required this.prefs,
-  });
-
-  @override
-  State<StatefulWidget> createState() => _MasterViewState();
-}
-
-class _MasterViewState extends State<MasterView> {
-  List<Item> items = [];
-  late Future<List<Item>> itemListFuture;
-  bool removeDriveFile = false;
-  late PackageInfo packageInfo;
-  final appLinks = AppLinks();
-
-  StreamSubscription? _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    if (activeSession == null && widget.prefs.getBool('offline') == false) {
-      Navigator.pushReplacementNamed(context, '/auth');
-    }
-
-    DatabaseHelper.instance.destructiveSync();
-
-    itemListFuture = DatabaseHelper.instance.getItems();
-
-    PackageInfo.fromPlatform().then((value) => packageInfo = value);
-
-    _handleIncomingLinks();
-  }
-
-  void _handleIncomingLinks() {
-    _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
-      if (uri != null) {
-        final permissionId = uri.queryParameters['id'];
-
-        if (permissionId != null) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return DialogModel(
-                  content: Text(
-                    'You are invited to a Splizz. Do you want to join?',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  onConfirmed: () async {
-                    final Result result = await DatabaseHelper.instance
-                        .confirmPermission(permissionId);
-                    if (!result.isSuccess) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result.message!)));
-                    }
-                  });
-            },
-          );
-        }
-      }
-    }, onError: (err) {
-      print('Error occurred: $err');
-    });
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
-
-  Future<Item> addDebugItem(members) async {
-    ByteData data =
-        await rootBundle.load('images/image_${Random().nextInt(9) + 1}.jpg');
-    final imageBytes = data.buffer.asUint8List();
-    Item newItem = Item(
-        name: 'Test ${Random().nextInt(9999)}',
-        members: members,
-        image: imageBytes);
-
-    for (Member m in members) {
-      m.itemId = newItem.id;
-    }
-
-    DatabaseHelper.instance.upsertItem(newItem);
-
-    return newItem;
-  }
+class MasterView extends StatelessWidget {
+  late final BuildContext context;
+  late final MasterViewCubit cubit;
 
   //Dialogs
 
-  void _showAddDialog() {
+  void showInvitationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return DialogModel(
+          content: Text(
+            'You are invited to a Splizz. Do you want to join?',
+            style: TextStyle(fontSize: 20),
+          ),
+          onConfirmed: () async => cubit.acceptInvitation(),
+          onDismissed: () async => cubit.declineInvitation(),
+        );
+      },
+    );
+  }
+
+  void showItemDialog() {
     showDialog(
         context: context,
-        barrierDismissible: true, // user must tap button!
         builder: (BuildContext context) {
-          return ItemDialog(
-              items: items,
-              updateItemList: (item) => setState(() => items.add(item)));
+          return BlocProvider.value(
+            value: cubit,
+            child: ItemDialog(),
+          );
         });
   }
 
-  Future<bool?> _showDismissDialog() {
-    return showDialog(
+  void showDismissDialog() {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(builder: (context, setState) {
-          return DialogModel(
-              title: 'Confirm Dismiss',
-              content: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    child: const Text(
-                      'Do you really want to remove this Item',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  ),
-                ],
+        return DialogModel(
+          title: 'Confirm Dismiss',
+          content: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                child: const Text(
+                  'Do you really want to remove this Item',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
-              onConfirmed: () {});
-        });
+            ],
+          ),
+          onConfirmed: null
+        );
       },
     );
   }
 
   //Navigation
 
-  void _pushSettingsView() {
+  void pushSettingsView() {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -199,22 +118,21 @@ class _MasterViewState extends State<MasterView> {
     );
   }
 
-  Future<void> _pushDetailView(Item i) async {
-    await Navigator.push(
+  void pushDetailView(Item item) {
+    Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return BlocProvider(
-            create: (context) => DetailViewCubit(i)..fetchData(),
-            child: DetailView());
+            create: (context) => DetailViewCubit(item)..fetchData(),
+            child: DetailView()
+          );
         },
       ),
     );
   }
 
   Widget dismissTile(Item item) {
-    //removeDriveFile = item.owner;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -224,14 +142,8 @@ class _MasterViewState extends State<MasterView> {
       child: Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (dismissDirection) async {
-          DatabaseHelper.instance.deleteItem(item).then((value) => setState(() {
-                items.remove(item);
-              }));
-        },
-        confirmDismiss: (direction) {
-          return _showDismissDialog();
-        },
+        onDismissed: (_) async => cubit.deleteItem(item),
+        confirmDismiss: (_) => cubit.showDismissDialog(),
         background: Container(
           padding: const EdgeInsets.only(right: 20),
           alignment: Alignment.centerRight,
@@ -262,139 +174,125 @@ class _MasterViewState extends State<MasterView> {
           item.name,
           style: const TextStyle(fontSize: 20),
         ),
-        onTap: () {
-          _pushDetailView(item);
-        },
+        onTap: () => pushDetailView(item),
       ),
     );
   }
 
-  Widget speedDial() {
-    return kDebugMode
-        ? SpeedDial(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            spacing: 5,
-            animatedIcon: AnimatedIcons.menu_close,
-            animatedIconTheme: const IconThemeData(size: 22.0),
-            foregroundColor: Colors.white,
-            curve: Curves.bounceIn,
-            overlayColor: Colors.black,
-            overlayOpacity: 0.5,
-            children: [
-              SpeedDialChild(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                ),
-                backgroundColor: Colors.purple,
-                foregroundColor: Colors.white,
-                child: const Icon(Icons.add),
-                onTap: _showAddDialog,
-              ),
-              SpeedDialChild(
-                  child: const Icon(Icons.bug_report),
-                  onTap: () {
-                    List<Member> members = [];
-                    for (int i = 0; i < Random().nextInt(6) + 2; ++i) {
-                      members.add(Member(
-                          name: names[Random().nextInt(100)],
-                          color: colormap[Random().nextInt(16)].value));
-                    }
-                    addDebugItem(members).then((item) => setState(() {
-                          items.add(item);
-                        }));
-                  }),
-              SpeedDialChild(
-                  child: const Icon(Icons.remove),
-                  onTap: () {
-                    for (int i = 0; i < items.length; ++i) {
-                      DatabaseHelper.instance
-                          .deleteItem(items[i])
-                          .then((value) => setState(() {
-                                itemListFuture =
-                                    DatabaseHelper.instance.getItems();
-                              }));
-                    }
-                    setState(() {
-                      items = [];
-                    });
-                  }),
-              // add more options as needed
-            ],
-          )
-        : FloatingActionButton(
+  Widget speedDial() => kDebugMode
+    ? SpeedDial(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        spacing: 5,
+        animatedIcon: AnimatedIcons.menu_close,
+        animatedIconTheme: const IconThemeData(size: 22.0),
+        foregroundColor: Colors.white,
+        curve: Curves.bounceIn,
+        overlayColor: Colors.black,
+        overlayOpacity: 0.5,
+        children: [
+          SpeedDialChild(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-            onPressed: _showAddDialog,
-            tooltip: 'Add Transaction',
+            backgroundColor: Colors.purple,
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),
-          );
-  }
+            onTap: cubit.showItemDialog,
+          ),
+          SpeedDialChild(
+              child: const Icon(Icons.bug_report),
+              onTap: () => cubit.addDebugItem()),
+          SpeedDialChild(
+              child: const Icon(Icons.remove),
+              onTap: () => cubit.removeAll()),
+          // add more options as needed
+        ],
+      )
+    : FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        onPressed: cubit.showItemDialog,
+        tooltip: 'Add Transaction',
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      );
 
-  Widget body() {
-    return Center(
-      child: FutureBuilder<List<Item>>(
-          future: itemListFuture,
-          builder: (BuildContext context, AsyncSnapshot<List<Item>> snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.data!.isNotEmpty) {
-              items = snapshot.data!;
-              //items.sort((a, b) => b.date.compareTo(a.date));
-            }
-            return RefreshIndicator(
-                child: snapshot.data!.isEmpty
-                    ? ListView(
-                        physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics()),
-                        padding: EdgeInsets.symmetric(
-                            vertical: MediaQuery.of(context).size.height / 2.5),
-                        children: const [
-                          Center(
-                            child: Text(
-                              'No items in list',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          )
-                        ],
-                      )
-                    : ListView.builder(
-                        physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics()),
-                        padding: const EdgeInsets.all(16),
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, i) {
-                          return dismissTile(snapshot.data![i]);
-                        }),
-                onRefresh: () {
-                  setState(() {
-                    itemListFuture = DatabaseHelper.instance.getItems();
-                  });
-                  return itemListFuture;
-                });
-          }),
-    );
-  }
+  get body => Center(
+    child: BlocBuilder<MasterViewCubit, MasterViewState>(
+      bloc: this.cubit,
+      buildWhen: (_, current) => current.runtimeType == MasterViewLoaded || current.runtimeType == MasterViewLoading,
+      builder: (context, state) => state.runtimeType == MasterViewLoaded
+        ? RefreshIndicator(
+            child: (state as MasterViewLoaded).items.isEmpty
+              ? ListView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height / 2.5),
+                  children: const [
+                    Center(
+                      child: Text(
+                        'No items in list',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    )
+                  ],
+                )
+              : ListView.builder(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.all(16),
+                itemCount: state.items.length,
+                itemBuilder: (context, i) {
+                  return dismissTile(state.items[i]);
+                }),
+            onRefresh: () async => cubit.fetchData(destructive: false),
+          )
+        : const Center(child: CircularProgressIndicator())
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
+    this.context = context;
+    this.cubit = BlocProvider.of<MasterViewCubit>(context);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Splizz'),
         actions: [
-          IconButton(
-              onPressed: _pushSettingsView, icon: const Icon(Icons.settings))
+          IconButton(onPressed: pushSettingsView, icon: const Icon(Icons.settings))
         ],
         systemOverlayStyle: SystemUiOverlayStyle(
           systemNavigationBarColor:
               Theme.of(context).colorScheme.surface, // Navigation bar
         ),
       ),
-      body: body(),
+      body: BlocListener<MasterViewCubit, MasterViewState>(
+        bloc: cubit,
+        listenWhen: (_, current) => current is MasterViewListener,
+        listener: (context, state) {
+          switch (state.runtimeType) {
+            case MasterViewShowSnackBar:
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text((state as MasterViewShowSnackBar).message)));
+              break;
+            case MasterViewPushAuthView:
+              Navigator.pushReplacementNamed(context, '/auth');
+              break;
+            case MasterViewShowInvitationDialog:
+              showInvitationDialog();
+              break;
+            case MasterViewShowItemDialog:
+              showItemDialog();
+              break;
+            case MasterViewShowDismissDialog:
+              showDismissDialog();
+              break;
+          }
+        },
+        child: body,
+      ),
       floatingActionButton: speedDial(),
     );
   }
