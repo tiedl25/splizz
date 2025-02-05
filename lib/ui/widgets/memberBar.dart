@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/member.model.dart';
@@ -122,7 +123,7 @@ class MemberDialog extends StatelessWidget {
       builder: (context, state) {
         Member member = state.item.members.firstWhere((element) => element.id == memberId);
 
-        return DialogModel(
+        return CustomDialog(
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(

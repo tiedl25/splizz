@@ -7,7 +7,8 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
 
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/Helper/colormap.dart';
 import 'package:splizz/bloc/masterview_states.dart';
 
@@ -26,7 +27,7 @@ class ItemDialog extends StatelessWidget {
             bloc: cubit,
             buildWhen: (_, current) => current is MasterViewItemDialogImagePicker,
             builder: (context, state) {
-              return DialogModel(
+              return CustomDialog(
                 content: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height / 3,
@@ -150,7 +151,7 @@ class ItemDialog extends StatelessWidget {
           buildWhen: (_, current) => current is MasterViewItemDialogColorPicker,
           builder: (context, state) {
             state as MasterViewItemDialogColorPicker;
-            return DialogModel(
+            return CustomDialog(
               content: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: SingleChildScrollView(
@@ -211,7 +212,7 @@ class ItemDialog extends StatelessWidget {
       builder: (context, state) {
         state as MasterViewItemDialog;
 
-        return DialogModel(
+        return CustomDialog(
           title: 'Create a new Splizz',
           content: SizedBox(
             width: MediaQuery.of(context).size.width,

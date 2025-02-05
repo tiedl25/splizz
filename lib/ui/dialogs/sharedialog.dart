@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 
@@ -12,7 +13,7 @@ class AuthDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<DetailViewCubit>();
 
-    return DialogModel(
+    return CustomDialog(
       content: const Text(
         'Do you want to sign in to share your items and sync them across devices?',
         style: TextStyle(fontSize: 20),
@@ -49,7 +50,7 @@ class ShareDialog extends StatelessWidget {
       },
       buildWhen: (_, current) => current is DetailViewShareDialog,
       builder: (context, state) {
-        return DialogModel(
+        return CustomDialog(
           title: 'Share Splizz',
           content: SizedBox(
             width: MediaQuery.of(context).size.width,

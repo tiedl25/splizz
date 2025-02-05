@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:splizz/ui/widgets/circularSlider.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 
 class TransactionDialog extends StatelessWidget {
@@ -81,7 +82,7 @@ class TransactionDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return DialogModel(
+        return CustomDialog(
           contentPadding: const EdgeInsets.only(bottom: 0),
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -136,7 +137,7 @@ class TransactionDialog extends StatelessWidget {
     return AnimatedScale(
       duration: const Duration(milliseconds: 100),
       scale: state.scale,
-      child: DialogModel(
+      child: CustomDialog(
         title: 'Add new Transaction',
         content: SizedBox(
             width: MediaQuery.of(context).size.width,

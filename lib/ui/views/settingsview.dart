@@ -6,7 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 import 'package:splizz/bloc/settingsview_bloc.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 
 class SettingsView extends StatelessWidget {
   late final context;
@@ -16,7 +17,7 @@ class SettingsView extends StatelessWidget {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return DialogModel(
+        return CustomDialog(
           content: Text(
             "Are you sure you want to log out?",
             style: TextStyle(fontSize: 20),

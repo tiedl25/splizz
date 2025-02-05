@@ -17,7 +17,8 @@ import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/dialogs/itemdialog.dart';
 
 import 'package:splizz/models/item.model.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 
 var activeSession = Supabase.instance.client.auth.currentSession;
 
@@ -57,7 +58,7 @@ class MasterView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return DialogModel(
+        return CustomDialog(
           content: Text(
             'You are invited to a Splizz. Do you want to join?',
             style: TextStyle(fontSize: 20),
@@ -84,7 +85,7 @@ class MasterView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return DialogModel(
+        return CustomDialog(
           title: 'Confirm Dismiss',
           content: Column(
             children: [

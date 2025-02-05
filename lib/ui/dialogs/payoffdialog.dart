@@ -11,7 +11,8 @@ import 'package:excel/excel.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 
 class PayoffDialog extends StatelessWidget {
   late final context;
@@ -105,7 +106,7 @@ class PayoffDialog extends StatelessWidget {
       builder: (context, state) {
         var paymap = state.item.calculatePayoff();
 
-        return DialogModel(
+        return CustomDialog(
           title: 'Payoff',
           scrollable: false,
           content: SizedBox(
@@ -402,7 +403,7 @@ class PastPayoffDialog extends StatelessWidget {
         //  path = value.path;
         //});
 
-        return DialogModel(
+        return CustomDialog(
           onDismissed: () => cubit.dismissPayoffDialog(),
           header: Row(children: [
             const Text('Payoff'),

@@ -11,7 +11,8 @@ import 'package:splizz/ui/dialogs/transactiondialog.dart';
 import 'package:splizz/ui/widgets/memberBar.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/transaction.model.dart';
-import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
@@ -79,7 +80,7 @@ class DetailView extends StatelessWidget {
     return await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return DialogModel(
+        return CustomDialog(
           title: 'Confirm Dismiss',
           content: const Text(
             'Do you really want to remove this Transaction',
