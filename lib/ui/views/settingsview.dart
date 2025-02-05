@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:splizz/bloc/settingsview_states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 

@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
+import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/member.model.dart';
 
 class MemberBar extends StatelessWidget {
-  late DetailViewCubit detailViewCubit;
-  late BuildContext context;
+  late final DetailViewCubit cubit;
+  late final BuildContext context;
 
-  MemberBar({required this.context});
+  MemberBar();
 
   void showMemberDialog(Member member) {
     showDialog(
       context: context,
       builder: (_) {
         return BlocProvider.value(
-          value: detailViewCubit,
-          child: MemberDialog(memberId: member.id, detailViewCubit: detailViewCubit));
+          value: cubit,
+          child: MemberDialog(memberId: member.id));
       });
   }
 
@@ -89,13 +90,13 @@ class MemberBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    detailViewCubit = context.read<DetailViewCubit>();
+    this.cubit = context.read<DetailViewCubit>();
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       scrollDirection: Axis.horizontal,
       child: BlocBuilder(
-        bloc: detailViewCubit,
+        bloc: cubit,
         builder: (context, state) => Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: memberBar(state),
@@ -108,16 +109,16 @@ class MemberDialog extends StatelessWidget {
   const MemberDialog({
     super.key,
     required this.memberId,
-    required this.detailViewCubit,
   });
 
   final String memberId;
-  final DetailViewCubit detailViewCubit;
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     return BlocBuilder<DetailViewCubit, DetailViewState>(
-      bloc: detailViewCubit,
+      bloc: cubit,
       builder: (context, state) {
         Member member = state.item.members.firstWhere((element) => element.id == memberId);
 
@@ -161,7 +162,7 @@ class MemberDialog extends StatelessWidget {
                   SwitchListTile(
                     title: const Text("Active"),
                     value: member.active,
-                    onChanged: (bool value) => detailViewCubit.setMemberActivity(member, value),
+                    onChanged: (bool value) => cubit.setMemberActivity(member, value),
                   ),
                 ],
               ),

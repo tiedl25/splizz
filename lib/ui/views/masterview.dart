@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/bloc/masterview_states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:splizz/bloc/detailview_bloc.dart';

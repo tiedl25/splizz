@@ -28,7 +28,6 @@ class ShareDialog extends StatelessWidget {
   late DetailViewCubit cubit;
 
   TextEditingController tfController = TextEditingController();
-  bool fullAccess = false;
 
   @override
   Widget build(BuildContext context) {
@@ -63,13 +62,12 @@ class ShareDialog extends StatelessWidget {
                   decoration: TfDecorationModel(
                     context: context,
                     title: 'Email',
-                    icon: IconButton(
-                      icon: const Icon(Icons.copy),
-                      color: Colors.black45,
-                      onPressed: () async => cubit.showLink(tfController.text),
-                    ),
+                    //icon: IconButton(
+                    //  icon: const Icon(Icons.copy),
+                    //  color: Colors.black45,
+                    //  onPressed: () async => cubit.showLink(tfController.text),
+                    //),
                   ),
-                  onSubmitted: (value) => {},
                 ),
                 SizedBox(
                   height: 10,
@@ -81,11 +79,8 @@ class ShareDialog extends StatelessWidget {
                   ),
                   contentPadding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                   trailing: Switch(
-                    value: fullAccess,
-                    onChanged: ((value) {
-                      fullAccess = value;
-                      cubit.toggleCurrency();
-                    })
+                    value: (state as DetailViewShareDialog).fullAccess,
+                    onChanged: (_) => cubit.toggleAccess()
                   ),
                 ),
               ]),

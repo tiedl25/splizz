@@ -9,6 +9,7 @@ import 'package:splizz/bloc/masterview_bloc.dart';
 
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/Helper/colormap.dart';
+import 'package:splizz/bloc/masterview_states.dart';
 
 class ItemDialog extends StatelessWidget {
   late BuildContext context;
@@ -142,31 +143,32 @@ class ItemDialog extends StatelessWidget {
 
   void showColorPicker() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return BlocBuilder<MasterViewCubit, MasterViewState>(
-            bloc: cubit,
-            buildWhen: (_, current) => current is MasterViewItemDialogColorPicker,
-            builder: (context, state) {
-              state as MasterViewItemDialogColorPicker;
-              return DialogModel(
-                content: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: BlockPicker(
-                        availableColors: colormap,
-                        pickerColor: colormap[state.i - 1],
-                        onColorChanged: (Color color) {
-                          cubit.changeColorMap(color);
-                          Navigator.of(context).pop();
-                        }),
-                  ),
+      context: context,
+      builder: (BuildContext context) {
+        return BlocBuilder<MasterViewCubit, MasterViewState>(
+          bloc: cubit,
+          buildWhen: (_, current) => current is MasterViewItemDialogColorPicker,
+          builder: (context, state) {
+            state as MasterViewItemDialogColorPicker;
+            return DialogModel(
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: BlockPicker(
+                      availableColors: colormap,
+                      pickerColor: colormap[state.i - 1],
+                      onColorChanged: (Color color) {
+                        cubit.changeColorMap(color);
+                        Navigator.of(context).pop();
+                      }),
                 ),
-              );
-            },
-          );
-        });
+              ),
+            );
+          },
+        );
+      }
+    );
   }
 
   Container textField(int i) {

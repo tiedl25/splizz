@@ -2,88 +2,93 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/item.model.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
-import 'package:splizz/Dialogs/sharedialog.dart';
+import 'package:splizz/ui/dialogs/sharedialog.dart';
 import 'package:splizz/ui/dialogs/transactiondialog.dart';
-import 'package:splizz/Helper/database.dart';
 import 'package:splizz/ui/widgets/memberBar.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/Helper/ui_model.dart';
 import 'package:splizz/models/member.model.dart';
-import 'package:splizz/models/user.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class DetailView extends StatelessWidget {
   late BuildContext context;
-  late DetailViewCubit detailViewCubit;
+  late DetailViewCubit cubit;
 
   DetailView();
 
   // Show Dialog Methods
 
-  void _showAddDialog() {
-    detailViewCubit.showTransactionDialog();
-
+  void showTransactionDialog() async {
     showDialog(
-      context: context, barrierDismissible: true, // user must tap button!
+      context: context, 
+      barrierDismissible: true,
       builder: (_) {
         return BlocProvider.value(
-            value: detailViewCubit, child: TransactionDialog());
-      },
-    );
-  }
-
-  Future<void> _showShareDialog(String itemId) async {
-    final currentUser = Supabase.instance.client.auth.currentUser;
-
-    if (currentUser != null) {
-      User permission =
-          await DatabaseHelper.instance.getPermission(itemId, currentUser.id);
-      if (!permission.fullAccess) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("You are not authorized to share this item!")));
-        return;
-      }
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Supabase.instance.client.auth.currentUser == null
-            ? const AuthDialog()
-            : BlocProvider.value(
-                value: detailViewCubit,
-                child: ShareDialog(),
-              );
-      },
-    );
-  }
-
-  void _showPayoffDialog() {
-    showDialog(
-      context: context, barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return BlocProvider.value(
-            value: detailViewCubit, child: PayoffDialog(context: context));
-      },
-    );
-  }
-
-  void _showPastPayoffDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return BlocProvider.value(
-          value: detailViewCubit,
-          child: PastPayoffDialog(
-            index: index,
-          ),
+          value: cubit, 
+          child: TransactionDialog()
         );
       },
     );
+  }
+
+  void showShareDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit,
+          child: Supabase.instance.client.auth.currentUser == null
+            ? const AuthDialog()
+            : ShareDialog(),
+        );
+      },
+    );
+  }
+
+  void showPayoffDialog() {
+    showDialog(
+      context: context, 
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit, 
+          child: PayoffDialog()
+        );
+      },
+    );
+  }
+
+  void showPastPayoffDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit,
+          child: PastPayoffDialog(),
+        );
+      },
+    );
+  }
+
+  Future<bool?> showDismissDialog(transaction, memberMap, index) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return DialogModel(
+          title: 'Confirm Dismiss',
+          content: const Text(
+            'Do you really want to remove this Transaction',
+            style: TextStyle(fontSize: 20),
+          ),
+          onConfirmed: () => cubit.deleteTransaction(transaction, memberMap, index),
+        );
+      },
+    ) as bool?;
   }
 
   //Custom Widgets
@@ -103,11 +108,7 @@ class DetailView extends StatelessWidget {
                 : Theme.of(context).colorScheme.surface),
             child: IconButton(
               splashRadius: 25,
-              onPressed: () {
-                if (unbalanced) {
-                  _showPayoffDialog();
-                }
-              },
+              onPressed: () => cubit.showPayoffDialog(),
               icon: const Icon(
                 Icons.handshake,
                 color: Colors.white,
@@ -138,7 +139,7 @@ class DetailView extends StatelessWidget {
           ),
           margin: const EdgeInsets.all(10),
           child: RefreshIndicator(
-            onRefresh: () => detailViewCubit.fetchData(),
+            onRefresh: () => cubit.fetchData(),
             child: item.history.isEmpty
                 ? ListView(
                     physics: const BouncingScrollPhysics(
@@ -164,20 +165,19 @@ class DetailView extends StatelessWidget {
                           item.history[item.history.length - 1 - i];
                       if (transaction.description == 'payoff') {
                         return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _showPastPayoffDialog(
-                                item.history.length - i - 1),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text('Payoff'),
-                                  Text(transaction.formatDate())
-                                ],
-                              ),
-                            ));
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => cubit.showPastPayoffDialog(item.history.length - i - 1),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Payoff'),
+                                Text(transaction.formatDate())
+                              ],
+                            ),
+                          ));
                       } else {
                         return transaction.deleted
                             ? Container(
@@ -200,32 +200,17 @@ class DetailView extends StatelessWidget {
         color: Colors.red,
       ),
       child: Dismissible(
-          key: UniqueKey(),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (direction) {
-            return showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return DialogModel(
-                  title: 'Confirm Dismiss',
-                  content: const Text(
-                    'Do you really want to remove this Transaction',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  onConfirmed: () => detailViewCubit.deleteTransaction(
-                      transaction, memberMap, index),
-                );
-              },
-            );
-          },
-          background: Container(
-            padding: const EdgeInsets.only(right: 20),
-            alignment: Alignment.centerRight,
-            child: const Icon(
-              Icons.delete,
-            ),
+        key: UniqueKey(),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (_) => showDismissDialog(transaction, memberMap, index),
+        background: Container(
+          padding: const EdgeInsets.only(right: 20),
+          alignment: Alignment.centerRight,
+          child: const Icon(
+            Icons.delete,
           ),
-          child: expansionTile(transaction, memberMap, item)),
+        ),
+        child: expansionTile(transaction, memberMap, item)),
     );
   }
 
@@ -319,7 +304,7 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget body(BuildContext context) {
+  Widget body() {
     //double imageRadius = window.viewPadding.top - AppBar().preferredSize.height - MediaQuery.of(context).viewPadding.top;
     return Column(
       children: [
@@ -327,8 +312,7 @@ class DetailView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center, 
           children: [
             BlocBuilder<DetailViewCubit, DetailViewState>(
-              buildWhen: (previous, current) =>
-                current.item.image != previous.item.image,
+              buildWhen: (previous, current) => current.item.image != previous.item.image,
               builder: (context, state) => ClipRRect(
                 borderRadius:
                   const BorderRadius.vertical(bottom: Radius.circular(25)),
@@ -341,9 +325,29 @@ class DetailView extends StatelessWidget {
             const Spacer(),
           ]
         ),
-        BlocBuilder<DetailViewCubit, DetailViewState>(
-          bloc: detailViewCubit,
-          buildWhen: (previous, current) =>
+        BlocConsumer<DetailViewCubit, DetailViewState>(
+          bloc: cubit,
+          listenWhen: (_, current) => current is DetailViewListener,
+          listener: (context, state) {
+            switch (state.runtimeType) {
+              case DetailViewShowTransactionDialog:
+                showTransactionDialog();
+                break;
+              case DetailViewShowShareDialog:
+                showShareDialog();
+                break;
+              case DetailViewShowSnackBar:
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((state as DetailViewShowSnackBar).message)));
+                break;
+              case DetailViewShowPayoffDialog:
+                showPayoffDialog();
+                break;
+              case DetailViewShowPastPayoffDialog:
+                showPastPayoffDialog();
+                break;
+            }
+          },
+          buildWhen: (_, current) =>
             current.runtimeType == DetailViewLoading ||
             current.runtimeType == DetailViewLoaded,
           builder: (BuildContext context, DetailViewState state) {
@@ -358,7 +362,7 @@ class DetailView extends StatelessWidget {
                   child: Column(
                 children: [
                   const Spacer(),
-                  MemberBar(context: context,),
+                  MemberBar(),
                   const Spacer(flex: 2,),
                   payoffButton(state.unbalanced),
                   const Spacer(),
@@ -376,9 +380,7 @@ class DetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    this.detailViewCubit = context.read<DetailViewCubit>(); //BlocProvider.of<DetailViewBloc>(context);
-
-    detailViewCubit.fetchData();
+    this.cubit = context.read<DetailViewCubit>(); //BlocProvider.of<DetailViewBloc>(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -386,22 +388,24 @@ class DetailView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black26,
         title: BlocBuilder<DetailViewCubit, DetailViewState>(
-          bloc: detailViewCubit,
+          bloc: cubit,
           builder: (context, state) {
             return Text(state.item.name);
           },
         ),
         actions: [
           BlocBuilder<DetailViewCubit, DetailViewState>(
-            bloc: detailViewCubit,
+            bloc: cubit,
             builder: (context, state) {
               return IconButton(
-                  onPressed: () => _showShareDialog(state.item.id), icon: const Icon(Icons.share));
+                onPressed: () => cubit.showShareDialog(), 
+                icon: const Icon(Icons.share)
+              );
             },
           ),
         ],
       ),
-      body: body(context),
+      body: body(),
       floatingActionButton: kDebugMode
         ? SpeedDial(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
@@ -420,11 +424,11 @@ class DetailView extends StatelessWidget {
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
                 child: const Icon(Icons.add),
-                onTap: _showAddDialog,
+                onTap: cubit.showTransactionDialog,
               ),
               SpeedDialChild(
                 child: const Icon(Icons.bug_report),
-                onTap: () => detailViewCubit.addDebugTransaction(),
+                onTap: () async => cubit.addDebugTransaction(),
               ),
               // add more options as needed
             ],
@@ -433,7 +437,7 @@ class DetailView extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-            onPressed: _showAddDialog,
+            onPressed: cubit.showTransactionDialog(),
             tooltip: 'Add Item',
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),

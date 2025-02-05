@@ -2,13 +2,14 @@ import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:splizz/Helper/circularSlider.dart';
+import 'package:splizz/ui/widgets/circularSlider.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/Helper/ui_model.dart';
+import 'package:splizz/bloc/detailview_states.dart';
 
 class TransactionDialog extends StatelessWidget {
   late BuildContext context;
-  late DetailViewCubit detailViewCubit;
+  late DetailViewCubit cubit;
 
   final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',');
   final TextEditingController descriptionController = TextEditingController();
@@ -30,7 +31,7 @@ class TransactionDialog extends StatelessWidget {
         return PillModel(
           color: color,
           child: TextButton(
-            onPressed: () => detailViewCubit.changePayer(i),
+            onPressed: () => cubit.changePayer(i),
             child: Text(
               state.item.members[i].name,
               style: TextStyle(color: textColor, fontSize: 20),
@@ -58,7 +59,7 @@ class TransactionDialog extends StatelessWidget {
             PillModel(
               color: color,
               child: TextButton(
-                onPressed: () => detailViewCubit.selectMember(i),
+                onPressed: () => cubit.selectMember(i),
                 child: Text(
                   state.item.members[i].name,
                   style: TextStyle(color: textColor, fontSize: 20),
@@ -72,9 +73,10 @@ class TransactionDialog extends StatelessWidget {
   }
 
   void showDateSelection(state) {
-    if (state is! TransactionDialogState) return;
+    if (state is! DetailViewTransactionDialog) return;
 
     DateTime now = DateTime.now();
+    DateTime newDate = state.date[2];
 
     showDialog(
       context: context,
@@ -87,10 +89,11 @@ class TransactionDialog extends StatelessWidget {
               initialDate: state.date[2],
               firstDate: now.subtract(const Duration(days: 60)),
               lastDate: now,
-              onDateChanged: (DateTime pickedDate) => detailViewCubit.setDate(pickedDate),
+              onDateChanged: (DateTime pickedDate) => newDate = pickedDate,
             ),
           ),
-          onConfirmed: () => detailViewCubit.setDate(state.date[2]),
+          onConfirmed: () => cubit.setDate(newDate),
+          onDismissed: () => cubit.closeDateSelection(),
         );
       });
   }
@@ -112,7 +115,7 @@ class TransactionDialog extends StatelessWidget {
           child: TextButton(
             onPressed: () => i == 2
                 ? showDateSelection(state)
-                : detailViewCubit.changeDay(i),
+                : cubit.changeDay(i),
             child: Text(
               i == 2
                 ? '${state.date[2].day}.${state.date[2].month}.${state.date[2].year}'
@@ -155,11 +158,13 @@ class TransactionDialog extends StatelessWidget {
                   child: payerBar(state)),
                 TextField(
                   controller: currencyController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => cubit.updateTransactionValue(double.parse(value.replaceFirst(",", "."))),
                   decoration: TfDecorationModel(
                     context: context,
                     title: '0,00',
                     icon: IconButton(
-                      onPressed: () => detailViewCubit.toggleCurrency(),
+                      onPressed: () => cubit.toggleCurrency(),
                       icon: state.currency == false
                         ? const Icon(Icons.euro)
                         : const Icon(Icons.attach_money)))),
@@ -172,13 +177,13 @@ class TransactionDialog extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     child: Text('Show more'),
-                    onPressed: () => detailViewCubit.showMore(),
+                    onPressed: () => cubit.showMore(),
                   ),
                 ),
               ]),
             )),
-        onConfirmed: () => detailViewCubit.addTransaction(currencyController.doubleValue, descriptionController.text),
-        onDismissed: () => detailViewCubit.closeTranscationDialog(),
+        onConfirmed: () => cubit.addTransaction(descriptionController.text),
+        onDismissed: () => cubit.closeTranscationDialog(),
       ));
   }
 
@@ -217,12 +222,13 @@ class TransactionDialog extends StatelessWidget {
                 child: payerBar(state)),
               TextField(
                 controller: currencyController,
-                onChanged: (value) {},
+                keyboardType: TextInputType.number,
+                onChanged: (value) => cubit.updateTransactionValue(double.parse(value.replaceFirst(",", "."))),
                 decoration: TfDecorationModel(
                   context: context,
                   title: '0,00',
                   icon: IconButton(
-                    onPressed: () => detailViewCubit.toggleCurrency(),
+                    onPressed: () => cubit.toggleCurrency(),
                     icon: state.currency == false
                       ? const Icon(Icons.euro)
                       : const Icon(Icons.attach_money)))),
@@ -237,19 +243,13 @@ class TransactionDialog extends StatelessWidget {
               ),
               SizedBox(height: 70, child: memberBar(state)),
               Spacer(),
-              CircularSlider(
-                sum: currencyController.doubleValue,
-                members: state.item.members,
-                memberBalances: state.memberBalances,
-                memberSelection: state.memberSelection,
-                getInvolvedMembers: (value) => detailViewCubit.getInvolvedMembers(value),
-              ),
+              CircularSlider(),
               Spacer(),
               Container(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
                   child: Text('Show less'),
-                  onPressed: () => detailViewCubit.showLess(),
+                  onPressed: () => cubit.showLess(),
                 ),
               ),
               const Divider(
@@ -269,6 +269,7 @@ class TransactionDialog extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       onPressed: () {
+                        cubit.closeTranscationDialog();
                         Navigator.of(context).pop(false);
                       },
                     )),
@@ -281,7 +282,7 @@ class TransactionDialog extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 0),
                         child: Text("Add", style: Theme.of(context).textTheme.labelLarge,),
                         onPressed: () {
-                          detailViewCubit.addTransaction(currencyController.doubleValue, descriptionController.text);
+                          cubit.addTransaction(descriptionController.text);
                           Navigator.of(context).pop(true);
                         }),
                     ),
@@ -298,14 +299,13 @@ class TransactionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    this.detailViewCubit = context.read<DetailViewCubit>();
+    this.cubit = context.read<DetailViewCubit>();
 
     return BlocBuilder(
-      bloc: detailViewCubit,
+      bloc: cubit,
+      buildWhen: (_, current) => current is DetailViewTransactionDialog,
       builder: (context, state) {
-        if (state is! TransactionDialogState) return Container();
-
-        return state.extend ? view(state) : dialog(state);
+        return (state as DetailViewTransactionDialog).extend ? view(state) : dialog(state);
       },
     );
   }
