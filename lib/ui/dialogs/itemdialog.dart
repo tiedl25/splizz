@@ -9,7 +9,7 @@ import 'package:splizz/bloc/masterview_bloc.dart';
 
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
-import 'package:splizz/Helper/colormap.dart';
+import 'package:splizz/resources/colormap.dart';
 import 'package:splizz/bloc/masterview_states.dart';
 
 class ItemDialog extends StatelessWidget {
