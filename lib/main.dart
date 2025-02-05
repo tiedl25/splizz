@@ -12,8 +12,8 @@ import 'package:splizz/ui/views/masterview.dart';
 import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/views/authview.dart';
 
-import 'package:splizz/theme/dark_theme.dart';
-import 'package:splizz/theme/light_theme.dart';
+import 'package:splizz/ui/theme/dark_theme.dart';
+import 'package:splizz/ui/theme/light_theme.dart';
 
 Future main() async {
   await Repository.configure(databaseFactory);
