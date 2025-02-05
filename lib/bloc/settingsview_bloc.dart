@@ -5,7 +5,7 @@ import 'package:splizz/bloc/settingsview_states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 
-import 'package:splizz/Helper/database.dart';
+import 'package:splizz/data/database.dart';
 
 class SettingsViewCubit extends Cubit<SettingsViewState> {
   SettingsViewCubit()

@@ -17,7 +17,7 @@ import 'package:splizz/models/transaction.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'dart:typed_data';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:splizz/Helper/database.dart';
+import 'package:splizz/data/database.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:splizz/models/member.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import

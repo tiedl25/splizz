@@ -9,7 +9,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/resources/colormap.dart';
 import 'package:splizz/resources/names.dart';
-import 'package:splizz/Helper/database.dart';
+import 'package:splizz/data/database.dart';
 import 'package:splizz/bloc/masterview_states.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';

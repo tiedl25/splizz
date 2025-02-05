@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 
-import 'package:splizz/Helper/database.dart';
+import 'package:splizz/data/database.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
