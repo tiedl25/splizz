@@ -20,8 +20,23 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     if (!checkAuth()) {
       return;
     }
-    fetchData();
+    fetchData(destructive: false);
+    //recover();
     handleIncomingLinks();
+  }
+
+  void recover() async {
+    final items = await DatabaseHelper.instance.getItems();
+    for (Item item in items) {
+      final i = await DatabaseHelper.instance.getItem(item.id);
+      await DatabaseHelper.instance.upsertItem(i);
+    }
+    final newState = MasterViewLoaded(
+      items: items, 
+      sharedPreferences: state.sharedPreferences
+    );
+
+    emit(newState);
   }
 
   void fetchData({bool destructive=true}) async {
@@ -229,18 +244,8 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  Future<bool?> showDismissDialog() {
-    final newState = MasterViewDismissDialog.fromLoaded(state as MasterViewLoaded);
-
-    emit(MasterViewShowDismissDialog(sharedPreferences: state.sharedPreferences));
-
-    emit(newState);
-
-    return Future<bool?>.value(true);
-  }
-
   void deleteItem(Item item) async {
-    final newState = MasterViewLoaded.fromDismissDialog(state as MasterViewDismissDialog);
+    final newState = (state as MasterViewLoaded).copyWith();
 
     await DatabaseHelper.instance.deleteItem(item);
 

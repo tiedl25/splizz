@@ -17,7 +17,6 @@ import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/dialogs/itemdialog.dart';
 
 import 'package:splizz/models/item.model.dart';
-import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 
 var activeSession = Supabase.instance.client.auth.currentSession;
@@ -81,8 +80,8 @@ class MasterView extends StatelessWidget {
         });
   }
 
-  void showDismissDialog() {
-    showDialog(
+  Future<bool?> showDismissDialog(Item item) async {
+    return await showDialog(
       context: context,
       builder: (BuildContext context) {
         return CustomDialog(
@@ -98,10 +97,10 @@ class MasterView extends StatelessWidget {
               ),
             ],
           ),
-          onConfirmed: null
+          onConfirmed: () => cubit.deleteItem(item),
         );
       },
-    );
+    ) as bool?;
   }
 
   //Navigation
@@ -144,8 +143,7 @@ class MasterView extends StatelessWidget {
       child: Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (_) async => cubit.deleteItem(item),
-        confirmDismiss: (_) => cubit.showDismissDialog(),
+        confirmDismiss: (_) => showDismissDialog(item),
         background: Container(
           padding: const EdgeInsets.only(right: 20),
           alignment: Alignment.centerRight,
@@ -287,9 +285,6 @@ class MasterView extends StatelessWidget {
               break;
             case MasterViewShowItemDialog:
               showItemDialog();
-              break;
-            case MasterViewShowDismissDialog:
-              showDismissDialog();
               break;
           }
         },

@@ -28,10 +28,6 @@ class MasterViewLoaded extends MasterViewState {
   factory MasterViewLoaded.fromItemDialog(MasterViewItemDialog state) {
     return MasterViewLoaded(items: state.items, sharedPreferences: state.sharedPreferences);
   }
-
-  factory MasterViewLoaded.fromDismissDialog(MasterViewDismissDialog state) {
-    return MasterViewLoaded(items: state.items, sharedPreferences: state.sharedPreferences);
-  }
 }
 
 
@@ -42,10 +38,6 @@ abstract class MasterViewListener extends MasterViewState {
 
 class MasterViewShowItemDialog extends MasterViewListener {
   MasterViewShowItemDialog({required super.sharedPreferences});
-}
-
-class MasterViewShowDismissDialog extends MasterViewListener {
-  MasterViewShowDismissDialog({required super.sharedPreferences});
 }
 
 class MasterViewShowInvitationDialog extends MasterViewListener {
@@ -80,14 +72,6 @@ class MasterViewInvitationDialog extends MasterViewState {
   MasterViewInvitationDialog({required super.sharedPreferences, required this.permissionId});
 }
 
-
-class MasterViewDismissDialog extends MasterViewLoaded {
-  MasterViewDismissDialog({required super.items, required super.sharedPreferences});
-
-  factory MasterViewDismissDialog.fromLoaded(MasterViewLoaded state) {
-    return MasterViewDismissDialog(items: state.items, sharedPreferences: state.sharedPreferences);
-  }
-}
 
 class MasterViewItemDialog extends MasterViewLoaded {
   String title = "";
