@@ -438,7 +438,7 @@ class DetailView extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-            onPressed: cubit.showTransactionDialog(),
+            onPressed: cubit.showTransactionDialog,
             tooltip: 'Add Item',
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),
