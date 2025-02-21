@@ -51,6 +51,7 @@ class ShareDialog extends StatelessWidget {
       buildWhen: (_, current) => current is DetailViewShareDialog,
       builder: (context, state) {
         return CustomDialog(
+          pop: false,
           title: 'Share Splizz',
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -87,7 +88,7 @@ class ShareDialog extends StatelessWidget {
               ]),
             ),
           ),
-          onConfirmed: () async => cubit.showLink(tfController.text),
+          onConfirmed: () => cubit.showLink(tfController.text),
           onDismissed: () => cubit.closeShareDialog(),
         );
       },

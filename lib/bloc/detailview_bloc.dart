@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 
@@ -121,7 +120,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   closeShareDialog() {
-    final newState = DetailViewLoaded.fromShareDialog(state as DetailViewShareDialog);
+    final newState = DetailViewLoaded.from(state);
 
     emit(newState);
   }
@@ -379,6 +378,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   showLink(email) async {
+    if (email.isEmpty) return;
+
     User permission = User(
       itemId: state.item.id,
       fullAccess: (state as DetailViewShareDialog).fullAccess,
@@ -386,11 +387,12 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       expirationDate: DateTime.now().add(const Duration(days: 1)));
     final result = await DatabaseHelper.instance.addPermission(permission);
 
-    final newState = DetailViewLoaded.fromShareDialog(state as DetailViewShareDialog);
+    final newState = state.copyWith();
 
     if (!result.isSuccess)
       emit(DetailViewShareDialogShowSnackBar(item: state.item, message: result.message!));
     else {
+      permission = result.value!;
       String message = 'You are invited to a Splizz. Accept by opening this link.\n\n';
       message += 'https://tmc.tiedl.rocks/splizz?id=${permission.id}';
       emit(DetailViewShareDialogShowLink(item: state.item, message: message));

@@ -213,7 +213,7 @@ class DatabaseHelper {
 
     await db.upsert<User>(permission);
 
-    return Result.success(null);
+    return Result.success(permission);
   }
 
   Future<Result> confirmPermission(String permissionId, {dynamic db}) async {
@@ -247,6 +247,9 @@ class DatabaseHelper {
     if (existingPermissions.isNotEmpty) return Result.failure("The item has already been added");    
 
     await db.upsert<User>(permission);
+
+    Item item = await getItem(permission.itemId!, db: db);
+    await db.upsert<Item>(item);
 
     return Result.success(null);
   }

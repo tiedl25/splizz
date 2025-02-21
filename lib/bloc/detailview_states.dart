@@ -31,6 +31,9 @@ class DetailViewLoaded extends DetailViewState {
   factory DetailViewLoaded.fromShareDialog(DetailViewShareDialog state) =>
     DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
 
+  factory DetailViewLoaded.from(final state) =>
+    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
+
   @override
   DetailViewLoaded copyWith({Item? item, bool? unbalanced}) {
     return DetailViewLoaded(
