@@ -118,6 +118,7 @@ class PayoffDialog extends StatelessWidget {
                 clipBehavior: Clip.none,
                 alignment: Alignment.topCenter,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: List.generate(paymap.length, (i) {
                     Member m = paymap.keys.toList()[i];
                     return listElement(m, paymap[m]!);
@@ -350,6 +351,7 @@ class PastPayoffDialog extends StatelessWidget {
     return WidgetsToImage(
       controller: controller,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...List.generate(paymap.length, (i) {
             Member m = paymap.keys.toList()[i];
