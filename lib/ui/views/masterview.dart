@@ -62,8 +62,8 @@ class MasterView extends StatelessWidget {
             'You are invited to a Splizz. Do you want to join?',
             style: TextStyle(fontSize: 20),
           ),
-          onConfirmed: () async => cubit.acceptInvitation(),
-          onDismissed: () async => cubit.declineInvitation(),
+          onConfirmed: () async => await cubit.acceptInvitation(),
+          onDismissed: () => cubit.declineInvitation(),
         );
       },
     );

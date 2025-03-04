@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +21,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     }
     fetchData(destructive: false);
     //recover();
-    handleIncomingLinks();
+    //handleIncomingLinks();
   }
 
   void recover() async {
@@ -48,16 +47,40 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       sharedPreferences: state.sharedPreferences
     );
 
+    handleIncomingLinks();
+    
     emit(newState);
   }
 
   void handleIncomingLinks() {
     final appLinks = AppLinks();
-    StreamSubscription? sub;
 
-    sub = appLinks.uriLinkStream.listen((Uri? uri) async {
+    appLinks.getInitialLink().then((Uri? uri) async {
+      print(uri);
       if (uri != null) {
         final permissionId = uri.queryParameters['id'];
+
+        if (permissionId != null) {
+          final newState = MasterViewInvitationDialog(
+            sharedPreferences: state.sharedPreferences,
+            permissionId: permissionId
+          );
+
+          emit(MasterViewShowInvitationDialog(sharedPreferences: state.sharedPreferences));
+
+          emit(newState);
+        }
+      }
+    });
+
+
+    appLinks.uriLinkStream.listen((Uri? uri) async {
+      if (uri != null) {
+        final permissionId = uri.queryParameters['id'];
+
+        if (state.runtimeType == MasterViewInvitationDialog) {
+          return;
+        }
 
         if (permissionId != null) {
           final newState = MasterViewInvitationDialog(
@@ -75,10 +98,13 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     });
   }
 
-  void acceptInvitation() async {
+  Future<void> acceptInvitation() async {
     final id = (state as MasterViewInvitationDialog).permissionId;
     final result = await DatabaseHelper.instance.confirmPermission(id);
     if (result.isSuccess) {
+      final newState = MasterViewLoading(sharedPreferences: state.sharedPreferences);
+      emit(newState);
+
       fetchData(destructive: false);
     } else {
       final newState = MasterViewShowSnackBar(
@@ -88,8 +114,6 @@ class MasterViewCubit extends Cubit<MasterViewState> {
 
       emit(newState);
     }
-
-    emit(state);
   }
 
   void declineInvitation() {
