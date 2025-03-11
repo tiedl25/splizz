@@ -15,6 +15,8 @@ import 'package:splizz/models/member.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MasterViewCubit extends Cubit<MasterViewState> {
+  bool _initialLinkProcessed = false;
+
   MasterViewCubit(SharedPreferences sharedPreferences) : super(MasterViewLoading(sharedPreferences: sharedPreferences)) {
     if (!checkAuth()) {
       return;
@@ -52,46 +54,36 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
+  void showInvitationDialog(final String? permissionId) {
+    if (permissionId != null) {
+      final newState = MasterViewInvitationDialog(
+        sharedPreferences: state.sharedPreferences,
+        permissionId: permissionId
+      );
+
+      emit(MasterViewShowInvitationDialog(sharedPreferences: state.sharedPreferences));
+
+      emit(newState);
+    }
+  }
+
   void handleIncomingLinks() {
     final appLinks = AppLinks();
 
-    appLinks.getInitialLink().then((Uri? uri) async {
-      print(uri);
-      if (uri != null) {
-        final permissionId = uri.queryParameters['id'];
-
-        if (permissionId != null) {
-          final newState = MasterViewInvitationDialog(
-            sharedPreferences: state.sharedPreferences,
-            permissionId: permissionId
-          );
-
-          emit(MasterViewShowInvitationDialog(sharedPreferences: state.sharedPreferences));
-
-          emit(newState);
-        }
-      }
-    });
-
+    if (!_initialLinkProcessed) {
+      appLinks.getInitialLink().then((Uri? uri) async {
+        if (uri != null) showInvitationDialog(uri.queryParameters['id']);
+      });
+      _initialLinkProcessed = true;
+    }
 
     appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
-        final permissionId = uri.queryParameters['id'];
-
         if (state.runtimeType == MasterViewInvitationDialog) {
           return;
         }
 
-        if (permissionId != null) {
-          final newState = MasterViewInvitationDialog(
-            sharedPreferences: state.sharedPreferences,
-            permissionId: permissionId
-          );
-
-          emit(MasterViewShowInvitationDialog(sharedPreferences: state.sharedPreferences));
-
-          emit(newState);
-        }
+        showInvitationDialog(uri.queryParameters['id']);
       }
     }, onError: (err) {
       print('Error occurred: $err');
