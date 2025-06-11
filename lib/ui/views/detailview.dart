@@ -70,7 +70,7 @@ class DetailView extends StatelessWidget {
       builder: (BuildContext context) {
         return BlocProvider.value(
           value: cubit,
-          child: PastPayoffDialog(),
+          child: PayoffDialog(),
         );
       },
     );

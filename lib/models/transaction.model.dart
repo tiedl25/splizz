@@ -37,6 +37,20 @@ class Transaction extends OfflineFirstWithSupabaseModel {
     this.deleted = deleted ?? false,
     this.operations = operations ?? [];
 
+  Transaction.copy(Transaction transaction) : this(
+    description: transaction.description,
+    value: transaction.value,
+    date: transaction.date,
+    id: transaction.id,
+    timestamp: transaction.timestamp,
+    deleted: transaction.deleted,
+    operations: transaction.operations.toList(
+      growable: true,
+    ),
+    memberId: transaction.memberId,
+    itemId: transaction.itemId,
+  );
+
   factory Transaction.payoff({date, id, timestamp, operations}){
     return Transaction(
       description: 'payoff',

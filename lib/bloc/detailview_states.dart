@@ -131,11 +131,12 @@ class DetailViewShareDialog extends DetailViewLoaded {
 
 class DetailViewPayoffDialog extends DetailViewLoaded {
   int? index;
+  bool past;
 
-  DetailViewPayoffDialog({required super.item, super.unbalanced, this.index});
+  DetailViewPayoffDialog({required super.item, super.unbalanced, this.index, this.past = false});
 
-  factory DetailViewPayoffDialog.fromLoaded(DetailViewLoaded state) =>
-    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced);
+  factory DetailViewPayoffDialog.fromLoaded(DetailViewLoaded state, {bool past = false}) =>
+    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, past: past);
 }
 
 

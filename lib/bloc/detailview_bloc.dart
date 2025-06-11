@@ -414,7 +414,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   showPastPayoffDialog(int index) {
-    final newState = DetailViewPayoffDialog.fromLoaded(state as DetailViewLoaded)..index = index;
+    final newState = DetailViewPayoffDialog.fromLoaded(state as DetailViewLoaded, past: true)..index = index;
 
     emit(DetailViewShowPastPayoffDialog(item: state.item));
 

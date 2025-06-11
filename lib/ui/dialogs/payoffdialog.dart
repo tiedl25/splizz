@@ -11,131 +11,9 @@ import 'package:excel/excel.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
-import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 
 class PayoffDialog extends StatelessWidget {
-  late final context;
-  late final cubit;
-
-  PayoffDialog();
-
-  Widget listElement(Member m, List<Member> paylist) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(left: 10),
-            margin: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Color(m.color),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  m.name,
-                  style: const TextStyle(color: Colors.black),
-                ),
-                const Icon(
-                  Icons.arrow_forward,
-                  color: Colors.black,
-                ),
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white54),
-                    child: Text('${m.total.abs().toStringAsFixed(2)}€',
-                        style: TextStyle(color: Colors.red.shade700))),
-              ],
-            ),
-          ),
-          Column(
-              children: List.generate(paylist.length, (index) {
-            final e = paylist[index];
-            return Container(
-              padding: const EdgeInsets.only(right: 10),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Color(e.color),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white54),
-                      child: Text('${e.balance.abs().toStringAsFixed(2)}€',
-                          style: TextStyle(color: Colors.green.shade700))),
-                  const Icon(
-                    Icons.arrow_forward,
-                    color: Colors.black,
-                  ),
-                  Text(
-                    e.name,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                ],
-              ),
-            );
-          }))
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    this.context = context;
-    cubit = BlocProvider.of<DetailViewCubit>(context);
-
-    return BlocBuilder<DetailViewCubit, DetailViewState>(
-      bloc: cubit,
-      buildWhen: (_, current) => current is DetailViewPayoffDialog,
-      builder: (context, state) {
-        var paymap = state.item.calculatePayoff();
-
-        return CustomDialog(
-          title: 'Payoff',
-          scrollable: false,
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(paymap.length, (i) {
-                    Member m = paymap.keys.toList()[i];
-                    return listElement(m, paymap[m]!);
-                  }),
-                ),
-              ),
-            ),
-          ),
-          onConfirmed: () => cubit.addPayoff(),
-          onDismissed: () => cubit.dismissPayoffDialog(),
-        );
-      },
-    );
-  }
-}
-
-class PastPayoffDialog extends StatelessWidget {
   late final context;
   late final cubit;
 
@@ -144,7 +22,7 @@ class PastPayoffDialog extends StatelessWidget {
   late final WidgetsToImageController controller = WidgetsToImageController();
   late final ScreenshotController screenshotController = ScreenshotController();
 
-  PastPayoffDialog();
+  PayoffDialog();
 
   setBalance(Transaction transaction) {
     List<Member> members = [];
@@ -352,13 +230,10 @@ class PastPayoffDialog extends StatelessWidget {
       controller: controller,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ...List.generate(paymap.length, (i) {
-            Member m = paymap.keys.toList()[i];
-            return paymapRelation(m, paymap[m]!);
-          }),
-          //if (bytes != null) Image.memory(bytes!),
-        ],
+        children: List.generate(paymap.length, (i) {
+          Member m = paymap.keys.toList()[i];
+          return paymapRelation(m, paymap[m]!);
+        }),
       ),
     );
   }
@@ -395,10 +270,23 @@ class PastPayoffDialog extends StatelessWidget {
       bloc: cubit,
       buildWhen: (_, current) => current is DetailViewPayoffDialog,
       builder: (context, state) {
-        final index = (state as DetailViewPayoffDialog).index!;
-
+        state as DetailViewPayoffDialog;
         item = Item.copy(state.item);
-        setBalance(item.history[index]);
+
+        Transaction payoff;
+        
+
+        if (state.past){
+          final index = state.index!;
+          setBalance(item.history[index]);
+          payoff = item.history[index];
+        } else {
+          final i = Item.copy(state.item);
+          i.payoff();
+          payoff = i.history.last;
+        }
+        
+
         var paymap = item.calculatePayoff();
 
         //getApplicationDocumentsDirectory().then((value) {
@@ -406,12 +294,11 @@ class PastPayoffDialog extends StatelessWidget {
         //});
 
         return CustomDialog(
-          onDismissed: () => cubit.dismissPayoffDialog(),
           header: Row(children: [
             const Text('Payoff'),
             const Spacer(),
             IconButton(
-                onPressed: () async => sharePayoff(item.history[index]),
+                onPressed: () async => sharePayoff(payoff),
                 icon: Icon(Icons.import_export))
           ]),
           scrollable: false,
@@ -426,7 +313,9 @@ class PastPayoffDialog extends StatelessWidget {
                 child: paymapWidget(paymap),
               ),
             ),
-          )
+          ),
+          onConfirmed: !state.past ? () => cubit.addPayoff() : null,
+          onDismissed: () => cubit.dismissPayoffDialog(),
         );
       },
     );
