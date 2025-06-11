@@ -21,7 +21,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   fetchData() async {
     final newState = DetailViewLoaded(
-      item: await DatabaseHelper.instance.getItem(state.item.id),
+      item: await DatabaseHelper.instance.getItem(state.item.id, sync: true),
       unbalanced: checkBalances(state.item.members)
     );
 
