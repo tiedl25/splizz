@@ -281,7 +281,7 @@ class DatabaseHelper {
       await deleteMember(member, db: db);
     }
 
-    await deleteImage(item.id, db: db);
+    if (db != Repository.instance.sqliteProvider) await deleteImage(item.id, db: db);
 
     await db.delete<Item>(item);
 
