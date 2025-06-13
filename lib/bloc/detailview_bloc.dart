@@ -71,13 +71,28 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   setMemberActivity(Member member, bool value) {
-    final newState = (state as DetailViewLoaded).copyWith();
+    final newState = (state as DetailViewMemberDialog).copyWith();
 
     member = Member.fromMember(member, active: value, timestamp: DateTime.now());
     DatabaseHelper.instance.upsertMember(member);
 
     newState.item.members[newState.item.members.indexWhere((element) => element.id == member.id)] = member;
-    
+    newState.member = member;
+
+    emit(newState);
+  }
+
+  changeNewMemberColor() {
+    final newState = state.copyWith();
+    emit(newState);
+  }
+
+  addMember(String name, Color color) {
+    final newState = (state as DetailViewLoaded).copyWith();
+    final member = Member(name: name, color: color.value, itemId: newState.item.id);
+    newState.item.members.add(member);
+    DatabaseHelper.instance.upsertMember(member);
+
     emit(newState);
   }
 
@@ -423,6 +438,64 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   dismissPayoffDialog() {
     final newState = DetailViewLoaded.fromPayoffDialog(state as DetailViewPayoffDialog);
+
+    emit(newState);
+  }
+
+  showMemberDialog(Member member) {
+    final newState = DetailViewMemberDialog.fromState(state, member, false);
+
+    emit(DetailViewShowMemberDialog(item: state.item, member: member));
+
+    emit(newState);
+  }
+
+  showGeneralMemberDialog(Member member) {
+    final newState = DetailViewMemberDialog.fromState(state, member, false);
+
+    emit(newState);
+  }
+
+  closeMemberDialog() {
+    final newState = DetailViewLoaded.from(state as DetailViewMemberDialog);
+
+    emit(newState);
+  }
+
+  toggleMemberEditMode() {
+    final newState = (state as DetailViewMemberDialog).copyWith(editMode: !(state as DetailViewMemberDialog).editMode);
+
+    emit(newState);
+  }
+
+  deleteMember() async {
+    if ((state as DetailViewMemberDialog).member.balance != 0){
+      emit(DetailViewShowSnackBar(
+        item: state.item,
+        message: "A member cannot have any debt!"
+      ));
+      emit(state.copyWith());
+      return;
+    }
+
+    final newState = DetailViewLoaded.from(state as DetailViewMemberDialog);
+
+    await DatabaseHelper.instance.deleteMember((state as DetailViewMemberDialog).member);
+
+    newState.item.members.remove((state as DetailViewMemberDialog).member);
+
+    emit(newState);
+  }
+
+  updateMember(String name, Color color) async {
+    final newMember = Member.fromMember((state as DetailViewMemberDialog).member, name: name, color: color.value);
+    
+    final newState = (state as DetailViewMemberDialog).copyWith(editMode: false, member: newMember);
+
+    await DatabaseHelper.instance.upsertMember(newMember);
+
+    int index = newState.item.members.indexOf((state as DetailViewMemberDialog).member);
+    newState.item.members[index] = newMember;
 
     emit(newState);
   }

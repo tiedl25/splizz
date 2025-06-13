@@ -17,6 +17,7 @@ class CustomDialog extends StatelessWidget {
   final Alignment alignment;
   final bool scrollable;
   final bool pop;
+  final Color? color;
   bool confirmed;
 
   CustomDialog({
@@ -34,6 +35,7 @@ class CustomDialog extends StatelessWidget {
     this.scrollable = true,
     this.returnValue,
     this.pop = true,
+    this.color
   }) : confirmed = false;
 
   @override
@@ -56,7 +58,7 @@ class CustomDialog extends StatelessWidget {
           title: header ?? (title != null ? Text(title!) : null),
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15))),
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: color == null ? Theme.of(context).colorScheme.surface : color,
           content: content,
           actions: onConfirmed != null
             ? [

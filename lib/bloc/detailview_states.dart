@@ -139,6 +139,24 @@ class DetailViewPayoffDialog extends DetailViewLoaded {
     DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, past: past);
 }
 
+class DetailViewMemberDialog extends DetailViewLoaded {
+  Member member;
+  bool editMode;
+
+  DetailViewMemberDialog({required super.item, super.unbalanced, required this.member, this.editMode = false});
+
+  factory DetailViewMemberDialog.fromState(final state, final Member member, final bool editMode) =>
+    DetailViewMemberDialog(item: state.item, unbalanced: state.unbalanced, member: member, editMode: editMode);
+
+  @override
+  DetailViewMemberDialog copyWith({Item? item, bool? unbalanced, Member? member, bool? editMode}) =>
+    DetailViewMemberDialog(
+      item: item ?? this.item, 
+      unbalanced: unbalanced ?? this.unbalanced, 
+      member: member ?? this.member, 
+      editMode: editMode ?? this.editMode
+    );
+}
 
 
 
@@ -167,7 +185,9 @@ class DetailViewShowSnackBar extends DetailViewListener {
 }
 
 class DetailViewShowMemberDialog extends DetailViewListener {
-  DetailViewShowMemberDialog({required super.item});
+  final Member member;
+
+  DetailViewShowMemberDialog({required super.item, required this.member});
 }
 
 class DetailViewShareDialogShowSnackBar extends DetailViewShowSnackBar {
