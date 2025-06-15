@@ -6,13 +6,16 @@ Future<User> _$UserFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return User(
       id: data['id'] as String?,
-      itemId: data['item_id'] as String?,
-      userId: data['user_id'] as String?,
+      itemId: data['item_id'] == null ? null : data['item_id'] as String?,
+      userId: data['user_id'] == null ? null : data['user_id'] as String?,
       fullAccess: data['full_access'] as bool,
-      userEmail: data['user_email'] as String?,
+      userEmail:
+          data['user_email'] == null ? null : data['user_email'] as String?,
       expirationDate: data['expiration_date'] == null
           ? null
-          : DateTime.tryParse(data['expiration_date'] as String));
+          : data['expiration_date'] == null
+              ? null
+              : DateTime.tryParse(data['expiration_date'] as String));
 }
 
 Future<Map<String, dynamic>> _$UserToSupabase(User instance,

@@ -6,9 +6,11 @@ Future<Operation> _$OperationFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Operation(
       id: data['id'] as String?,
-      itemId: data['item_id'] as String?,
-      memberId: data['member_id'] as String?,
-      transactionId: data['transaction_id'] as String?,
+      itemId: data['item_id'] == null ? null : data['item_id'] as String?,
+      memberId: data['member_id'] == null ? null : data['member_id'] as String?,
+      transactionId: data['transaction_id'] == null
+          ? null
+          : data['transaction_id'] as String?,
       value: data['value'].toDouble(),
       timestamp: data['timestamp'] == null
           ? null

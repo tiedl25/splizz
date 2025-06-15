@@ -6,8 +6,8 @@ Future<Transaction> _$TransactionFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Transaction(
       id: data['id'] as String?,
-      memberId: data['member_id'] as String?,
-      itemId: data['item_id'] as String?,
+      memberId: data['member_id'] == null ? null : data['member_id'] as String?,
+      itemId: data['item_id'] == null ? null : data['item_id'] as String?,
       description: data['description'] as String,
       date: DateTime.parse(data['date'] as String),
       value: data['value'].toDouble(),

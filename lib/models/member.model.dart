@@ -17,7 +17,7 @@ class Member extends OfflineFirstWithSupabaseModel {
   String? itemId;
   final String name;
   final int color;
-  bool active = true;
+  bool active;
   final DateTime timestamp;
 
   @Sqlite(ignore: true)
@@ -33,7 +33,7 @@ class Member extends OfflineFirstWithSupabaseModel {
   List<Transaction> history;
 
   //Constructor
-  Member({required this.name, required this.color, String? id, String? itemId, double? total, double? balance, history, active, timestamp}) : 
+  Member({required this.name, required this.color, String? id, String? itemId, double? total, double? balance, List<Transaction>? history, bool? active, DateTime? timestamp}) : 
     this.id = id ?? const Uuid().v4(),
     this.itemId = itemId,
     this.total = total ?? 0,
