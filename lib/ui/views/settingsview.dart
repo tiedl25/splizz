@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
@@ -8,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:splizz/bloc/settingsview_bloc.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class SettingsView extends StatelessWidget {
   late final context;
@@ -39,6 +42,32 @@ class SettingsView extends StatelessWidget {
         closeButton: CustomTabsCloseButton(position: CustomTabsCloseButtonPosition.end),
         showTitle: true,
       )
+    );
+
+    cubit.closePrivacyPolicy();
+  }
+
+    Future<void> showPrivacyPolicyWebView() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            appBar: AppBar(
+              title: const Text('Privacy Policy'),
+            ),
+            body: WebViewWidget(
+                gestureRecognizers: Set()
+                  ..add(Factory<VerticalDragGestureRecognizer>(
+                  () => VerticalDragGestureRecognizer())),
+                controller: WebViewController()
+                  ..loadRequest(Uri.parse("https://tmc.tiedl.rocks/splizz/dsgvo"))
+                  ..setJavaScriptMode(JavaScriptMode.unrestricted),
+              ),
+          );
+        },
+      ),
     );
 
     cubit.closePrivacyPolicy();
@@ -152,7 +181,7 @@ class SettingsView extends StatelessWidget {
         listener: (context, state) {
           switch (state.runtimeType) {
             case SettingsViewShowPrivacyPolicy:
-              showPrivacyPolicy();
+              showPrivacyPolicyWebView();
               break;
             case SettingsViewShowLogoutDialog:
               showLogoutDialog();
