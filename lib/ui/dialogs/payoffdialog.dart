@@ -189,36 +189,37 @@ class PayoffDialog extends StatelessWidget {
             ),
           ),
           Column(
-              children: List.generate(paylist.length, (index) {
-            final e = paylist[index];
-            return Container(
-              padding: const EdgeInsets.only(right: 10),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Color(e.color),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white54),
-                      child: Text('${e.balance.abs().toStringAsFixed(2)}€',
-                          style: TextStyle(color: Colors.green.shade700))),
-                  const Icon(
-                    Icons.arrow_forward,
-                    color: Colors.black,
-                  ),
-                  Text(
-                    e.name,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                ],
-              ),
-            );
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(paylist.length, (index) {
+              final e = paylist[index];
+              return Container(
+                padding: const EdgeInsets.only(right: 10),
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Color(e.color),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white54),
+                        child: Text('${e.balance.abs().toStringAsFixed(2)}€',
+                            style: TextStyle(color: Colors.green.shade700))),
+                    const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.black,
+                    ),
+                    Text(
+                      e.name,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ],
+                ),
+              );
           }))
         ],
       ),
@@ -228,12 +229,14 @@ class PayoffDialog extends StatelessWidget {
   Widget paymapWidget(paymap) {
     return WidgetsToImage(
       controller: controller,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: List.generate(paymap.length, (i) {
-          Member m = paymap.keys.toList()[i];
-          return paymapRelation(m, paymap[m]!);
-        }),
+      child: IntrinsicWidth(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: List.generate(paymap.length, (i) {
+            Member m = paymap.keys.toList()[i];
+            return paymapRelation(m, paymap[m]!);
+          }),
+        ),
       ),
     );
   }
