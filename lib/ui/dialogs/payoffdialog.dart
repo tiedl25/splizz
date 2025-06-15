@@ -257,9 +257,9 @@ class PayoffDialog extends StatelessWidget {
         ],
         text: 'Payoff',
         fileNameOverrides: [
-          'Payoff',
-          'Transactions (Image)',
-          'Transactions (Excel)'
+          'Payoff.png',
+          'Transactions.png',
+          'Transactions.xlsx'
         ]);
     Navigator.of(context).pop();
   }
