@@ -39,7 +39,9 @@ class MemberDialog extends StatelessWidget {
           )
         );
       }
-    );
+    ).then((value) {
+      if (value) Navigator.of(context).pop();
+    });
   }
 
   void showColorPicker() {
@@ -178,6 +180,7 @@ class MemberDialog extends StatelessWidget {
                   : showOverlayMessage(
                       context: context, 
                       message: 'You cannot delete a member with a non-zero balance', 
+                      //message: "A member cannot have any debt!",
                       backgroundColor: Theme.of(context).colorScheme.surface
                     ),
               child: Icon(

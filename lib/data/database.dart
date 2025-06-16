@@ -308,6 +308,14 @@ class DatabaseHelper {
     await db.delete<Member>(member);
   }
 
+    Future<void> markMemberDeleted(Member member, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    member.deleted = true;
+  
+    await db.upsert<Member>(member);
+  }
+
   Future<void> deleteOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
   

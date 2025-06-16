@@ -67,19 +67,23 @@ class Item extends OfflineFirstWithSupabaseModel {
 
   // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t, List<Map<String, dynamic>> involvedMembers){
-    members[associatedId].addTransaction(t);
+    final newMembers = members.where((m) => !m.deleted).toList();
+
+    newMembers[associatedId].addTransaction(t);
     history.add(t);
 
     if(!t.deleted)
     {
       for(int i=0; i<involvedMembers.length; i++) {
-        members[involvedMembers[i]['listId']].sub(involvedMembers[i]['balance']);
+        newMembers[involvedMembers[i]['listId']].sub(involvedMembers[i]['balance']);
         t.addOperation(Operation(value: -involvedMembers[i]['balance'], memberId: involvedMembers[i]['id'], itemId: this.id, transactionId: t.id));
       }
 
-      t.addOperation(Operation(value: t.value, memberId: members[associatedId].id, itemId: this.id, transactionId: t.id));
+      t.addOperation(Operation(value: t.value, memberId: newMembers[associatedId].id, itemId: this.id, transactionId: t.id));
     }
     t.operations.sort((a,b) => b.value.compareTo(a.value));
+
+    //members = newMembers;
   }
 
   void addMember(Member m){

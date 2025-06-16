@@ -10,6 +10,7 @@ Future<Member> _$MemberFromSupabase(Map<String, dynamic> data,
       name: data['name'] as String,
       color: data['color'] as int,
       active: data['active'] as bool?,
+      deleted: data['deleted'] as bool?,
       timestamp: data['timestamp'] == null
           ? null
           : DateTime.tryParse(data['timestamp'] as String));
@@ -24,6 +25,7 @@ Future<Map<String, dynamic>> _$MemberToSupabase(Member instance,
     'name': instance.name,
     'color': instance.color,
     'active': instance.active,
+    'deleted': instance.deleted,
     'timestamp': instance.timestamp.toIso8601String()
   };
 }
@@ -37,6 +39,7 @@ Future<Member> _$MemberFromSqlite(Map<String, dynamic> data,
       name: data['name'] as String,
       color: data['color'] as int,
       active: data['active'] == 1,
+      deleted: data['deleted'] == 1,
       timestamp: DateTime.parse(data['timestamp'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
@@ -50,6 +53,7 @@ Future<Map<String, dynamic>> _$MemberToSqlite(Member instance,
     'name': instance.name,
     'color': instance.color,
     'active': instance.active ? 1 : 0,
+    'deleted': instance.deleted ? 1 : 0,
     'timestamp': instance.timestamp.toIso8601String()
   };
 }
@@ -83,6 +87,10 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'active': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'active',
+    ),
+    'deleted': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'deleted',
     ),
     'timestamp': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -128,6 +136,12 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'active': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'active',
+      iterable: false,
+      type: bool,
+    ),
+    'deleted': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'deleted',
       iterable: false,
       type: bool,
     ),

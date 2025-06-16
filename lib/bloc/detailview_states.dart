@@ -75,7 +75,7 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
   factory DetailViewTransactionDialog.fromState(DetailViewState state) =>
     DetailViewTransactionDialog(
       item: state.item,
-      memberSelection: state.item.members.map((Member m) => m.active).toList(),
+      memberSelection: state.item.members.where((m) => !m.deleted).map((Member m) => m.active).toList(),
       memberBalances: List.generate(state.item.members.length, (index) => 0.0),
       involvedMembers: [],
       date: ["Today", "Yesterday", DateTime.now()]);

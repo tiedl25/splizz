@@ -166,6 +166,7 @@ class MemberBar extends StatelessWidget {
 
   List<Container> memberBar(state) {
     List<Member> members = state.item.members;
+    members = members.where((m) => !m.deleted).toList();
     if (!alreadyInit) {
       alreadyInit = true;
       memberKeys = createMemberKeys(state);

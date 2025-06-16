@@ -31,16 +31,18 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   addDebugTransaction() async {
     final newState = (state as DetailViewLoaded).copyWith();
 
-    final int memberListIndex = Random().nextInt(newState.item.members.length);
+    final members = newState.item.members.where((m) => !m.deleted).toList();
 
-    List<Map<String, dynamic>> involvedMembers = newState.item.members
+    final int memberListIndex = Random().nextInt(members.length);
+
+    List<Map<String, dynamic>> involvedMembers = members
       .asMap()
       .entries
       .map((entry) => {
             'listId': entry.key,
             'id': entry.value.id,
             'balance': double.parse(
-                (22.00 / newState.item.members.length).toStringAsFixed(2))
+                (22.00 / members.length).toStringAsFixed(2))
           })
       .toList();
 
@@ -48,7 +50,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       description: 'test',
       value: 22.00,
       date: DateTime.now(),
-      memberId: newState.item.members[memberListIndex].id,
+      memberId: members[memberListIndex].id,
       itemId: newState.item.id
     );
     
@@ -87,11 +89,11 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  addMember(String name, Color color) {
+  addMember(String name, Color color) async {
     final newState = (state as DetailViewLoaded).copyWith();
     final member = Member(name: name, color: color.value, itemId: newState.item.id);
     newState.item.members.add(member);
-    DatabaseHelper.instance.upsertMember(member);
+    await DatabaseHelper.instance.upsertMember(member);
 
     emit(newState);
   }
@@ -172,7 +174,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       final newState2 = newState.copyWith(
         scale: 1.0,
         extend: !newState.extend,
-        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members)
+        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList())
       );
 
       emit(newState2);
@@ -232,7 +234,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   updateCircularSlider() {
     final newState = (state as DetailViewTransactionDialog).copyWith();
-    newState.involvedMembers = getCircularMembers(newState.sum, newState.memberSelection, newState.item.members);
+    newState.involvedMembers = getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList());
 
     emit(newState);
   }
@@ -338,7 +340,9 @@ class DetailViewCubit extends Cubit<DetailViewState> {
         updateBalances(newState, newState.sum);
       }
 
-      String associatedId = newState.item.members[newState.selection].id;
+      final members = newState.item.members.where((m) => !m.deleted).toList();
+
+      String associatedId = members[newState.selection].id;
       Transaction transaction = Transaction(
         description: description,
         value: newState.sum,
@@ -361,11 +365,12 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   updateBalances(DetailViewTransactionDialog state, double value) {
     int memberCount = state.memberSelection.where((element) => element == true).length;
+    final members = state.item.members.where((m) => !m.deleted).toList();
     for (int i = 0; i < state.memberSelection.length; i++) {
       if (state.memberSelection[i]) {
         state.involvedMembers.add({
           'listId': i,
-          'id': state.item.members[i].id,
+          'id': members[i].id,
           'balance': value / memberCount
         });
       }
@@ -469,20 +474,11 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   deleteMember() async {
-    if ((state as DetailViewMemberDialog).member.balance != 0){
-      emit(DetailViewShowSnackBar(
-        item: state.item,
-        message: "A member cannot have any debt!"
-      ));
-      emit(state.copyWith());
-      return;
-    }
-
     final newState = DetailViewLoaded.from(state as DetailViewMemberDialog);
 
-    await DatabaseHelper.instance.deleteMember((state as DetailViewMemberDialog).member);
+    await DatabaseHelper.instance.markMemberDeleted((state as DetailViewMemberDialog).member);
 
-    newState.item.members.remove((state as DetailViewMemberDialog).member);
+    newState.item.members.firstWhere((element) => element.id == (state as DetailViewMemberDialog).member.id).deleted = true;
 
     emit(newState);
   }

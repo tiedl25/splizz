@@ -2,6 +2,7 @@ import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:splizz/models/member.model.dart';
 import 'package:splizz/ui/widgets/circularSlider.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
@@ -11,21 +12,22 @@ import 'package:splizz/bloc/detailview_states.dart';
 class TransactionDialog extends StatelessWidget {
   late BuildContext context;
   late DetailViewCubit cubit;
+  late List<Member> members;
 
   final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',');
   final TextEditingController descriptionController = TextEditingController();
 
   TransactionDialog();
 
-  Widget payerBar(state) {
+  Widget payerBar(selection) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 5),
       physics: const BouncingScrollPhysics(),
-      itemCount: state.item.members.length,
+      itemCount: this.members.length,
       itemBuilder: (context, i) {
-        Color color = state.selection == i
-            ? Color(state.item.members[i].color)
+        Color color = selection == i
+            ? Color(this.members[i].color)
             : Theme.of(context).colorScheme.surfaceContainer;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
@@ -34,7 +36,7 @@ class TransactionDialog extends StatelessWidget {
           child: TextButton(
             onPressed: () => cubit.changePayer(i),
             child: Text(
-              state.item.members[i].name,
+              this.members[i].name,
               style: TextStyle(color: textColor, fontSize: 20),
             ),
           ),
@@ -43,15 +45,15 @@ class TransactionDialog extends StatelessWidget {
     );
   }
 
-  Widget memberBar(state) {
+  Widget memberBar(memberSelection) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 5),
       physics: const BouncingScrollPhysics(),
-      itemCount: state.item.members.length,
+      itemCount: this.members.length,
       itemBuilder: (context, i) {
-        Color color = state.memberSelection[i]
-            ? Color(state.item.members[i].color)
+        Color color = memberSelection[i]
+            ? Color(this.members[i].color)
             : Theme.of(context).colorScheme.surfaceContainer;
         Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
@@ -62,7 +64,7 @@ class TransactionDialog extends StatelessWidget {
               child: TextButton(
                 onPressed: () => cubit.selectMember(i),
                 child: Text(
-                  state.item.members[i].name,
+                  this.members[i].name,
                   style: TextStyle(color: textColor, fontSize: 20),
                 ),
               ),
@@ -156,7 +158,7 @@ class TransactionDialog extends StatelessWidget {
                 ),
                 SizedBox(
                   height: 60, //MediaQuery.of(context).size.height/14,
-                  child: payerBar(state)),
+                  child: payerBar(state.selection)),
                 TextField(
                   controller: currencyController,
                   keyboardType: TextInputType.number,
@@ -220,7 +222,7 @@ class TransactionDialog extends StatelessWidget {
               ),
               SizedBox(
                 height: 60, //MediaQuery.of(context).size.height/14,
-                child: payerBar(state)),
+                child: payerBar(state.selection)),
               TextField(
                 controller: currencyController,
                 keyboardType: TextInputType.number,
@@ -242,7 +244,7 @@ class TransactionDialog extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: const Text('For whom?'),
               ),
-              SizedBox(height: 70, child: memberBar(state)),
+              SizedBox(height: 70, child: memberBar(state.memberSelection)),
               Spacer(),
               CircularSlider(),
               Spacer(),
@@ -306,7 +308,11 @@ class TransactionDialog extends StatelessWidget {
       bloc: cubit,
       buildWhen: (_, current) => current is DetailViewTransactionDialog,
       builder: (context, state) {
-        return (state as DetailViewTransactionDialog).extend ? view(state) : dialog(state);
+        state as DetailViewTransactionDialog;
+        this.members = state.item.members;
+        this.members = this.members.where((m) => !m.deleted).toList();
+        
+        return state.extend ? view(state) : dialog(state);
       },
     );
   }
