@@ -123,6 +123,8 @@ class DatabaseHelper {
       m.history = await getMemberTransactions(m.id, db: db);
     }
 
+    members.sort((Member a, Member b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
     return members;
   }
 
