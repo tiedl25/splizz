@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class TfDecorationModel extends InputDecoration {
   TfDecorationModel({required BuildContext context, required String title, IconButton? icon})
@@ -42,4 +43,38 @@ class PillModel extends StatelessWidget {
       child: child
     );
   }
+}
+
+void showOverlayMessage({
+  required BuildContext context,
+  required String message,
+  Duration duration = const Duration(seconds: 3),
+  Color backgroundColor = Colors.black,
+  Color textColor = Colors.white,
+}) {
+  final overlayEntry = OverlayEntry(
+    builder: (context) => Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          message,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 16,
+            decoration: TextDecoration.none,
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Overlay.of(context).insert(overlayEntry);
+  Timer(duration, () => overlayEntry.remove());
 }

@@ -6,6 +6,7 @@ import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/resources/colormap.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
 
 class MemberDialog extends StatelessWidget {
   late BuildContext context;
@@ -144,7 +145,7 @@ class MemberDialog extends StatelessWidget {
     );
   }
 
-  Widget buttons(bool editMode){
+  Widget buttons(bool editMode, balance){
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
@@ -170,11 +171,19 @@ class MemberDialog extends StatelessWidget {
               ),
             ),
             GestureDetector(
-              onTap: () => editMode ? {color = null, textController = null, cubit.toggleMemberEditMode()} : showDeleteMemberDialog(),
+              onTap: () => editMode 
+                ? {color = null, textController = null, cubit.toggleMemberEditMode()} 
+                : balance == 0 
+                  ? showDeleteMemberDialog() 
+                  : showOverlayMessage(
+                      context: context, 
+                      message: 'You cannot delete a member with a non-zero balance', 
+                      backgroundColor: Theme.of(context).colorScheme.surface
+                    ),
               child: Icon(
                 editMode ? Icons.cancel : Icons.delete,
                 size: 25,
-                color: Colors.blue,
+                color: balance == 0 ? Colors.blue : Colors.blueGrey,
               ),
             ),
           ],
@@ -204,7 +213,7 @@ class MemberDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   content(member, state.editMode),
-                  buttons(state.editMode),
+                  buttons(state.editMode, member.balance),
                 ],
               ),
             ),
