@@ -58,9 +58,9 @@ class MemberBar extends StatelessWidget {
         return Stack(
           children: [
             Positioned(
-              left: buttonPosition.dx - (buttonPosition.dx-10) * (anim1.value),
-              top: buttonPosition.dy + (MediaQuery.of(context).size.height/2 - buttonPosition.dy-10) * (anim1.value),
-              width: buttonSize.width + (MediaQuery.of(context).size.width - buttonSize.width-20) * anim1.value,
+              left: buttonPosition.dx - (buttonPosition.dx) * (anim1.value),
+              top: buttonPosition.dy + (MediaQuery.of(context).size.height/2 - buttonPosition.dy) * (anim1.value),
+              width: buttonSize.width + (MediaQuery.of(context).size.width - buttonSize.width) * anim1.value,
               height: buttonSize.height + (MediaQuery.of(context).size.height/2 - buttonSize.height) * anim1.value,
               child: Opacity(
                 opacity: anim1.value,
