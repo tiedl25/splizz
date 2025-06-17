@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:splizz/data/database.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/data/result.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
@@ -332,35 +333,74 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   addTransaction(String description) async {
     final newState = (state as DetailViewTransactionDialog).copyWith();
 
-    if (newState.sum != 0 &&
-        description.isNotEmpty &&
-        newState.selection != -1 &&
-        newState.memberSelection.contains(true)) {
-      if (newState.involvedMembers.isEmpty) {
-        updateBalances(newState, newState.sum);
-      }
-
-      final members = newState.item.members.where((m) => !m.deleted).toList();
-
-      String associatedId = members[newState.selection].id;
-      Transaction transaction = Transaction(
-        description: description,
-        value: newState.sum,
-        date: newState.date[2],
-        memberId: associatedId,
-        itemId: newState.item.id
-      );
-
-      newState.item.addTransaction(newState.selection, transaction, newState.involvedMembers);
-
-      DatabaseHelper.instance.upsertTransaction(transaction);
-
-      newState.selection = -1;
-
-      final newState2 = DetailViewLoaded(item: state.item, unbalanced: checkBalances(state.item.members));
-
-      emit(newState2);
+    if (description.isEmpty) {
+      final String message = 'Please enter a description!';
+      emit(DetailViewTransactionDialogShowSnackBar(
+        item: state.item,
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
     }
+    if (newState.sum < 0) {
+      final String message = 'Transaction value cannot be negative!';
+      emit(DetailViewTransactionDialogShowSnackBar(
+        item: state.item,
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
+    }
+    if (newState.sum == 0) {
+      final String message = 'Transaction value cannot be zero!';
+      emit(DetailViewTransactionDialogShowSnackBar(
+        item: state.item,
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
+    }
+    if (newState.selection == -1) {
+      final String message = 'Please select a payer!';
+      emit(DetailViewTransactionDialogShowSnackBar(
+        item: state.item,
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
+    }
+    if (newState.memberSelection.contains(true) == false) {
+      final String message = 'Please select at least one member!';
+      emit(DetailViewTransactionDialogShowSnackBar(
+        item: state.item,
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
+    }
+    
+    if (newState.involvedMembers.isEmpty) {
+      updateBalances(newState, newState.sum);
+    }
+
+    final members = newState.item.members.where((m) => !m.deleted).toList();
+
+    String associatedId = members[newState.selection].id;
+    Transaction transaction = Transaction(
+      description: description,
+      value: newState.sum,
+      date: newState.date[2],
+      memberId: associatedId,
+      itemId: newState.item.id
+    );
+
+    newState.item.addTransaction(newState.selection, transaction, newState.involvedMembers);
+
+    DatabaseHelper.instance.upsertTransaction(transaction);
+
+    newState.selection = -1;
+
+    return Result.success(transaction);
   }
 
   updateBalances(DetailViewTransactionDialog state, double value) {
