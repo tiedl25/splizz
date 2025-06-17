@@ -9,6 +9,8 @@ import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 
 class MemberDialog extends StatelessWidget {
+  Animation<double> opacity;
+
   late BuildContext context;
   late DetailViewCubit cubit;
 
@@ -17,6 +19,7 @@ class MemberDialog extends StatelessWidget {
 
   MemberDialog({
     super.key,
+    this.opacity = const AlwaysStoppedAnimation(1.0),
   });
 
   showDeleteMemberDialog(){
@@ -209,15 +212,18 @@ class MemberDialog extends StatelessWidget {
 
         return CustomDialog(
           color: color,
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  content(member, state.editMode),
-                  buttons(state.editMode, member.balance),
-                ],
+          content: FadeTransition(
+            opacity: opacity,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    content(member, state.editMode),
+                    buttons(state.editMode, member.balance),
+                  ],
+                ),
               ),
             ),
           ),

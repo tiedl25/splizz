@@ -447,16 +447,10 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  showMemberDialog(Member member) {
+  showMemberDialog(Member member, {GlobalKey? key}) {
     final newState = DetailViewMemberDialog.fromState(state, member, false);
 
-    emit(DetailViewShowMemberDialog(item: state.item, member: member));
-
-    emit(newState);
-  }
-
-  showGeneralMemberDialog(Member member) {
-    final newState = DetailViewMemberDialog.fromState(state, member, false);
+    emit(DetailViewShowMemberDialog(item: state.item, member: member, memberKey: key));
 
     emit(newState);
   }

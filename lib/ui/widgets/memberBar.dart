@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/resources/animations.dart';
 import 'package:splizz/ui/dialogs/addMemberDialog.dart';
 import 'package:splizz/ui/dialogs/memberDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
@@ -9,7 +10,6 @@ import 'package:splizz/models/member.model.dart';
 class MemberBar extends StatelessWidget {
   late final DetailViewCubit cubit;
   late final BuildContext context;
-  late final animationController;
   late final List<GlobalKey> memberKeys;
   late bool alreadyInit = false;
 
@@ -32,6 +32,48 @@ class MemberBar extends StatelessWidget {
     return List.generate(members.length, (index) {
       return GlobalKey();
     });
+  }
+
+  void showAnimatedMemberDialog(Member member, GlobalKey memberKey) {
+    final RenderBox box = memberKey.currentContext?.findRenderObject() as RenderBox;
+    final Offset buttonPosition = box.localToGlobal(Offset.zero);
+    final Size buttonSize = box.size;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Dismiss",
+      anchorPoint: Offset(buttonPosition.dx, buttonPosition.dy),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Container(); // Empty, we use transitionBuilder
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        anim1 = anim1.drive(
+          CurveTween(curve: SlowEndCurve()),
+        );
+        anim2 = anim1.drive(CurveTween(curve: SlowStartCurve()));
+        Widget innerChild = MemberDialog(opacity: anim2);
+
+        return Stack(
+          children: [
+            Positioned(
+              left: buttonPosition.dx - (buttonPosition.dx-10) * (anim1.value),
+              top: buttonPosition.dy + (MediaQuery.of(context).size.height/2 - buttonPosition.dy-10) * (anim1.value),
+              width: buttonSize.width + (MediaQuery.of(context).size.width - buttonSize.width-20) * anim1.value,
+              height: buttonSize.height + (MediaQuery.of(context).size.height/2 - buttonSize.height) * anim1.value,
+              child: Opacity(
+                opacity: anim1.value,
+                child: BlocProvider.value(
+                  value: cubit, 
+                  child: innerChild
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void showAddMemberDialog() {
@@ -123,7 +165,7 @@ class MemberBar extends StatelessWidget {
       child: IntrinsicWidth(
         key: key,
         child: GestureDetector(
-          onTap: () => cubit.showMemberDialog(member),
+          onTap: () => cubit.showMemberDialog(member, key: key),
           child: Column(
             children: [
               Container(
@@ -190,7 +232,7 @@ class MemberBar extends StatelessWidget {
           listener: (BuildContext context, DetailViewState state) {
             switch (state.runtimeType) {
               case DetailViewShowMemberDialog:
-                showMemberDialog((state as DetailViewShowMemberDialog).member);
+                showAnimatedMemberDialog((state as DetailViewShowMemberDialog).member, state.memberKey!);
                 break;
             }
           },

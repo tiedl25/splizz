@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 
@@ -186,8 +187,9 @@ class DetailViewShowSnackBar extends DetailViewListener {
 
 class DetailViewShowMemberDialog extends DetailViewListener {
   final Member member;
+  final GlobalKey? memberKey;
 
-  DetailViewShowMemberDialog({required super.item, required this.member});
+  DetailViewShowMemberDialog({required super.item, required this.member, this.memberKey});
 }
 
 class DetailViewShareDialogShowSnackBar extends DetailViewShowSnackBar {
