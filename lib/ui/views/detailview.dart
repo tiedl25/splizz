@@ -338,7 +338,11 @@ class DetailView extends StatelessWidget {
                 showShareDialog();
                 break;
               case DetailViewShowSnackBar:
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((state as DetailViewShowSnackBar).message)));
+                showOverlayMessage(
+                  context: context, 
+                  message: (state as DetailViewShowSnackBar).message,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                );
                 break;
               case DetailViewShowPayoffDialog:
                 showPayoffDialog();

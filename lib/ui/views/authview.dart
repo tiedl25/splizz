@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthView extends StatelessWidget {
@@ -16,9 +17,17 @@ class AuthView extends StatelessWidget {
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     },
     onSignUpComplete: (res) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please check your email to verify your account.")));
+      showOverlayMessage(
+        context: context, 
+        message: "Please check your email to verify your account.",
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      );
     },
-    onError: (error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((error as AuthApiException).message))),
+    onError: (error) => showOverlayMessage(
+        context: context, 
+        message: (error as AuthApiException).message,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      )    
   );
 
   get offlineButton => TextButton(

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/masterview_states.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:splizz/bloc/detailview_bloc.dart';
@@ -274,8 +275,11 @@ class MasterView extends StatelessWidget {
         listener: (context, state) {
           switch (state.runtimeType) {
             case MasterViewShowSnackBar:
-              ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text((state as MasterViewShowSnackBar).message)));
+              showOverlayMessage(
+                context: context, 
+                message: (state as MasterViewShowSnackBar).message,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              );
               break;
             case MasterViewPushAuthView:
               Navigator.pushReplacementNamed(context, '/auth');

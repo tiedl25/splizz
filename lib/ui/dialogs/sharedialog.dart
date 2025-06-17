@@ -41,7 +41,11 @@ class ShareDialog extends StatelessWidget {
       listener: (context, state) {
         switch (state.runtimeType) {
           case DetailViewShareDialogShowSnackBar:
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((state as DetailViewShareDialogShowSnackBar).message)));
+            showOverlayMessage(
+              context: context, 
+              message: (state as DetailViewShareDialogShowSnackBar).message,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            );
             break;
           case DetailViewShareDialogShowLink:
             Share.share((state as DetailViewShareDialogShowLink).message);

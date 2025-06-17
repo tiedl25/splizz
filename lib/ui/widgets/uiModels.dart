@@ -53,22 +53,32 @@ void showOverlayMessage({
   Color textColor = Colors.white,
 }) {
   final overlayEntry = OverlayEntry(
-    builder: (context) => Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          message,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 16,
-            decoration: TextDecoration.none,
+    builder: (context) => SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 10,
+            left: 10,
+            right: 10,
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: EdgeInsets.all(10),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              message,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                decoration: TextDecoration.none,
+              ),
+            ),
           ),
         ),
       ),

@@ -398,7 +398,12 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   showLink(email) async {
-    if (email.isEmpty) return;
+    final newState = state.copyWith();
+    if (email.isEmpty){
+      emit(DetailViewShareDialogShowSnackBar(item: state.item, message: 'Email cannot be empty!'));
+      emit(newState);
+      return;
+    }
 
     User permission = User(
       itemId: state.item.id,
@@ -407,7 +412,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       expirationDate: DateTime.now().add(const Duration(days: 1)));
     final result = await DatabaseHelper.instance.addPermission(permission);
 
-    final newState = state.copyWith();
+    //final newState = state.copyWith();
 
     if (!result.isSuccess)
       emit(DetailViewShareDialogShowSnackBar(item: state.item, message: result.message!));
