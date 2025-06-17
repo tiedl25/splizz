@@ -329,6 +329,95 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
+  updateCircularSliderPositionStepwise(DragUpdateDetails details, RenderBox renderBox) {
+    final newState = (state as DetailViewTransactionDialog).copyWith();
+    final members = newState.involvedMembers;
+
+    final offset = renderBox.globalToLocal(details.globalPosition);
+    final center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
+    final angle = (atan2(offset.dy - center.dy, offset.dx - center.dx) + 2 * pi) % (2 * pi);
+
+    final euros = 0.1;
+
+    // Define the step size in radians (e.g., for 1 euro steps)
+    final double stepSize = (2 * pi) / (newState.sum / euros); // Adjust for 1 euro steps
+
+    double threshold = max(stepSize, 0.25);
+    double minDistance = threshold + 0.05;
+    double arreaToMove = pi / 2;
+
+    for (int i = 0; i < members.length; i++) {
+      double mAngle = members[i]['angle'];
+
+      if ((angle - mAngle).abs() < threshold ||
+          (angle - mAngle + 2 * pi).abs() < threshold ||
+          (angle - mAngle - 2 * pi).abs() < threshold) {
+        bool clockwise =
+            ((angle - mAngle > 0 && angle - mAngle < arreaToMove) ||
+                angle - mAngle < -arreaToMove);
+        bool counterClockwise =
+            ((angle - mAngle < 0 && angle - mAngle > -arreaToMove) ||
+                angle - mAngle > arreaToMove);
+
+        double nextMAngle = members[i + 1 >= members.length ? 0 : i + 1]['angle'];
+        double prevMAngle = members[i - 1 < 0 ? members.length - 1 : i - 1]['angle'];
+
+        // Break if nextAngle is too close
+        if ((nextMAngle - mAngle) < minDistance &&
+            nextMAngle - mAngle > 0 &&
+            clockwise) {
+          break;
+        }
+
+        // Break if nextAngle is too close but with the next angle bigger than 2pi, appearing as a smaller angle
+        if (-(nextMAngle - mAngle) > 2 * pi - minDistance &&
+            (nextMAngle - mAngle) < 2 * pi &&
+            clockwise) {
+          break;
+        }
+
+        // Break if prevAngle is too close
+        if ((mAngle - prevMAngle) < minDistance &&
+            mAngle - prevMAngle > 0 &&
+            counterClockwise) {
+          break;
+        }
+
+        // Break if prevAngle is too close but with the prev angle smaller than 0, appearing as a bigger angle
+        if (-(mAngle - prevMAngle) > 2 * pi - minDistance &&
+            (mAngle - prevMAngle) < 2 * pi &&
+            counterClockwise) {
+          break;
+        }
+
+        // Snap the angle to the nearest step
+        double snappedAngle = (angle / stepSize).round() * stepSize;
+
+        double amount = double.parse((newState.sum/((2*pi) / angle)).toStringAsFixed(2));
+        if (amount % euros > euros - 1e-32) {
+
+          int direction = (angle - mAngle).abs() < (angle - snappedAngle).abs() ? 1 : -1;
+          double nextValue;
+          // Calculate the next value based on the direction
+          if (direction == 1) {
+            nextValue = double.parse(((amount / euros).ceil() * euros).toStringAsFixed(2));
+          } else {
+            nextValue = double.parse(((amount / euros).floor() * euros).toStringAsFixed(2));
+          }
+
+          snappedAngle = (nextValue / (newState.sum / ((2 * pi) / angle))) * stepSize;
+        }
+
+        members[i]['angle'] = snappedAngle;
+        break;
+      }
+    }
+
+    newState.involvedMembers = members;
+
+    emit(newState);
+  }
+
   addTransaction(String description) async {
     final newState = (state as DetailViewTransactionDialog).copyWith();
 

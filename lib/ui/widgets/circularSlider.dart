@@ -31,7 +31,7 @@ class CircularSlider extends StatelessWidget {
           onPanUpdate: state.lock
               ? null
               : (DragUpdateDetails details) =>
-                  cubit.updateCircularSliderPosition(details, context.findRenderObject() as RenderBox),
+                  cubit.updateCircularSliderPositionStepwise(details, context.findRenderObject() as RenderBox),
           //onPanEnd: cubit.getInvolvedMembers(members),
           child: CustomPaint(
             size: Size(200, 200),
