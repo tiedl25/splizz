@@ -14,7 +14,7 @@ class TransactionDialog extends StatelessWidget {
   late DetailViewCubit cubit;
   late List<Member> members;
 
-  final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',');
+  final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',', enableNegative: false);
   final TextEditingController descriptionController = TextEditingController();
 
   TransactionDialog();
