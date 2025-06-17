@@ -135,11 +135,14 @@ class CircularSliderPainter extends CustomPainter {
       center.dy + radius * math.sin(angle),
     );
     //canvas.drawCircle(labelCenter, 12.0, labelPaint);
-    canvas.drawRect(
-      Rect.fromCenter(
-        center: labelCenter,
-        width: 50,
-        height: 20,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: labelCenter,
+          width: 50,
+          height: 20,
+        ),
+        Radius.circular(10),
       ),
       Paint()..color = Colors.white,
     );
@@ -153,8 +156,7 @@ class CircularSliderPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     textPainter.layout(minWidth: 0, maxWidth: 50);
-    final offset =
-        Offset(labelCenter.dx - textPainter.width / 2, labelCenter.dy - 5);
+    final offset = Offset(labelCenter.dx - textPainter.width / 2, labelCenter.dy - textPainter.height / 2);
     textPainter.paint(canvas, offset);
   }
 
