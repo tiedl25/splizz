@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/data/result.dart';
 import 'package:splizz/resources/colormap.dart';
 import 'package:splizz/resources/names.dart';
 import 'package:splizz/data/database.dart';
@@ -144,8 +145,18 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  void addItem() async {
+  addItem() async {
     final newState = (state as MasterViewItemDialog).copyWith();
+
+    if (newState.title == '') {
+      final String message = 'Please enter a title!';
+      emit(MasterViewItemDialogShowSnackBar(
+        sharedPreferences: state.sharedPreferences, 
+        message: message
+      ));
+      emit(newState);
+      return Result.failure(message);
+    }
 
     List<Member> membersNew = [];
     for (String name in newState.members) {
@@ -153,14 +164,23 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         membersNew.add(Member(name: name, color: colormap[membersNew.length].value));
       }
     }
-    if (newState.title != '' && membersNew.length > 1) {
-      final newState2 = MasterViewLoaded(sharedPreferences: newState.sharedPreferences, items: newState.items);
-      newState2.items.add(await saveItem(membersNew));
 
-      emit(newState2);
-    } else {
+    if (membersNew.length < 2) {
+      final String message = 'Please add at least two members!';
+      emit(MasterViewItemDialogShowSnackBar(
+        sharedPreferences: state.sharedPreferences, 
+        message: message
+      ));
       emit(newState);
+      return Result.failure(message);
     }
+
+    final newState2 = MasterViewLoaded(sharedPreferences: newState.sharedPreferences, items: newState.items);
+    newState2.items.add(await saveItem(membersNew));
+
+    emit(newState2);
+
+    return Result.success(null);
   }
 
   void addMember(int i, String name) {

@@ -50,6 +50,10 @@ class MasterViewShowSnackBar extends MasterViewListener {
   MasterViewShowSnackBar({required super.sharedPreferences, required this.message});
 }
 
+class MasterViewItemDialogShowSnackBar extends MasterViewShowSnackBar {
+  MasterViewItemDialogShowSnackBar({required super.sharedPreferences, required super.message});
+}
+
 class MasterViewPushAuthView extends MasterViewListener {
   MasterViewPushAuthView({required super.sharedPreferences});
 }
