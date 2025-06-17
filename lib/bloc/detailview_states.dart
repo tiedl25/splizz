@@ -208,6 +208,10 @@ class DetailViewShowMemberDialog extends DetailViewListener {
   DetailViewShowMemberDialog({required super.item, required this.member, this.memberKey});
 }
 
+class DetailViewTransactionDialogShowSnackBar extends DetailViewShowSnackBar {
+  DetailViewTransactionDialogShowSnackBar({required super.item, required super.message});
+}
+
 class DetailViewShareDialogShowSnackBar extends DetailViewShowSnackBar {
   DetailViewShareDialogShowSnackBar({required super.item, required super.message});
 }

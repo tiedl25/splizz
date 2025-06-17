@@ -140,6 +140,7 @@ class TransactionDialog extends StatelessWidget {
       duration: const Duration(milliseconds: 100),
       scale: state.scale,
       child: CustomDialog(
+        pop: false,
         title: 'Add new Transaction',
         content: SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -185,7 +186,7 @@ class TransactionDialog extends StatelessWidget {
                 ),
               ]),
             )),
-        onConfirmed: () => cubit.addTransaction(descriptionController.text),
+        onConfirmed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null),
         onDismissed: () => cubit.closeTranscationDialog(),
       ));
   }
@@ -317,10 +318,8 @@ class TransactionDialog extends StatelessWidget {
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
                         child: Text("Add", style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () {
-                          cubit.addTransaction(descriptionController.text);
-                          Navigator.of(context).pop(true);
-                        }),
+                        onPressed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null),
+                      ),
                     ),
                   ],
                 ),
@@ -337,8 +336,18 @@ class TransactionDialog extends StatelessWidget {
     this.context = context;
     this.cubit = context.read<DetailViewCubit>();
 
-    return BlocBuilder(
+    return BlocConsumer(
       bloc: cubit,
+      listenWhen: (_, current) => current is DetailViewTransactionDialogShowSnackBar,
+      listener: (context, state) {
+        if (state is DetailViewTransactionDialogShowSnackBar) {
+          showOverlayMessage(
+            context: context, 
+            message: state.message,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          );
+        }
+      },
       buildWhen: (_, current) => current is DetailViewTransactionDialog,
       builder: (context, state) {
         state as DetailViewTransactionDialog;
