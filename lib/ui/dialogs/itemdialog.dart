@@ -206,6 +206,12 @@ class ItemDialog extends StatelessWidget {
           case MasterViewItemDialogShowImagePicker:
             showImagePicker();
             break;
+          case MasterViewItemDialogShowSnackBar:
+            showOverlayMessage(
+              context: context, 
+              message: (state as MasterViewItemDialogShowSnackBar).message,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            );
         }
       },
       buildWhen: (_, current) => current is MasterViewItemDialog,
@@ -214,6 +220,7 @@ class ItemDialog extends StatelessWidget {
 
         return CustomDialog(
           title: 'Create a new Splizz',
+          pop: false,
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(
@@ -243,7 +250,8 @@ class ItemDialog extends StatelessWidget {
               ),
             ),
           ),
-          onConfirmed: () async => cubit.addItem(),
+          onConfirmed: () => cubit.addItem().then ((value) => 
+            value.isSuccess ? Navigator.of(context).pop(true) : null),
           onDismissed: () => cubit.dismissItemDialog(),
         );
       },
