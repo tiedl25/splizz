@@ -56,6 +56,8 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
   List<Map<String, dynamic>> involvedMembers;
   double sum;
   bool lock;
+  int sliderIndex;
+  double euros;
 
   DetailViewTransactionDialog({
     required super.item,
@@ -70,7 +72,9 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
     this.selection = -1,
     this.dateSelection = 0,
     this.sum = 0.0,
-    this.lock = false
+    this.lock = false,
+    this.sliderIndex = 0, 
+    this.euros = 0.01
   });
 
   factory DetailViewTransactionDialog.fromState(DetailViewState state) =>
@@ -95,7 +99,9 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
     List<Map<String, dynamic>>? involvedMembers,
     List<dynamic>? date,
     double? sum,
-    bool? lock}) =>
+    bool? lock,
+    int? sliderIndex,
+    double? euros}) =>
       DetailViewTransactionDialog(
         item: item ?? this.item,
         unbalanced: unbalanced ?? this.unbalanced,
@@ -109,7 +115,9 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
         involvedMembers: involvedMembers ?? this.involvedMembers,
         date: date ?? this.date,
         sum: sum ?? this.sum,
-        lock: lock ?? this.lock
+        lock: lock ?? this.lock,
+        sliderIndex: sliderIndex ?? this.sliderIndex,
+        euros: euros ?? this.euros
       );
 }
 

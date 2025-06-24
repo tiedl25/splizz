@@ -337,10 +337,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final center = Offset(renderBox.size.width / 2, renderBox.size.height / 2);
     final angle = (atan2(offset.dy - center.dy, offset.dx - center.dx) + 2 * pi) % (2 * pi);
 
-    final euros = 0.1;
-
     // Define the step size in radians (e.g., for 1 euro steps)
-    final double stepSize = (2 * pi) / (newState.sum / euros); // Adjust for 1 euro steps
+    final double stepSize = (2 * pi) / (newState.sum / newState.euros); // Adjust for 1 euro steps
 
     double threshold = max(stepSize, 0.25);
     double minDistance = threshold + 0.05;
@@ -394,15 +392,15 @@ class DetailViewCubit extends Cubit<DetailViewState> {
         double snappedAngle = (angle / stepSize).round() * stepSize;
 
         double amount = double.parse((newState.sum/((2*pi) / angle)).toStringAsFixed(2));
-        if (amount % euros > euros - 1e-32) {
+        if (amount % newState.euros > newState.euros - 1e-32) {
 
           int direction = (angle - mAngle).abs() < (angle - snappedAngle).abs() ? 1 : -1;
           double nextValue;
           // Calculate the next value based on the direction
           if (direction == 1) {
-            nextValue = double.parse(((amount / euros).ceil() * euros).toStringAsFixed(2));
+            nextValue = double.parse(((amount / newState.euros).ceil() * newState.euros).toStringAsFixed(2));
           } else {
-            nextValue = double.parse(((amount / euros).floor() * euros).toStringAsFixed(2));
+            nextValue = double.parse(((amount / newState.euros).floor() * newState.euros).toStringAsFixed(2));
           }
 
           snappedAngle = (nextValue / (newState.sum / ((2 * pi) / angle))) * stepSize;
@@ -414,6 +412,14 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     }
 
     newState.involvedMembers = members;
+
+    emit(newState);
+  }
+
+  changeCircularStepsize(double value, int sliderIndex) {
+    final newState = (state as DetailViewTransactionDialog).copyWith();
+    newState.sliderIndex = sliderIndex;
+    newState.euros = value;
 
     emit(newState);
   }

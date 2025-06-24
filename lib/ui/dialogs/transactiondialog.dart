@@ -191,6 +191,16 @@ class TransactionDialog extends StatelessWidget {
   }
 
   Widget view(state) {
+    final divisions = [
+      0.01,
+      0.02,
+      0.05,
+      0.10,
+      0.20,
+      0.50,
+      1.00,
+    ];
+
     return ClipRRect(
       borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20), topRight: Radius.circular(20)),
@@ -246,7 +256,17 @@ class TransactionDialog extends StatelessWidget {
               ),
               SizedBox(height: 70, child: memberBar(state.memberSelection)),
               Spacer(),
-              CircularSlider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  CircularSlider(),
+                  VerticalSlider(
+                    value: state.sliderIndex.toDouble(),
+                    divisions: divisions,
+                    onChanged: (value) => cubit.changeCircularStepsize(divisions[value.toInt()], value.toInt()),
+                  )
+                ],
+              ),
               Spacer(),
               Container(
                 alignment: Alignment.centerLeft,
@@ -315,5 +335,45 @@ class TransactionDialog extends StatelessWidget {
         return state.extend ? view(state) : dialog(state);
       },
     );
+  }
+}
+
+class VerticalSlider extends StatelessWidget {
+  final double value;
+  final ValueChanged<double>? onChanged;
+  final List<double> divisions;
+
+  const VerticalSlider({Key? key, required this.value, required this.onChanged, required this.divisions}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return RotatedBox(
+      quarterTurns: 3,
+      child: SliderTheme(
+        data: SliderTheme.of(context).copyWith(
+          showValueIndicator: ShowValueIndicator.always,
+          valueIndicatorShape: PaddleSliderValueIndicatorShape(),
+        ),
+        child: Builder(
+          builder: (context) {
+        return SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            showValueIndicator: ShowValueIndicator.always,
+            valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
+          ),
+          child: Slider(
+            min: 0,
+            max: divisions.length.toDouble() - 1,
+            divisions: divisions.length - 1,
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            value: value,
+            onChanged: onChanged,
+            label: "${divisions[value.toInt()].toStringAsFixed(2)} €",
+          ),
+        );
+          },
+        ),
+      ),
+      );
   }
 }
