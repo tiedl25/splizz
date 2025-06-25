@@ -343,7 +343,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     double threshold = max(stepSize, 0.25);
     double minDistance = threshold + 0.05;
     double arreaToMove = pi / 2;
-
+ 
     for (int i = 0; i < members.length; i++) {
       double mAngle = members[i]['angle'];
 
@@ -407,6 +407,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
         }
 
         members[i]['angle'] = snappedAngle;
+        newState.lastChangedMemberIndex = i; // Store the index of the member whose position was changed
+        if (newState.zoomEnabled) newState.sliderIndex = snappedAngle; // Store the angle of the last changed member
         break;
       }
     }
@@ -416,10 +418,25 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  changeCircularStepsize(double value, int sliderIndex) {
+  changeCircularStepsize(double value, double sliderIndex) {
     final newState = (state as DetailViewTransactionDialog).copyWith();
     newState.sliderIndex = sliderIndex;
     newState.euros = value;
+
+    emit(newState);
+  }
+
+  toggleZoom(bool value) {
+    final newState = (state as DetailViewTransactionDialog).copyWith(zoomEnabled: value);
+    newState.sliderIndex = value ? newState.involvedMembers[newState.lastChangedMemberIndex]['angle'] : 3;
+    emit(newState);
+  }
+
+  granularUpdateCircularSliderPosition(double value) {
+    final newState = (state as DetailViewTransactionDialog).copyWith();
+    final members = newState.involvedMembers;
+
+    members[newState.lastChangedMemberIndex]['angle'] = value;
 
     emit(newState);
   }

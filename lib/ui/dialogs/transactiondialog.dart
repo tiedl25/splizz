@@ -260,10 +260,23 @@ class TransactionDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   CircularSlider(),
-                  VerticalSlider(
-                    value: state.sliderIndex.toDouble(),
-                    divisions: divisions,
-                    onChanged: (value) => cubit.changeCircularStepsize(divisions[value.toInt()], value.toInt()),
+                  Column(
+                    children: [
+                      VerticalSlider(
+                        value: state.zoomEnabled ? state.involvedMembers[state.lastChangedMemberIndex]['angle'].toDouble() : state.sliderIndex.toDouble(),
+                        divisions: state.zoomEnabled ? state.sliderIndex : divisions,
+                        onChanged: (value) => state.zoomEnabled
+                          ? cubit.granularUpdateCircularSliderPosition(value)
+                          : cubit.changeCircularStepsize(divisions[value.toInt()], value),
+                      ),
+                      SizedBox.fromSize(
+                        size: const Size(0, 10),
+                      ),
+                      Switch(
+                        value: state.zoomEnabled, 
+                        onChanged: (value) => cubit.toggleZoom(value),
+                      )
+                    ],
                   )
                 ],
               ),
@@ -341,7 +354,7 @@ class TransactionDialog extends StatelessWidget {
 class VerticalSlider extends StatelessWidget {
   final double value;
   final ValueChanged<double>? onChanged;
-  final List<double> divisions;
+  final divisions;
 
   const VerticalSlider({Key? key, required this.value, required this.onChanged, required this.divisions}) : super(key: key);
 
@@ -353,6 +366,10 @@ class VerticalSlider extends StatelessWidget {
         data: SliderTheme.of(context).copyWith(
           showValueIndicator: ShowValueIndicator.always,
           valueIndicatorShape: PaddleSliderValueIndicatorShape(),
+          trackHeight: 7,
+          thumbShape: const RoundSliderThumbShape(
+            enabledThumbRadius: 15,
+          ),
         ),
         child: Builder(
           builder: (context) {
@@ -361,15 +378,18 @@ class VerticalSlider extends StatelessWidget {
             showValueIndicator: ShowValueIndicator.always,
             valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
           ),
-          child: Slider(
-            min: 0,
-            max: divisions.length.toDouble() - 1,
-            divisions: divisions.length - 1,
-            padding: const EdgeInsets.symmetric(horizontal: 0),
-            value: value,
-            onChanged: onChanged,
-            label: "${divisions[value.toInt()].toStringAsFixed(2)} €",
-          ),
+            child: Container(
+            width: 150,
+            child: Slider(
+              min: divisions is List<double> ? 0 : divisions - 0.07,
+              max: divisions is List<double> ? divisions.length.toDouble() - 1 : divisions + 0.07,
+              divisions: divisions is List<double> ? divisions.length - 1 : null,
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              value: value,
+              onChanged: onChanged,
+              label: divisions is List<double> ? "${divisions[value.toInt()].toStringAsFixed(2)} €" : null,
+            ),
+            ),
         );
           },
         ),
