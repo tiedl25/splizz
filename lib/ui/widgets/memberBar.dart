@@ -10,7 +10,7 @@ import 'package:splizz/models/member.model.dart';
 class MemberBar extends StatelessWidget {
   late final DetailViewCubit cubit;
   late final BuildContext context;
-  late final List<GlobalKey> memberKeys;
+  late List<GlobalKey> memberKeys;
   late bool alreadyInit = false;
 
   MemberBar();
@@ -212,6 +212,8 @@ class MemberBar extends StatelessWidget {
     members = members.where((m) => !m.deleted).toList();
     if (!alreadyInit) {
       alreadyInit = true;
+      memberKeys = createMemberKeys(state);
+    } else if (memberKeys.length != members.length) {
       memberKeys = createMemberKeys(state);
     }
 
