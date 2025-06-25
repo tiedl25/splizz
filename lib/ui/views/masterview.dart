@@ -23,12 +23,10 @@ import 'package:splizz/ui/widgets/customDialog.dart';
 var activeSession = Supabase.instance.client.auth.currentSession;
 
 class SplashView extends StatelessWidget {
-  final Function updateTheme;
   final SharedPreferences prefs;
 
   const SplashView({
     super.key,
-    required this.updateTheme,
     required this.prefs,
   });
 
@@ -107,17 +105,7 @@ class MasterView extends StatelessWidget {
   //Navigation
 
   void pushSettingsView() {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return BlocProvider(
-            create: (context) => SettingsViewCubit(),
-            child: SettingsView(),
-          );
-        },
-      ),
-    );
+    Navigator.pushNamed(context, '/settings');
   }
 
   void pushDetailView(Item item) {

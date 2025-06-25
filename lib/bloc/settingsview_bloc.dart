@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/bloc/main_bloc.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -8,7 +9,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:splizz/data/database.dart';
 
 class SettingsViewCubit extends Cubit<SettingsViewState> {
-  SettingsViewCubit()
+  final ThemeCubit themeCubit;
+
+  SettingsViewCubit(this.themeCubit)
     : super(SettingsViewLoading()) {
       fetchData();
     }
@@ -33,7 +36,7 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
     );
 
     await newState.sharedPreferences.setBool('systemTheme', newState.systemTheme);
-
+    this.themeCubit.toggleSystemTheme(newState.systemTheme);
     emit(newState);
   }
 
@@ -43,7 +46,7 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
     );
 
     await newState.sharedPreferences.setBool('darkMode', newState.darkMode);
-
+    this.themeCubit.toggleDarkMode(newState.darkMode);
     emit(newState);
   }
 

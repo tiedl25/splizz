@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
@@ -174,6 +175,10 @@ class SettingsView extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Settings'),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor:
+              Theme.of(context).colorScheme.surface, // Navigation bar
+        ),
       ),
       body: BlocConsumer<SettingsViewCubit, SettingsViewState>(
         bloc: cubit,

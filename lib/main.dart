@@ -2,89 +2,74 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/bloc/main_bloc.dart';
 import 'package:splizz/brick/repository.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 
 import 'package:splizz/bloc/masterview_bloc.dart';
 import 'package:splizz/bloc/settingsview_bloc.dart';
-
 import 'package:splizz/ui/views/masterview.dart';
 import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/views/authview.dart';
-
 import 'package:splizz/ui/theme/dark_theme.dart';
 import 'package:splizz/ui/theme/light_theme.dart';
 
-Future main() async {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Repository.configure(databaseFactory);
   await Repository().initialize();
-
   await dotenv.load(fileName: 'keys.env');
 
-  final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
 
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(sharedPreferences: sharedPreferences,));
-}
-
-class MyApp extends StatefulWidget {
-  //const MyApp({Key? key}) : super(key: key);
-
-  final SharedPreferences? sharedPreferences;
-
-  const MyApp({Key? key, this.sharedPreferences})
-      : assert(sharedPreferences != null),
-        super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp>{
-  bool _systemThemeToggle=true;
-  bool _darkModeToggle=false;
-
-  @override
-  void initState() {
-    super.initState();
-    loadSwitchValue(); // Load the switch value from SharedPreferences
-    if (widget.sharedPreferences!.getBool('offline') == null) {
-      widget.sharedPreferences!.setBool('offline', false);
-    }
+  // Ensure offline setting exists
+  if (sharedPreferences.getBool('offline') == null) {
+    sharedPreferences.setBool('offline', false);
   }
 
-  Future<void> loadSwitchValue() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _systemThemeToggle = prefs.getBool('systemTheme') ?? true;
-      _darkModeToggle = prefs.getBool('darkMode') ?? false;
-    });
-  }
+  runApp(MyApp(sharedPreferences: sharedPreferences));
+}
 
-  // This widget is the root of your application.
-  // It contains everything to run the application, nothing more
+class MyApp extends StatelessWidget {
+  final SharedPreferences sharedPreferences;
+
+  const MyApp({Key? key, required this.sharedPreferences}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Splizz',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => SplashView(updateTheme: loadSwitchValue, prefs: widget.sharedPreferences!,),
-        '/auth': (context) => AuthView(prefs: widget.sharedPreferences!,),
-        '/home': (context) => BlocProvider(
-          create: (context) => MasterViewCubit(widget.sharedPreferences!,), 
-          child: MasterView()
+    return MultiBlocProvider(
+      providers: [
+        // Provide the ThemeCubit used for updating the app theme.
+        BlocProvider<ThemeCubit>(
+          create: (_) => ThemeCubit(sharedPreferences),
         ),
-        '/settings': (context) => BlocProvider(
-          create: (context) => SettingsViewCubit(),
-          child: SettingsView(),
-        ),
-      },
-      //home: MasterView(updateTheme: loadSwitchValue,),
-      debugShowCheckedModeBanner: false,
+      ],
+      // BlocBuilder listens to the ThemeCubit and rebuilds MaterialApp when theme changes.
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'Splizz',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: themeMode,
+            initialRoute: '/',
+            routes: {
+              '/': (context) => SplashView(prefs: sharedPreferences),
+              '/auth': (context) => AuthView(prefs: sharedPreferences),
+              '/home': (context) => BlocProvider(
+                    create: (_) => MasterViewCubit(sharedPreferences),
+                    child: MasterView(),
+                  ),
+              '/settings': (context) => BlocProvider(
+                    create: (_) => SettingsViewCubit(context.read<ThemeCubit>()),
+                    child: SettingsView(),
+                  ),
+            },
+            debugShowCheckedModeBanner: false,
+          );
+        },
+      ),
     );
   }
 }
