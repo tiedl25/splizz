@@ -77,6 +77,7 @@ class MemberBar extends StatelessWidget {
   }
 
   void showAddMemberDialog() {
+    cubit.showAddMemberDialog();
     showDialog(
       context: context,
       builder: (_) {

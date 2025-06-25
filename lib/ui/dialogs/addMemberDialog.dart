@@ -11,7 +11,6 @@ class AddMemberDialog extends StatelessWidget {
   late DetailViewCubit cubit;
 
   final TextEditingController controller = TextEditingController();
-  Color color = colormap[0];
 
   AddMemberDialog({super.key});
 
@@ -29,8 +28,7 @@ class AddMemberDialog extends StatelessWidget {
                 pickerColor: colormap[0],
                 onColorChanged: (Color color) {
                   Navigator.of(context).pop();
-                  this.color = color;
-                  cubit.changeNewMemberColor();
+                  cubit.changeNewMemberColor(color);
                 },
               ),
             ),
@@ -59,14 +57,15 @@ class AddMemberDialog extends StatelessWidget {
                 onPressed: () => showColorPicker(),
                 icon: BlocBuilder<DetailViewCubit, DetailViewState>(
                   bloc: cubit,
-                  buildWhen: (_, current) => current is DetailViewLoaded,
+                  buildWhen: (_, current) => current is DetailViewAddMemberDialog,
                   builder: (context, state) {
-                    return Icon(Icons.color_lens, color: color);
+                    state as DetailViewAddMemberDialog;
+                    return Icon(Icons.color_lens, color: state.color);
                   },
                 ))),
         ),
       ),
-      onConfirmed: () => cubit.addMember(controller.text, color),
+      onConfirmed: () => cubit.addMember(controller.text),
     );
   }
 }

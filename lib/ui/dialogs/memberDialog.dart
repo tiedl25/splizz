@@ -14,9 +14,6 @@ class MemberDialog extends StatelessWidget {
   late BuildContext context;
   late DetailViewCubit cubit;
 
-  TextEditingController? textController;
-  Color? color;
-
   MemberDialog({
     super.key,
     this.opacity = const AlwaysStoppedAnimation(1.0),
@@ -47,7 +44,7 @@ class MemberDialog extends StatelessWidget {
     });
   }
 
-  void showColorPicker() {
+  void showColorPicker(Member member) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -58,11 +55,10 @@ class MemberDialog extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               child: BlockPicker(
                 availableColors: colormap,
-                pickerColor: color,
+                pickerColor: Color(member.color),
                 onColorChanged: (Color color) {
                   Navigator.of(context).pop();
-                  this.color = color;
-                  cubit.changeNewMemberColor();
+                  cubit.changeMemberColor(member, color);
                 },
               ),
             ),
@@ -72,7 +68,7 @@ class MemberDialog extends StatelessWidget {
     );
   }
 
-  Widget content(Member member, bool editMode){
+  Widget content(DetailViewMemberDialog state, Member member, bool editMode){
     Color textColor = Color(member.color).computeLuminance() > 0.2
         ? Colors.black
         : Colors.white;
@@ -91,15 +87,16 @@ class MemberDialog extends StatelessWidget {
                 Text('Name', style: TextStyle(fontSize: 20, color: textColor)),
                 IntrinsicWidth(
                   child: TextField(
+                    controller: state.name,
+                    maxLines: 1,
                     textAlign: TextAlign.right,
-                    controller: textController,
                     style: TextStyle(fontSize: editMode ? 20 : 15, color: textColor),
                     decoration: InputDecoration(
                       prefixIcon: editMode 
                         ? Padding(
                             padding: const EdgeInsets.only(right: 10), 
                             child: IconButton(
-                              onPressed: () => showColorPicker(),
+                              onPressed: () => showColorPicker(member),
                               icon: Icon(Icons.color_lens, size: 30, color: textColor),
                             )
                           ) 
@@ -108,7 +105,7 @@ class MemberDialog extends StatelessWidget {
                       border: InputBorder.none, 
                     ),
                     enabled: editMode,
-                    onChanged: (String value) => null,
+                    onChanged: (String value) => cubit.changeMemberName(value),
                   ),
                 )
               ],
@@ -161,7 +158,7 @@ class MemberDialog extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             GestureDetector(
-              onTap: () => editMode ? cubit.updateMember(textController!.text, color!) : cubit.toggleMemberEditMode(),
+              onTap: () => editMode ? cubit.updateMember() : cubit.toggleMemberEditMode(),
               child: Icon(
                 editMode ? Icons.check_circle : Icons.edit,
                 size: 25,
@@ -177,7 +174,7 @@ class MemberDialog extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () => editMode 
-                ? {color = null, textController = null, cubit.toggleMemberEditMode()} 
+                ? cubit.toggleMemberEditMode()
                 : balance == 0 
                   ? showDeleteMemberDialog() 
                   : showOverlayMessage(
@@ -207,11 +204,9 @@ class MemberDialog extends StatelessWidget {
       buildWhen: (_, current) => current is DetailViewMemberDialog,
       builder: (context, state) {
         Member member = (state as DetailViewMemberDialog).member;
-        textController = TextEditingController(text: textController == null ? member.name : textController!.text);
-        color = color ?? Color(member.color);
 
         return CustomDialog(
-          color: color,
+          color: state.color,
           content: FadeTransition(
             opacity: opacity,
             child: SizedBox(
@@ -220,7 +215,7 @@ class MemberDialog extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    content(member, state.editMode),
+                    content(state, member, state.editMode),
                     buttons(state.editMode, member.balance),
                   ],
                 ),

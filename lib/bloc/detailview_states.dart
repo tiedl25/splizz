@@ -159,19 +159,40 @@ class DetailViewPayoffDialog extends DetailViewLoaded {
 class DetailViewMemberDialog extends DetailViewLoaded {
   Member member;
   bool editMode;
+  TextEditingController? name;
+  Color? color;
 
-  DetailViewMemberDialog({required super.item, super.unbalanced, required this.member, this.editMode = false});
+  DetailViewMemberDialog({required super.item, super.unbalanced, required this.member, this.editMode = false, this.name, this.color});
 
-  factory DetailViewMemberDialog.fromState(final state, final Member member, final bool editMode) =>
-    DetailViewMemberDialog(item: state.item, unbalanced: state.unbalanced, member: member, editMode: editMode);
+  factory DetailViewMemberDialog.fromState(final state, final Member member, final bool editMode, final TextEditingController name, final Color? color) =>
+    DetailViewMemberDialog(item: state.item, unbalanced: state.unbalanced, member: member, editMode: editMode, name: name, color: color);
 
   @override
-  DetailViewMemberDialog copyWith({Item? item, bool? unbalanced, Member? member, bool? editMode}) =>
+  DetailViewMemberDialog copyWith({Item? item, bool? unbalanced, Member? member, bool? editMode, TextEditingController? name, Color? color}) =>
     DetailViewMemberDialog(
       item: item ?? this.item, 
       unbalanced: unbalanced ?? this.unbalanced, 
       member: member ?? this.member, 
-      editMode: editMode ?? this.editMode
+      editMode: editMode ?? this.editMode,
+      name: name ?? this.name,
+      color: color ?? this.color
+    );
+}
+
+class DetailViewAddMemberDialog extends DetailViewLoaded {
+  Color color;
+
+  DetailViewAddMemberDialog({required super.item, super.unbalanced, required this.color});
+
+  factory DetailViewAddMemberDialog.fromState(final state, Color color) =>
+    DetailViewAddMemberDialog(item: state.item, unbalanced: state.unbalanced, color: color);
+
+  @override
+  DetailViewAddMemberDialog copyWith({Item? item, bool? unbalanced, Color? color}) =>
+    DetailViewAddMemberDialog(
+      item: item ?? this.item, 
+      unbalanced: unbalanced ?? this.unbalanced,
+      color: color ?? this.color
     );
 }
 

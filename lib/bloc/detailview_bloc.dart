@@ -11,6 +11,7 @@ import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
+import 'package:splizz/resources/colormap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 
@@ -85,14 +86,35 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  changeNewMemberColor() {
-    final newState = state.copyWith();
+  changeMemberColor(Member member, Color color) {
+    final newState = (state as DetailViewMemberDialog).copyWith();
+
+    //newState.item.members.firstWhere((m) => m.id == member.id).color = color.value;
+    newState.color = color;
+
     emit(newState);
   }
 
-  addMember(String name, Color color) async {
+  changeMemberName(String name) {
+    final newState = (state as DetailViewMemberDialog).copyWith();
+
+    //newState.item.members.firstWhere((m) => m.id == member.id).name = name;
+    //newState.name = name;
+
+    emit(newState);
+  }
+
+  changeNewMemberColor(Color color) {
+    final newState = (state as DetailViewAddMemberDialog).copyWith();
+
+    newState.color = color;
+
+    emit(newState);
+  }
+
+  addMember(String name) async {
     final newState = (state as DetailViewLoaded).copyWith();
-    final member = Member(name: name, color: color.value, itemId: newState.item.id);
+    final member = Member(name: name, color: (state as DetailViewAddMemberDialog).color.value, itemId: newState.item.id);
     newState.item.members.add(member);
     await DatabaseHelper.instance.upsertMember(member);
 
@@ -604,8 +626,13 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
+  showAddMemberDialog() {
+    final newState = DetailViewAddMemberDialog.fromState(state, colormap[0]);
+    emit(newState);
+  }
+
   showMemberDialog(Member member, {GlobalKey? key}) {
-    final newState = DetailViewMemberDialog.fromState(state, member, false);
+    final newState = DetailViewMemberDialog.fromState(state, member, false, TextEditingController(text: member.name), Color(member.color));
 
     emit(DetailViewShowMemberDialog(item: state.item, member: member, memberKey: key));
 
@@ -620,7 +647,6 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   toggleMemberEditMode() {
     final newState = (state as DetailViewMemberDialog).copyWith(editMode: !(state as DetailViewMemberDialog).editMode);
-
     emit(newState);
   }
 
@@ -634,8 +660,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  updateMember(String name, Color color) async {
-    final newMember = Member.fromMember((state as DetailViewMemberDialog).member, name: name, color: color.value);
+  updateMember() async {
+    final newMember = Member.fromMember((state as DetailViewMemberDialog).member, name: (state as DetailViewMemberDialog).name!.text, color: (state as DetailViewMemberDialog).color?.value);
     
     final newState = (state as DetailViewMemberDialog).copyWith(editMode: false, member: newMember);
 

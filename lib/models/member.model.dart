@@ -15,8 +15,8 @@ class Member extends OfflineFirstWithSupabaseModel {
   final String id;
   
   String? itemId;
-  final String name;
-  final int color;
+  String name;
+  int color;
   bool active;
   bool deleted;
   final DateTime timestamp;
