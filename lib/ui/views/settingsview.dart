@@ -7,7 +7,6 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
 import 'package:splizz/bloc/settingsview_bloc.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
@@ -48,7 +47,7 @@ class SettingsView extends StatelessWidget {
     cubit.closePrivacyPolicy();
   }
 
-    Future<void> showPrivacyPolicyWebView() async {
+  Future<void> showPrivacyPolicyWebView() async {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -72,6 +71,54 @@ class SettingsView extends StatelessWidget {
     );
 
     cubit.closePrivacyPolicy();
+  }
+
+  Future<void> showBuyMeACoffee() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            appBar: AppBar(
+              title: const Text('Buy me a Coffee'),
+            ),
+            body: WebViewWidget(
+                gestureRecognizers: Set()
+                  ..add(Factory<VerticalDragGestureRecognizer>(
+                  () => VerticalDragGestureRecognizer())),
+                controller: WebViewController()
+                  ..loadRequest(Uri.parse("https://buymeacoffee.com/tiedl"))
+                  ..setJavaScriptMode(JavaScriptMode.unrestricted),
+              ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> showPaypal() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            appBar: AppBar(
+              title: const Text('PayPal'),
+            ),
+            body: WebViewWidget(
+                gestureRecognizers: Set()
+                  ..add(Factory<VerticalDragGestureRecognizer>(
+                  () => VerticalDragGestureRecognizer())),
+                controller: WebViewController()
+                  ..loadRequest(Uri.parse("https://paypal.me/tiedl25"))
+                  ..setJavaScriptMode(JavaScriptMode.unrestricted),
+              ),
+          );
+        },
+      ),
+    );
   }
 
   Widget themeSegment(systemTheme, darkMode) {
@@ -166,6 +213,38 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  Widget donationSegment() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          border: Border.all(
+            style: BorderStyle.none,
+          ),
+          borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text("Buy me a Coffee"),
+            trailing: Icon(Icons.coffee),
+            onTap: () => showBuyMeACoffee(),
+          ),
+          const Divider(
+            thickness: 0.2,
+            indent: 15,
+            endIndent: 15,
+          ),
+          ListTile(
+            title: Text('Let Elon bring me money!'),
+            trailing: Icon(Icons.paypal),
+            onTap: () => showPaypal(),
+          )
+        ],
+      ),
+);
+  }
+
   @override
   Widget build(BuildContext context) {
     this.context = context;
@@ -207,6 +286,7 @@ class SettingsView extends StatelessWidget {
                 children: [
                   themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode),
                   infoSegment(state.version),
+                  donationSegment(),
                   userSegment(),
                 ]
               );
