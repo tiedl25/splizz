@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
+import 'package:http/http.dart';
 import 'package:splizz/data/result.dart';
 
 import 'package:splizz/brick/repository.dart';
@@ -120,6 +122,7 @@ class DatabaseHelper {
     for(Member m in members){
       m.balance = await getBalance(m.id, db: db);
       m.total = await getTotal(m.id, db: db);
+      m.payoff = await getPayoff(m.id, db: db);
       m.history = await getMemberTransactions(m.id, db: db);
     }
 
@@ -367,6 +370,26 @@ class DatabaseHelper {
 
     final total = List<double>.from(transactions.map((t) => t.value)).sum;
 
+    return total;
+  }
+
+  Future<double> getPayoff(String id, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    var query = Query(where: [Where('deleted').isExactly(false), Where('memberId').isExactly(null)]);
+    final transactions = await db.get<Transaction>(query: query);
+
+    if (transactions.isEmpty) return 0;
+
+    List transactionsNotDeleted = transactions.map((t) => t.id).toList();
+
+    query = Query(where: [Where('memberId').isExactly(id)]);
+    final operations = await db.get<Operation>(query: query);
+
+    if (operations.isEmpty) return 0;
+
+    double total = List<double>.from(operations.where((o) => transactionsNotDeleted.contains(o.transactionId)).map((Operation e) => e.value)).sum;
+    
     return total;
   }
 

@@ -129,6 +129,18 @@ class MemberDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Text('Expenses', style: TextStyle(fontSize: 20, color: textColor)),
+                Text("${(member.total + member.payoff).toStringAsFixed(2)} €",
+                    style: TextStyle(fontSize: 15, color: textColor))
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.only(
+                left: 15, right: 15, top: 5, bottom: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text('Balance', style: TextStyle(fontSize: 20, color: textColor)),
                 Text("${member.balance.toStringAsFixed(2)} €",
                     style: TextStyle(fontSize: 15, color: textColor))
