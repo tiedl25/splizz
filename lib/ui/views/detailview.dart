@@ -401,7 +401,19 @@ class DetailView extends StatelessWidget {
           },
         ),
         actions: [
-          BlocBuilder<DetailViewCubit, DetailViewState>(
+          BlocConsumer<DetailViewCubit, DetailViewState>(
+            listenWhen: (_, current) => current is DetailViewShowSnackBar,
+            listener: (context, state) {
+              switch (state.runtimeType) {
+                case DetailViewShowSnackBar:
+                  showOverlayMessage(
+                    context: context, 
+                    message: (state as DetailViewShowSnackBar).message,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  );
+                  break;
+              }
+            },
             bloc: cubit,
             builder: (context, state) {
               return IconButton(

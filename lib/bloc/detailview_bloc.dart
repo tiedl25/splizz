@@ -598,6 +598,14 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   showPayoffDialog() {
     if (!(state as DetailViewLoaded).unbalanced) {
+      final newState = state.copyWith();
+      
+      emit(DetailViewShowSnackBar(
+        item: state.item, 
+        message: "There are no unbalanced transactions!")
+      );
+      
+      emit(newState);
       return;
     }
 
