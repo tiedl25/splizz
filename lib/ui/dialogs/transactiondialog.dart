@@ -14,7 +14,7 @@ class TransactionDialog extends StatelessWidget {
   late DetailViewCubit cubit;
   late List<Member> members;
 
-  final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',', enableNegative: false);
+  final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',', enableNegative: true);
   final TextEditingController descriptionController = TextEditingController();
 
   TransactionDialog();
@@ -163,7 +163,7 @@ class TransactionDialog extends StatelessWidget {
                 TextField(
                   controller: currencyController,
                   keyboardType: TextInputType.number,
-                  onChanged: (value) => cubit.updateTransactionValue(double.parse(value.replaceFirst(",", "."))),
+                  onChanged: (value) => cubit.updateTransactionValue(value),
                   decoration: TfDecorationModel(
                     context: context,
                     title: '0,00',
@@ -237,7 +237,7 @@ class TransactionDialog extends StatelessWidget {
               TextField(
                 controller: currencyController,
                 keyboardType: TextInputType.number,
-                onChanged: (value) => cubit.updateTransactionValue(double.parse(value.replaceFirst(",", "."))),
+                onChanged: (value) => cubit.updateTransactionValue(value),
                 decoration: TfDecorationModel(
                   context: context,
                   title: '0,00',

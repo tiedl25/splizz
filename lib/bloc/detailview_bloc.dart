@@ -249,8 +249,13 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  updateTransactionValue(double value) {
-    final newState = (state as DetailViewTransactionDialog).copyWith(sum: value);
+  updateTransactionValue(String value) {
+    bool negative = value.startsWith('-');
+    if (negative) value = value.replaceFirst("-", "");
+    double newValue = double.parse(value.replaceFirst(",", "."));
+
+    if (negative) newValue *= -1;
+    final newState = (state as DetailViewTransactionDialog).copyWith(sum: newValue);
 
     emit(newState);
   }
@@ -469,15 +474,6 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     if (description.isEmpty) {
       final String message = 'Please enter a description!';
-      emit(DetailViewTransactionDialogShowSnackBar(
-        item: state.item,
-        message: message
-      ));
-      emit(newState);
-      return Result.failure(message);
-    }
-    if (newState.sum < 0) {
-      final String message = 'Transaction value cannot be negative!';
       emit(DetailViewTransactionDialogShowSnackBar(
         item: state.item,
         message: message

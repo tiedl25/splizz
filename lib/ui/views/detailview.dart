@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/operation.model.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
 import 'package:splizz/ui/dialogs/sharedialog.dart';
@@ -183,7 +184,7 @@ class DetailView extends StatelessWidget {
                         return transaction.deleted
                             ? Container(
                                 margin: const EdgeInsets.only(bottom: 5),
-                                child: expansionTile(transaction, memberMap, item),
+                                child: expansionTile(transaction, item),
                               )
                             : dismissibleTile(transaction, memberMap, i, item);
                       }
@@ -211,13 +212,15 @@ class DetailView extends StatelessWidget {
             Icons.delete,
           ),
         ),
-        child: expansionTile(transaction, memberMap, item)),
+        child: expansionTile(transaction, item)),
     );
   }
 
-  Widget expansionTile(Transaction transaction, Map<String, int> memberMap, Item item) {
-    Color color = Color(item.members[memberMap[transaction.memberId]!].color);
+  Widget expansionTile(Transaction transaction, Item item) {
+    Color color = Color(item.members.firstWhere((m) => m.id == transaction.memberId).color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
+
+    transaction.operations.removeWhere((t) => t.memberId == transaction.memberId && t.value == transaction.value);
 
     return Container(
       clipBehavior: Clip.hardEdge,
@@ -272,17 +275,17 @@ class DetailView extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
               child: Row(
-                children: List.generate(transaction.operations.length, (index) {
+                children: List.generate(transaction.operations.length+1, (index) {
                   if (index == 0) {
                     return Container(
                         padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
                         margin: const EdgeInsets.all(2),
                         child: Text(
-                          item.members[memberMap[transaction.memberId]!].name,
+                          item.members.firstWhere((element) => element.id == transaction.memberId).name,
                           style: const TextStyle(color: Colors.black),
                         ));
                   }
-                  Member m = item.members[memberMap[transaction.operations[index].memberId]!];
+                  Member m = item.members.firstWhere((element) => element.id == transaction.operations[index-1].memberId);
                   return Container(
                     padding: const EdgeInsets.all(5),
                     margin: const EdgeInsets.all(2),
