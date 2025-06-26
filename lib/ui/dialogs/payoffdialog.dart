@@ -5,6 +5,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/ui/widgets/overlayLoadingScreen.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 import 'package:excel/excel.dart';
 
@@ -242,18 +243,22 @@ class PayoffDialog extends StatelessWidget {
   }
 
   void sharePayoff(Transaction payoff) async {
+    final overlayEntry = OverlayLoadingScreen();
+    Overlay.of(context).insert(overlayEntry);
+
     final payoffBytes = await controller.capture();
     final transactionsBytes = await transactionTable(payoff);
     final excelBytes = await exportTransactionTableToExcel(payoff);
 
+    if (overlayEntry.mounted) {
+      overlayEntry.remove();
+    }  
+
     await Share.shareXFiles(
         [
           XFile.fromData(payoffBytes!, mimeType: 'image/png'),
-          XFile.fromData(transactionsBytes,
-              mimeType: 'image/png'),
-          XFile.fromData(excelBytes,
-              mimeType:
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+          XFile.fromData(transactionsBytes, mimeType: 'image/png'),
+          XFile.fromData(excelBytes, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         ],
         text: 'Payoff',
         fileNameOverrides: [
@@ -261,6 +266,7 @@ class PayoffDialog extends StatelessWidget {
           'Transactions.png',
           'Transactions.xlsx'
         ]);
+
     Navigator.of(context).pop();
   }
 

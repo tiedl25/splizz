@@ -10,11 +10,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/masterview_bloc.dart';
-import 'package:splizz/bloc/settingsview_bloc.dart';
 
 import 'package:splizz/ui/views/authview.dart';
 import 'package:splizz/ui/views/detailview.dart';
-import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/dialogs/itemdialog.dart';
 
 import 'package:splizz/models/item.model.dart';
@@ -191,7 +189,7 @@ class MasterView extends StatelessWidget {
           ),
           SpeedDialChild(
               child: const Icon(Icons.bug_report),
-              onTap: () => cubit.addDebugItem()),
+              onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugItem)),
           SpeedDialChild(
               child: const Icon(Icons.remove),
               onTap: () => cubit.removeAll()),

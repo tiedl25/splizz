@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:splizz/ui/widgets/overlayLoadingScreen.dart';
+
 class TfDecorationModel extends InputDecoration {
   TfDecorationModel({required BuildContext context, required String title, IconButton? icon})
     : super(
@@ -87,4 +89,14 @@ void showOverlayMessage({
 
   Overlay.of(context).insert(overlayEntry);
   Timer(duration, () => overlayEntry.remove());
+}
+
+Future<void> showLoadingEntry({
+  required BuildContext context,
+  required Function onWait
+}) async {
+  final overlayEntry = OverlayLoadingScreen();
+  Overlay.of(context).insert(overlayEntry);
+  await onWait();
+  overlayEntry.remove();
 }

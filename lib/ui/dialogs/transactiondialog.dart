@@ -186,7 +186,11 @@ class TransactionDialog extends StatelessWidget {
                 ),
               ]),
             )),
-        onConfirmed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null),
+        onConfirmed: () => showLoadingEntry(
+          context: context, 
+          onWait: () => cubit.addTransaction(descriptionController.text).then(
+            (value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null)
+        ),
         onDismissed: () => cubit.closeTranscationDialog(),
       ));
   }

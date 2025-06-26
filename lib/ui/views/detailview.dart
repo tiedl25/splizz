@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/item.model.dart';
-import 'package:splizz/models/operation.model.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
 import 'package:splizz/ui/dialogs/sharedialog.dart';
@@ -436,7 +435,7 @@ class DetailView extends StatelessWidget {
               ),
               SpeedDialChild(
                 child: const Icon(Icons.bug_report),
-                onTap: () async => cubit.addDebugTransaction(),
+                onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugTransaction),
               ),
               // add more options as needed
             ],
