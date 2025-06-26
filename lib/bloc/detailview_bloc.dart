@@ -599,7 +599,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   showPayoffDialog() {
     if (!(state as DetailViewLoaded).unbalanced) {
       final newState = state.copyWith();
-      
+
       emit(DetailViewShowSnackBar(
         item: state.item, 
         message: "There are no unbalanced transactions!")
@@ -650,7 +650,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   toggleMemberEditMode() {
-    final newState = (state as DetailViewMemberDialog).copyWith(editMode: !(state as DetailViewMemberDialog).editMode);
+    final newState = (state as DetailViewMemberDialog).copyWith(editMode: !(state as DetailViewMemberDialog).editMode, name: TextEditingController(text: (state as DetailViewMemberDialog).member.name), color: Color((state as DetailViewMemberDialog).member.color));
     emit(newState);
   }
 
