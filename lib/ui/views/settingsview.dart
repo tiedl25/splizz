@@ -255,8 +255,7 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Settings'),
         systemOverlayStyle: SystemUiOverlayStyle(
-          systemNavigationBarColor:
-              Theme.of(context).colorScheme.surface, // Navigation bar
+            systemNavigationBarColor: Colors.transparent, // Navigation bar
         ),
       ),
       body: BlocConsumer<SettingsViewCubit, SettingsViewState>(

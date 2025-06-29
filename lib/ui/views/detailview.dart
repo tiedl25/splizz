@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:splizz/bloc/detailview_states.dart';
@@ -399,6 +400,9 @@ class DetailView extends StatelessWidget {
           builder: (context, state) {
             return Text(state.item.name);
           },
+        ),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.transparent, // Navigation bar
         ),
         actions: [
           BlocConsumer<DetailViewCubit, DetailViewState>(

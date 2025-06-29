@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,15 @@ import 'package:splizz/ui/theme/light_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent, // Make nav bar transparent
+      systemNavigationBarIconBrightness: Brightness.dark, // or Brightness.light
+      statusBarColor: Colors.transparent, // Optional: make status bar transparent too
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+  
   await Repository.configure(databaseFactory);
   await Repository().initialize();
   await dotenv.load(fileName: 'keys.env');

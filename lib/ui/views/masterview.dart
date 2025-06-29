@@ -244,6 +244,7 @@ class MasterView extends StatelessWidget {
     this.cubit = BlocProvider.of<MasterViewCubit>(context);
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Splizz'),
@@ -251,8 +252,7 @@ class MasterView extends StatelessWidget {
           IconButton(onPressed: pushSettingsView, icon: const Icon(Icons.settings))
         ],
         systemOverlayStyle: SystemUiOverlayStyle(
-          systemNavigationBarColor:
-              Theme.of(context).colorScheme.surface, // Navigation bar
+            systemNavigationBarColor: Colors.transparent
         ),
       ),
       body: BlocListener<MasterViewCubit, MasterViewState>(
