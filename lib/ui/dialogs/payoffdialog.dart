@@ -280,7 +280,7 @@ class PayoffDialog extends StatelessWidget {
       buildWhen: (_, current) => current is DetailViewPayoffDialog,
       builder: (context, state) {
         state as DetailViewPayoffDialog;
-        item = Item.copy(state.item);
+        item = Item.copyWith(item: state.item);
 
         Transaction payoff;
         
@@ -290,7 +290,7 @@ class PayoffDialog extends StatelessWidget {
           setBalance(item.history[index]);
           payoff = item.history[index];
         } else {
-          final i = Item.copy(state.item);
+          final i = Item.copyWith(item: state.item);
           i.payoff();
           payoff = i.history.last;
         }

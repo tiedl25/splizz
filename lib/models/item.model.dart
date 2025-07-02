@@ -52,19 +52,6 @@ class Item extends OfflineFirstWithSupabaseModel {
     this.members = members ?? [],
     this.history = history ?? [];
 
-  //Item.copy(Item item) : this(name: item.name, id: item.id, owner: item.owner, members: item.members, history: item.history, image: item.image, timestamp: item.timestamp);
-
-  Item.copy(Item item)
-    : this(
-        name: item.name,
-        id: item.id,
-        owner: item.owner,
-        members: List<Member>.from(item.members.map((m) => Member.fromMember(m))),
-        history: List<Transaction>.from(item.history.map((h) => Transaction.copy(h))),
-        image: item.image != null ? Uint8List.fromList(item.image!) : null,
-        timestamp: item.timestamp,
-      );
-
   Item.copyWith({required Item item, String? name, String? id, bool? owner, List<Member>? members, List<Transaction>? history, Uint8List? image, DateTime? timestamp})
     : this(
         name: name ?? item.name,
