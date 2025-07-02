@@ -96,7 +96,7 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
     this.dateSelection = 0,
     this.sum = 0.0,
     this.lock = false,
-    this.sliderIndex = 0, 
+    this.sliderIndex = 3, 
     this.euros = 0.1,
     this.zoomEnabled = false,
     this.lastChangedMemberIndex = 0,
