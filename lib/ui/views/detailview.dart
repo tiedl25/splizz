@@ -476,7 +476,7 @@ class DetailView extends StatelessWidget {
               },
             ),
             systemOverlayStyle: SystemUiOverlayStyle(
-              systemNavigationBarColor: Colors.transparent, // Navigation bar
+              systemNavigationBarColor: state is DetailViewTransactionDialog && state.extend == true ? Theme.of(context).colorScheme.surface : Colors.transparent, // Navigation bar
             ),
             actions: [
                   Row(
