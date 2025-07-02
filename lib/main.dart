@@ -17,14 +17,8 @@ import 'package:splizz/ui/theme/light_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent, // Make nav bar transparent
-      systemNavigationBarIconBrightness: Brightness.dark, // or Brightness.light
-      statusBarColor: Colors.transparent, // Optional: make status bar transparent too
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   
   await Repository.configure(databaseFactory);
   await Repository().initialize();
