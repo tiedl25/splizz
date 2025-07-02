@@ -112,7 +112,7 @@ class MasterView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return BlocProvider(
-            create: (context) => DetailViewCubit(item)..fetchData(),
+            create: (context) => DetailViewCubit(item, masterViewCubit: cubit)..fetchData(),
             child: DetailView()
           );
         },

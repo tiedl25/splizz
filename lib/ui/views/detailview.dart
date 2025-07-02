@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/item.model.dart';
 
@@ -20,6 +22,9 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 class DetailView extends StatelessWidget {
   late BuildContext context;
   late DetailViewCubit cubit;
+
+  Image? croppedImage;
+  final ImagePicker picker = ImagePicker();
 
   DetailView();
 
@@ -308,6 +313,59 @@ class DetailView extends StatelessWidget {
     );
   }
 
+  Widget imageEdit(DetailViewEditMode state) {
+    Uint8List? imageFile = state.imageFile ?? state.item.image;
+
+    return Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.width / 2.2,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                    image: MemoryImage(imageFile!), //croppedImage!.image,
+                    fit: BoxFit.fill)),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 100),
+          child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                      GestureDetector(
+                        onTap: () async => await imagePickCropper(ImageSource.camera),
+                        child: Icon(Icons.camera_alt,
+                            color: Colors.black54,
+                            size: 50),
+                      ),
+                      GestureDetector(
+                        onTap: () async => await imagePickCropper(ImageSource.gallery),
+                        child: Icon(Icons.image,
+                            color: Colors.black54,
+                            size: 50),
+                      )
+                    ]),
+        ));
+  }
+
+  Future<void> imagePickCropper(imageSource) async {
+    final imageFilePath = (await picker.pickImage(source: imageSource));
+    if (imageFilePath == null) return;
+
+    final croppedImage = await ImageCropper().cropImage(
+      sourcePath: imageFilePath.path,
+      aspectRatio: const CropAspectRatio(ratioX: 2.2, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+            toolbarTitle: 'Crop',
+            toolbarColor: Theme.of(context).colorScheme.surface,
+            toolbarWidgetColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.surface),
+        IOSUiSettings(
+          title: 'Crop',
+        ),
+      ],
+    );
+
+    cubit.changeImage(croppedImage);
+  }
+
   Widget body() {
     //double imageRadius = window.viewPadding.top - AppBar().preferredSize.height - MediaQuery.of(context).viewPadding.top;
     return Column(
@@ -316,11 +374,12 @@ class DetailView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center, 
           children: [
             BlocBuilder<DetailViewCubit, DetailViewState>(
-              buildWhen: (previous, current) => current.item.image != previous.item.image,
+              buildWhen: (previous, current) => 
+                current.runtimeType != previous.runtimeType || current.item.image != previous.item.image || current.runtimeType == DetailViewEditMode,
               builder: (context, state) => ClipRRect(
                 borderRadius:
                   const BorderRadius.vertical(bottom: Radius.circular(25)),
-                child: Image.memory(state.item.image!,
+                child: state is DetailViewEditMode ? imageEdit(state) : Image.memory(state.item.image!,
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.width / 2.2,
                   fit: BoxFit.fill),
@@ -357,7 +416,8 @@ class DetailView extends StatelessWidget {
           },
           buildWhen: (_, current) =>
             current.runtimeType == DetailViewLoading ||
-            current.runtimeType == DetailViewLoaded,
+            current.runtimeType == DetailViewLoaded ||
+            current.runtimeType == DetailViewEditMode,
           builder: (BuildContext context, DetailViewState state) {
             if (state.runtimeType == DetailViewLoading) {
               return const Center(
@@ -389,82 +449,92 @@ class DetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     this.context = context;
     this.cubit = context.read<DetailViewCubit>(); //BlocProvider.of<DetailViewBloc>(context);
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.black26,
-        title: BlocBuilder<DetailViewCubit, DetailViewState>(
-          bloc: cubit,
-          builder: (context, state) {
-            return Text(state.item.name);
-          },
-        ),
-        systemOverlayStyle: SystemUiOverlayStyle(
-          systemNavigationBarColor: Colors.transparent, // Navigation bar
-        ),
-        actions: [
-          BlocConsumer<DetailViewCubit, DetailViewState>(
-            listenWhen: (_, current) => current is DetailViewShowSnackBar,
-            listener: (context, state) {
-              switch (state.runtimeType) {
-                case DetailViewShowSnackBar:
-                  showOverlayMessage(
-                    context: context, 
-                    message: (state as DetailViewShowSnackBar).message,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  );
-                  break;
-              }
-            },
-            bloc: cubit,
-            builder: (context, state) {
-              return IconButton(
-                onPressed: () => cubit.showShareDialog(), 
-                icon: const Icon(Icons.share)
-              );
-            },
+    return BlocBuilder<DetailViewCubit, DetailViewState>(
+      bloc: cubit,
+      builder: (context, state) {
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          appBar: AppBar(
+            backgroundColor: Colors.black26,
+            title: BlocBuilder<DetailViewCubit, DetailViewState>(
+              bloc: cubit,
+              builder: (context, state) {
+                return state is DetailViewEditMode
+                  ? TextField(
+                    controller: state.name,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  )
+                  : Text(state.item.name);
+              },
+            ),
+            systemOverlayStyle: SystemUiOverlayStyle(
+              systemNavigationBarColor: Colors.transparent, // Navigation bar
+            ),
+            actions: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () { if(state.runtimeType == DetailViewLoaded || state.runtimeType == DetailViewEditMode) cubit.toggleEditMode(update: state.runtimeType == DetailViewEditMode); },
+                        icon: state.runtimeType == DetailViewEditMode ? const Icon(Icons.done) : const Icon(Icons.edit)
+                      ),
+                      IconButton(
+                        onPressed: () { 
+                          if(state.runtimeType == DetailViewLoaded) cubit.showShareDialog(); 
+                          else if (state.runtimeType == DetailViewEditMode) cubit.toggleEditMode();
+                        },
+                        icon: state.runtimeType == DetailViewEditMode ? const Icon(Icons.cancel_outlined) : const Icon(Icons.share)
+                      ),
+                    ],
+                  )
+            ],
           ),
-        ],
-      ),
-      body: body(),
-      floatingActionButton: kDebugMode
-        ? SpeedDial(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-            spacing: 5,
-            animatedIcon: AnimatedIcons.menu_close,
-            animatedIconTheme: const IconThemeData(size: 22.0),
-            foregroundColor: Colors.white,
-            curve: Curves.bounceIn,
-            overlayColor: Colors.black,
-            overlayOpacity: 0.5,
-            children: [
-              SpeedDialChild(
+          body: body(),
+          floatingActionButton: state.runtimeType == DetailViewEditMode ? null : kDebugMode
+            ? SpeedDial(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+                spacing: 5,
+                animatedIcon: AnimatedIcons.menu_close,
+                animatedIconTheme: const IconThemeData(size: 22.0),
+                foregroundColor: Colors.white,
+                curve: Curves.bounceIn,
+                overlayColor: Colors.black,
+                overlayOpacity: 0.5,
+                children: [
+                  SpeedDialChild(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                    ),
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    child: const Icon(Icons.add),
+                    onTap: cubit.showTransactionDialog,
+                  ),
+                  SpeedDialChild(
+                    child: const Icon(Icons.bug_report),
+                    onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugTransaction),
+                  ),
+                  // add more options as needed
+                ],
+              )
+            : FloatingActionButton(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(20)),
                 ),
-                backgroundColor: Colors.purple,
+                onPressed: cubit.showTransactionDialog,
+                tooltip: 'Add Item',
                 foregroundColor: Colors.white,
                 child: const Icon(Icons.add),
-                onTap: cubit.showTransactionDialog,
               ),
-              SpeedDialChild(
-                child: const Icon(Icons.bug_report),
-                onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugTransaction),
-              ),
-              // add more options as needed
-            ],
-          )
-        : FloatingActionButton(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-            ),
-            onPressed: cubit.showTransactionDialog,
-            tooltip: 'Add Item',
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
-          ),
+        );
+      },
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
@@ -32,8 +34,8 @@ class DetailViewLoaded extends DetailViewState {
   factory DetailViewLoaded.fromShareDialog(DetailViewShareDialog state) =>
     DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
 
-  factory DetailViewLoaded.from(final state) =>
-    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
+  factory DetailViewLoaded.from(final state, {unbalanced = false}) =>
+    DetailViewLoaded(item: state.item, unbalanced: unbalanced ?? state.unbalanced);
 
   @override
   DetailViewLoaded copyWith({Item? item, bool? unbalanced}) {
@@ -41,6 +43,25 @@ class DetailViewLoaded extends DetailViewState {
       item: item ?? this.item, 
       unbalanced: unbalanced ?? this.unbalanced
     );
+  }
+}
+
+class DetailViewEditMode extends DetailViewState {
+  TextEditingController? name;
+  Uint8List? imageFile;
+
+  DetailViewEditMode({required super.item, this.name, this.imageFile});
+
+  factory DetailViewEditMode.fromState(DetailViewState state) =>
+    DetailViewEditMode(item: state.item, name: TextEditingController(text: state.item.name), imageFile: state.item.image);
+
+  @override
+  DetailViewEditMode copyWith({Item? item, TextEditingController? name, Uint8List? imageFile}) {
+    return DetailViewEditMode(
+      item: item ?? this.item,
+      name: name ?? this.name,
+      imageFile: imageFile ?? this.imageFile
+      );
   }
 }
 

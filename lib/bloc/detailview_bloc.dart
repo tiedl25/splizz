@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:splizz/bloc/masterview_bloc.dart';
 
 
 import 'package:splizz/data/database.dart';
@@ -16,7 +18,9 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 
 class DetailViewCubit extends Cubit<DetailViewState> {
-  DetailViewCubit(Item item)
+  MasterViewCubit masterViewCubit;
+
+  DetailViewCubit(Item item, {required this.masterViewCubit})
     : super(DetailViewLoading(item: item)) {
       fetchData();
     }
@@ -675,5 +679,46 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     newState.item.members[index] = newMember;
 
     emit(newState);
+  }
+
+  toggleEditMode({bool update=false}) {
+    final newState;
+
+    if (state.runtimeType == DetailViewLoaded) {
+      newState = DetailViewEditMode.fromState(state as DetailViewLoaded);
+    } else if (state.runtimeType == DetailViewEditMode) {
+      newState = DetailViewLoaded.from(state as DetailViewEditMode);
+
+      if (update) {
+        updateItem();
+        return;
+      }
+    } else return;
+
+    emit(newState);
+  }
+
+  changeImage(CroppedFile? image) async {
+    if (image == null) return;
+
+    final newState = (state as DetailViewEditMode).copyWith();
+
+    newState.imageFile = await (image.readAsBytes());
+
+    emit(newState);
+  }
+
+  updateItem() async {
+    Item newItem = Item.copyWith(item: (state as DetailViewEditMode).item, 
+      name: (state as DetailViewEditMode).name?.text, 
+      image: (state as DetailViewEditMode).imageFile);
+
+    final newState = DetailViewLoaded.from(state as DetailViewEditMode).copyWith(item: newItem);
+
+    emit(newState);
+
+    await DatabaseHelper.instance.upsertItem(newItem);
+
+    masterViewCubit.fetchData(destructive: false);
   }
 }

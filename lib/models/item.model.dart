@@ -27,7 +27,7 @@ class Item extends OfflineFirstWithSupabaseModel {
 
   @Supabase(fromGenerator: "await Item.downloadImage(data['id'] as String)", toGenerator: "instance.upload ? await Item.uploadImage(%INSTANCE_PROPERTY%!, instance.id) : null")
   @Sqlite(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%", columnType: Column.blob)
-  final Uint8List? image;
+  Uint8List? image;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
@@ -64,6 +64,17 @@ class Item extends OfflineFirstWithSupabaseModel {
         image: item.image != null ? Uint8List.fromList(item.image!) : null,
         timestamp: item.timestamp,
       );
+
+  Item.copyWith({required Item item, String? name, String? id, bool? owner, List<Member>? members, List<Transaction>? history, Uint8List? image, DateTime? timestamp})
+    : this(
+        name: name ?? item.name,
+        id: id ?? item.id,
+        owner: owner ?? item.owner,
+        members: members ?? List<Member>.from(item.members.map((m) => Member.fromMember(m))),
+        history: history ?? List<Transaction>.from(item.history.map((h) => Transaction.copy(h))),
+        image: image ?? item.image,
+        timestamp: timestamp ?? item.timestamp
+  );
 
   // Add new transaction to history and member history, while also updating total and balance of all members
   void addTransaction(int associatedId, Transaction t, List<Map<String, dynamic>> involvedMembers){
