@@ -648,7 +648,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   }
 
   closeMemberDialog() {
-    final newState = DetailViewLoaded.from(state as DetailViewMemberDialog);
+    final newState = DetailViewLoaded.from(state as DetailViewMemberDialog, unbalanced: checkBalances((state as DetailViewMemberDialog).item.members));
 
     emit(newState);
   }
