@@ -194,10 +194,12 @@ class DatabaseHelper {
 
   Future<void> upsertTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    final operations = List<Operation>.from(transaction.operations);
   
     await db.upsert<Transaction>(transaction);
 
-    for(Operation operation in transaction.operations){
+    for(Operation operation in operations){
       upsertOperation(operation, db: db);
     }
   }
