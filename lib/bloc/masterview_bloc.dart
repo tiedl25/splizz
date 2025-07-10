@@ -22,7 +22,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     if (!checkAuth()) {
       return;
     }
-    fetchData(destructive: false);
+    fetchData(destructive: true);
     //recover();
     //handleIncomingLinks();
   }
@@ -42,7 +42,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
   }
 
   void fetchData({bool destructive=true}) async {
-    if (destructive) DatabaseHelper.instance.destructiveSync();
+    if (destructive) await DatabaseHelper.instance.destructiveSync();
     final items = await DatabaseHelper.instance.getItems();
 
     final newState = MasterViewLoaded(
@@ -289,7 +289,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  void addDebugItem() async {
+  addDebugItem() async {
     List<Member> members = [];
     for (int i = 0; i < Random().nextInt(6) + 2; ++i) {
       members.add(Member(
