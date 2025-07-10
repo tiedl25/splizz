@@ -57,7 +57,7 @@ class CustomDialog extends StatelessWidget {
           scrollable: scrollable,
           title: header ?? (title != null ? Text(title!) : null),
           shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15))),
+              borderRadius: BorderRadius.all(Radius.circular(20))),
           backgroundColor: color == null ? Theme.of(context).colorScheme.surface : color,
           content: content,
           actions: onConfirmed != null
