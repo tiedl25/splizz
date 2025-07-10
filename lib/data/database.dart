@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:typed_data';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
-import 'package:http/http.dart';
 import 'package:splizz/data/result.dart';
 
 import 'package:splizz/brick/repository.dart';
@@ -90,7 +88,11 @@ class DatabaseHelper {
 
     sync = sync && isSignedIn && connection;
 
-    final items = sync ? await db.destructiveLocalSyncFromRemote<Item>() : await db.get<Item>();
+    final items = sync 
+      ? await db.destructiveLocalSyncFromRemote<Item>() 
+      : await db.get<Item>(policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    db.get<Item>(policy: OfflineFirstGetPolicy.alwaysHydrate);
    
     return items;
   }
@@ -104,7 +106,9 @@ class DatabaseHelper {
 
     final itemQuery = Query(where: [Where('id').isExactly(id)]);
 
-    final item = !isSignedIn ? (await db.get<Item>(query: itemQuery))[0] : (await db.get<Item>(query: itemQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
+    final item = (await db.get<Item>(query: itemQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))[0];
+
+    if (isSignedIn) db.get<Item>(query: itemQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     item.members = await getMembers(id, db: db, sync: sync);
     item.history = await getTransactions(id, db: db, sync: sync);
@@ -117,7 +121,9 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final memberQuery = Query(where: [Where('itemId').isExactly(id)]);
-    final members = !isSignedIn ? await db.get<Member>(query: memberQuery) : await db.get<Member>(query: memberQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final members = await db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     for(Member m in members){
       m.balance = await getBalance(m.id, db: db);
@@ -136,7 +142,9 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final transactionQuery = Query(where: [Where('itemId').isExactly(id)], providerArgs: {'orderBy': 'timestamp ASC'});
-    final transactions = !isSignedIn ? await db.get<Transaction>(query: transactionQuery) : await db.get<Transaction>(query: transactionQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final transactions = await db.get<Transaction>(query: transactionQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    if (isSignedIn) db.get<Transaction>(query: transactionQuery, policy: OfflineFirstGetPolicy.alwaysHydrate); 
 
     if (transactions.isEmpty) return [];
 
@@ -161,7 +169,9 @@ class DatabaseHelper {
     sync = sync && isSignedIn;
 
     final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
-    List<Operation> operations = !isSignedIn ? await db.get<Operation>(query: operationQuery) : await db.get<Operation>(query: operationQuery, policy: sync ? OfflineFirstGetPolicy.alwaysHydrate : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    List<Operation> operations = await db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    if (isSignedIn) db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
 
