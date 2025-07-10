@@ -189,7 +189,7 @@ class MasterView extends StatelessWidget {
           ),
           SpeedDialChild(
               child: const Icon(Icons.bug_report),
-              onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugItem)),
+              onTap: () async => await showLoadingEntry(context: context, onWait: () async => await cubit.addDebugItem())),
           SpeedDialChild(
               child: const Icon(Icons.remove),
               onTap: () => cubit.removeAll()),

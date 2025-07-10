@@ -252,7 +252,7 @@ class ItemDialog extends StatelessWidget {
           ),
           onConfirmed: () => showLoadingEntry(
             context: context, 
-            onWait: cubit.addItem().then ((value) => 
+            onWait: () async => await cubit.addItem().then ((value) => 
               value.isSuccess ? Navigator.of(context).pop(true) : null)
           ),
           onDismissed: () => cubit.dismissItemDialog(),

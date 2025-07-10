@@ -519,7 +519,7 @@ class DetailView extends StatelessWidget {
                   ),
                   SpeedDialChild(
                     child: const Icon(Icons.bug_report),
-                    onTap: () => showLoadingEntry(context: context, onWait: cubit.addDebugTransaction),
+                    onTap: () => showLoadingEntry(context: context, onWait: () async => await cubit.addDebugTransaction),
                   ),
                   // add more options as needed
                 ],
