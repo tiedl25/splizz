@@ -170,11 +170,22 @@ class DetailViewShareDialog extends DetailViewLoaded {
 class DetailViewPayoffDialog extends DetailViewLoaded {
   int? index;
   bool past;
+  List<bool> whatToShare;
 
-  DetailViewPayoffDialog({required super.item, super.unbalanced, this.index, this.past = false});
+  DetailViewPayoffDialog({required super.item, super.unbalanced, this.index, this.past = false, this.whatToShare = const [true, false, false]});
 
-  factory DetailViewPayoffDialog.fromLoaded(DetailViewLoaded state, {bool past = false}) =>
-    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, past: past);
+  factory DetailViewPayoffDialog.fromLoaded(DetailViewLoaded state, {bool past = false, List<bool> whatToShare = const [true, false, false]}) =>
+    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, past: past, whatToShare: whatToShare);
+
+  @override
+  DetailViewPayoffDialog copyWith({Item? item, bool? unbalanced, int? index, bool? past, List<bool>? whatToShare}) =>
+    DetailViewPayoffDialog(
+      item: item ?? this.item, 
+      unbalanced: unbalanced ?? this.unbalanced, 
+      index: index ?? this.index,
+      past: past ?? this.past,
+      whatToShare: whatToShare ?? this.whatToShare
+    );
 }
 
 class DetailViewMemberDialog extends DetailViewLoaded {

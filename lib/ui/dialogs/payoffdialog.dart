@@ -18,7 +18,7 @@ class PayoffDialog extends StatelessWidget {
   late final context;
   late final cubit;
 
-  late final Item item;
+  late Item item;
 
   late final WidgetsToImageController controller = WidgetsToImageController();
   late final ScreenshotController screenshotController = ScreenshotController();
@@ -190,38 +190,38 @@ class PayoffDialog extends StatelessWidget {
             ),
           ),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(paylist.length, (index) {
-              final e = paylist[index];
-              return Container(
-                padding: const EdgeInsets.only(right: 10),
-                margin: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Color(e.color),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.white54),
-                        child: Text('${e.balance.abs().toStringAsFixed(2)}€',
-                            style: TextStyle(color: Colors.green.shade700))),
-                    const Icon(
-                      Icons.arrow_forward,
-                      color: Colors.black,
-                    ),
-                    Text(
-                      e.name,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  ],
-                ),
-              );
-          }))
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(paylist.length, (index) {
+                final e = paylist[index];
+                return Container(
+                  padding: const EdgeInsets.only(right: 10),
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Color(e.color),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white54),
+                          child: Text('${e.balance.abs().toStringAsFixed(2)}€',
+                              style: TextStyle(color: Colors.green.shade700))),
+                      const Icon(
+                        Icons.arrow_forward,
+                        color: Colors.black,
+                      ),
+                      Text(
+                        e.name,
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                );
+              }))
         ],
       ),
     );
@@ -242,7 +242,7 @@ class PayoffDialog extends StatelessWidget {
     );
   }
 
-  void sharePayoff(Transaction payoff) async {
+  void sharePayoff(state, Transaction payoff) async {
     final overlayEntry = OverlayLoadingScreen();
     Overlay.of(context).insert(overlayEntry);
 
@@ -252,22 +252,94 @@ class PayoffDialog extends StatelessWidget {
 
     if (overlayEntry.mounted) {
       overlayEntry.remove();
-    }  
+    }
 
     await Share.shareXFiles(
         [
-          XFile.fromData(payoffBytes!, mimeType: 'image/png'),
-          XFile.fromData(transactionsBytes, mimeType: 'image/png'),
-          XFile.fromData(excelBytes, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+          if (state.whatToShare[0])
+            XFile.fromData(payoffBytes!, mimeType: 'image/png'),
+          if (state.whatToShare[1])
+            XFile.fromData(transactionsBytes, mimeType: 'image/png'),
+          if (state.whatToShare[2])
+            XFile.fromData(excelBytes,
+                mimeType:
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         ],
         text: 'Payoff',
         fileNameOverrides: [
-          'Payoff.png',
-          'Transactions.png',
-          'Transactions.xlsx'
+          if (state.whatToShare[0]) 'Payoff.png',
+          if (state.whatToShare[1]) 'Transactions.png',
+          if (state.whatToShare[2]) 'Transactions.xlsx'
         ]);
 
     Navigator.of(context).pop();
+  }
+
+  showSelectionDialog(state, Transaction payoff) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return BlocProvider<DetailViewCubit>.value(
+            value: cubit,
+            child: BlocBuilder<DetailViewCubit, DetailViewState>(
+              builder: (context, state) {
+                state as DetailViewPayoffDialog;
+
+                return CustomDialog(
+                  title: "Select what to share",
+                  content: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CheckboxListTile(
+                          checkboxShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          title: const Text("Payoff Overview"),
+                          value: state.whatToShare[0],
+                          onChanged: (value) => cubit
+                              .changeWhatToShare(<bool>[
+                            value!,
+                            state.whatToShare[1],
+                            state.whatToShare[2]
+                          ]),
+                        ),
+                        CheckboxListTile(
+                          checkboxShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          title: const Text("Transaction List (Image)"),
+                          value: state.whatToShare[1],
+                          onChanged: (value) => cubit
+                              .changeWhatToShare(<bool>[
+                            state.whatToShare[0],
+                            value!,
+                            state.whatToShare[2]
+                          ]),
+                        ),
+                        CheckboxListTile(
+                          checkboxShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          title: const Text("Transaction List (Excel Sheet)"),
+                          value: state.whatToShare[2],
+                          onChanged: (value) => cubit
+                              .changeWhatToShare(<bool>[
+                            state.whatToShare[0],
+                            state.whatToShare[1],
+                            value!
+                          ]),
+                        )
+                      ],
+                    ),
+                  ),
+                  onConfirmed: () => sharePayoff(state, payoff),
+                );
+              },
+            ),
+          );
+        });
   }
 
   @override
@@ -283,9 +355,8 @@ class PayoffDialog extends StatelessWidget {
         item = Item.copyWith(item: state.item);
 
         Transaction payoff;
-        
 
-        if (state.past){
+        if (state.past) {
           final index = state.index!;
           setBalance(item.history[index]);
           payoff = item.history[index];
@@ -294,7 +365,6 @@ class PayoffDialog extends StatelessWidget {
           i.payoff();
           payoff = i.history.last;
         }
-        
 
         var paymap = item.calculatePayoff();
 
@@ -307,8 +377,8 @@ class PayoffDialog extends StatelessWidget {
             const Text('Payoff'),
             const Spacer(),
             IconButton(
-                onPressed: () async => sharePayoff(payoff),
-                icon: Icon(Icons.import_export))
+                onPressed: () async => await showSelectionDialog(state, payoff),
+                icon: Icon(Icons.share))
           ]),
           scrollable: false,
           content: SizedBox(

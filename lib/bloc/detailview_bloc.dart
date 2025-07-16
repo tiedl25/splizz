@@ -721,4 +721,9 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     masterViewCubit.fetchData(destructive: false);
   }
+
+  changeWhatToShare(List<bool> whatToShare) {
+    final newState = (state as DetailViewPayoffDialog).copyWith(whatToShare: whatToShare);
+    emit(newState);
+  }
 }
