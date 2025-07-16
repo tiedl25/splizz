@@ -136,7 +136,7 @@ class SettingsView extends StatelessWidget {
           SwitchListTile(
             title: const Text("Use system theme"),
             value: systemTheme,
-            onChanged: (_) async => cubit.updateTheme(),
+            onChanged: (_) async => cubit.updateTheme(MediaQuery.of(context).platformBrightness),
           ),
           const Divider(
             thickness: 0.2,
@@ -151,7 +151,7 @@ class SettingsView extends StatelessWidget {
               : null,
             onChanged: systemTheme
               ? null
-              : (_) async => cubit.updateDarkMode()
+              : (_) async => cubit.updateDarkMode(MediaQuery.of(context).platformBrightness)
           ),
         ],
       ),

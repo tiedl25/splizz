@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,9 +17,23 @@ class ThemeCubit extends Cubit<ThemeMode> {
     return systemTheme ? ThemeMode.system : (darkMode ? ThemeMode.dark : ThemeMode.light);
   }
 
+  void changeIconBrightness(platformBrightness) {
+    final bool isDarkTheme = state == ThemeMode.system
+      ? platformBrightness == Brightness.dark
+      : state == ThemeMode.dark;
+
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarIconBrightness: isDarkTheme ? Brightness.dark : Brightness.light,
+      statusBarIconBrightness: isDarkTheme ? Brightness.dark : Brightness.light
+    ));
+  }
+
   // Toggle system theme option. For example when a switch is toggled in settings.
-  Future<void> toggleSystemTheme(bool value) async {
+  Future<void> toggleSystemTheme(bool value, platformBrightness) async {
     await prefs.setBool('systemTheme', value);
+
+    changeIconBrightness(platformBrightness);
+
     if (value) {
       emit(ThemeMode.system);
     } else {
@@ -29,8 +44,11 @@ class ThemeCubit extends Cubit<ThemeMode> {
   }
   
   // Toggle dark mode when system theme is disabled.
-  Future<void> toggleDarkMode(bool value) async {
+  Future<void> toggleDarkMode(bool value, platformBrightness) async {
     await prefs.setBool('darkMode', value);
+
+    changeIconBrightness(platformBrightness);
+
     emit(value ? ThemeMode.dark : ThemeMode.light);
   }
 }

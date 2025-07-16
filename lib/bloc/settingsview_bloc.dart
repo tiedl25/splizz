@@ -30,23 +30,23 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
     emit(newState);
   }
 
-  void updateTheme() async {
+  void updateTheme(platformBrightness) async {
     final newState = (state as SettingsViewLoaded).copyWith(
       systemTheme: !(state as SettingsViewLoaded).systemTheme
     );
 
     await newState.sharedPreferences.setBool('systemTheme', newState.systemTheme);
-    this.themeCubit.toggleSystemTheme(newState.systemTheme);
+    this.themeCubit.toggleSystemTheme(newState.systemTheme, platformBrightness);
     emit(newState);
   }
 
-  void updateDarkMode() async {
+  void updateDarkMode(platformBrightness) async {
     final newState = (state as SettingsViewLoaded).copyWith(
       darkMode: !(state as SettingsViewLoaded).darkMode
     );
 
     await newState.sharedPreferences.setBool('darkMode', newState.darkMode);
-    this.themeCubit.toggleDarkMode(newState.darkMode);
+    this.themeCubit.toggleDarkMode(newState.darkMode, platformBrightness);
     emit(newState);
   }
 
