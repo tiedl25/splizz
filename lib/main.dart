@@ -20,7 +20,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+  ));
+
   await Repository.configure(databaseFactory);
   await Repository().initialize();
   await dotenv.load(fileName: 'keys.env');
