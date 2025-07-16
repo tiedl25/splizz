@@ -231,6 +231,7 @@ class ItemDialog extends StatelessWidget {
                     return Container(
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: TextField(
+                        autofocus: true,
                         onChanged: (value) => cubit.updateItemTitle(value),
                         decoration: TfDecorationModel(
                           context: context,
