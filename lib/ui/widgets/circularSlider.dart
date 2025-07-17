@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:splizz/bloc/detailview_bloc.dart';
-import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'dart:math' as math;
+
+import 'package:splizz/bloc/transactionDialog_states.dart';
 
 class CircularSlider extends StatelessWidget {
   late final context;
@@ -11,13 +12,13 @@ class CircularSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    this.cubit = context.read<DetailViewCubit>();
+    this.cubit = context.read<TransactionDialogCubit>();
 
-    return BlocBuilder<DetailViewCubit, DetailViewState>(
+    return BlocBuilder<TransactionDialogCubit, TransactionDialogState>(
       bloc: cubit,
-      buildWhen: (_, current) => current is DetailViewTransactionDialog,
+      buildWhen: (_, current) => current is TransactionDialogLoaded,
       builder: (context, state) {
-        int numberOfSelectedMembers = (state as DetailViewTransactionDialog).memberSelection.where((e) => e == true).length;
+        int numberOfSelectedMembers = (state as TransactionDialogLoaded).memberSelection.where((e) => e == true).length;
         List<Map<String, dynamic>> members = state.involvedMembers;
 
         state.sum == 0.0 || numberOfSelectedMembers <= 1

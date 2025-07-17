@@ -6,6 +6,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/models/item.model.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
@@ -30,14 +31,19 @@ class DetailView extends StatelessWidget {
 
   // Show Dialog Methods
 
-  void showTransactionDialog() async {
+  void showTransactionDialog(state) async {
     showDialog(
+      useSafeArea: false,
       context: context, 
       barrierDismissible: true,
       builder: (_) {
-        return BlocProvider.value(
-          value: cubit, 
+        return SafeArea(
+          top: true,
+          bottom: false,
+          child: BlocProvider(
+            create: (context) => TransactionDialogCubit(cubit, state.item),
           child: TransactionDialog()
+          ),
         );
       },
     );
@@ -394,7 +400,7 @@ class DetailView extends StatelessWidget {
           listener: (context, state) {
             switch (state.runtimeType) {
               case DetailViewShowTransactionDialog:
-                showTransactionDialog();
+                showTransactionDialog(state);
                 break;
               case DetailViewShowShareDialog:
                 showShareDialog();
@@ -475,9 +481,6 @@ class DetailView extends StatelessWidget {
                   : Text(state.item.name);
               },
             ),
-            systemOverlayStyle: SystemUiOverlayStyle(
-              systemNavigationBarColor: state is DetailViewTransactionDialog && state.extend == true ? Theme.of(context).colorScheme.surface : Colors.transparent, // Navigation bar
-            ),
             actions: [
                   Row(
                     children: [
@@ -519,7 +522,7 @@ class DetailView extends StatelessWidget {
                   ),
                   SpeedDialChild(
                     child: const Icon(Icons.bug_report),
-                    onTap: () => showLoadingEntry(context: context, onWait: () async => await cubit.addDebugTransaction),
+                    onTap: () => showLoadingEntry(context: context, onWait: () async => await cubit.addDebugTransaction()),
                   ),
                   // add more options as needed
                 ],

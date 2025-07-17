@@ -65,95 +65,6 @@ class DetailViewEditMode extends DetailViewState {
   }
 }
 
-class DetailViewTransactionDialog extends DetailViewLoaded {
-  bool currency;
-  bool extend;
-  double scale;
-  int selection;
-  int dateSelection;
-  List<dynamic> date;
-  List<bool> memberSelection;
-  List<double> memberBalances;
-  List<Map<String, dynamic>> involvedMembers;
-  double sum;
-  bool lock;
-  double sliderIndex;
-  double euros;
-  bool zoomEnabled;
-  int lastChangedMemberIndex;
-  bool help;
-
-  DetailViewTransactionDialog({
-    required super.item,
-    super.unbalanced,
-    required this.memberSelection,
-    required this.memberBalances,
-    required this.involvedMembers,
-    required this.date,
-    this.currency = false,
-    this.extend = false,
-    this.scale = 1.0,
-    this.selection = -1,
-    this.dateSelection = 0,
-    this.sum = 0.0,
-    this.lock = false,
-    this.sliderIndex = 3, 
-    this.euros = 0.1,
-    this.zoomEnabled = false,
-    this.lastChangedMemberIndex = 0,
-    this.help = false
-  });
-
-  factory DetailViewTransactionDialog.fromState(DetailViewState state) =>
-    DetailViewTransactionDialog(
-      item: state.item,
-      memberSelection: state.item.members.where((m) => !m.deleted).map((Member m) => m.active).toList(),
-      memberBalances: List.generate(state.item.members.length, (index) => 0.0),
-      involvedMembers: [],
-      date: ["Today", "Yesterday", DateTime.now()]);
-
-  @override
-  DetailViewTransactionDialog copyWith({
-    Item? item,
-    bool? unbalanced,
-    bool? currency,
-    bool? extend,
-    double? scale,
-    int? selection,
-    int? dateSelection,
-    List<bool>? memberSelection,
-    List<double>? memberBalances,
-    List<Map<String, dynamic>>? involvedMembers,
-    List<dynamic>? date,
-    double? sum,
-    bool? lock,
-    double? sliderIndex,
-    double? euros,
-    bool? zoomEnabled,
-    int? lastChangedMemberIndex,
-    bool? help}) =>
-      DetailViewTransactionDialog(
-        item: item ?? this.item,
-        unbalanced: unbalanced ?? this.unbalanced,
-        currency: currency ?? this.currency,
-        extend: extend ?? this.extend,
-        scale: scale ?? this.scale,
-        selection: selection ?? this.selection,
-        dateSelection: dateSelection ?? this.dateSelection,
-        memberSelection: memberSelection ?? this.memberSelection,
-        memberBalances: memberBalances ?? this.memberBalances,
-        involvedMembers: involvedMembers ?? this.involvedMembers,
-        date: date ?? this.date,
-        sum: sum ?? this.sum,
-        lock: lock ?? this.lock,
-        sliderIndex: sliderIndex ?? this.sliderIndex,
-        euros: euros ?? this.euros,
-        zoomEnabled: zoomEnabled ?? this.zoomEnabled,
-        lastChangedMemberIndex: lastChangedMemberIndex ?? this.lastChangedMemberIndex,
-        help: help ?? this.help
-      );
-}
-
 class DetailViewShareDialog extends DetailViewLoaded {
   bool fullAccess;
 
@@ -263,10 +174,6 @@ class DetailViewShowMemberDialog extends DetailViewListener {
   final GlobalKey? memberKey;
 
   DetailViewShowMemberDialog({required super.item, required this.member, this.memberKey});
-}
-
-class DetailViewTransactionDialogShowSnackBar extends DetailViewShowSnackBar {
-  DetailViewTransactionDialogShowSnackBar({required super.item, required super.message});
 }
 
 class DetailViewShareDialogShowSnackBar extends DetailViewShowSnackBar {

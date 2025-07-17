@@ -2,16 +2,16 @@ import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:splizz/bloc/transactionDialog_bloc.dart';
+import 'package:splizz/bloc/transactionDialog_states.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/ui/widgets/circularSlider.dart';
-import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
-import 'package:splizz/bloc/detailview_states.dart';
 
 class TransactionDialog extends StatelessWidget {
   late BuildContext context;
-  late DetailViewCubit cubit;
+  late TransactionDialogCubit cubit;
   late List<Member> members;
 
   final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',', enableNegative: true);
@@ -76,7 +76,7 @@ class TransactionDialog extends StatelessWidget {
   }
 
   void showDateSelection(state) {
-    if (state is! DetailViewTransactionDialog) return;
+    if (state is! TransactionDialogLoaded) return;
 
     DateTime now = DateTime.now();
     DateTime newDate = state.date[2];
@@ -216,9 +216,8 @@ class TransactionDialog extends StatelessWidget {
         onConfirmed: () => showLoadingEntry(
           context: context, 
           onWait: () async => await cubit.addTransaction(descriptionController.text).then(
-            (value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null)
+            (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
         ),
-        onDismissed: () => cubit.closeTranscationDialog(),
       ));
   }
 
@@ -247,10 +246,7 @@ class TransactionDialog extends StatelessWidget {
             child: const Icon(
               Icons.arrow_back,
             ),
-            onTap: () {
-              cubit.closeTranscationDialog();
-              Navigator.of(context).pop(false);
-            },
+            onTap: () => Navigator.of(context).pop(false),
           ),
           actions: [
             GestureDetector(
@@ -328,10 +324,7 @@ class TransactionDialog extends StatelessWidget {
                         "Cancel",
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
-                      onPressed: () {
-                        cubit.closeTranscationDialog();
-                        Navigator.of(context).pop(false);
-                      },
+                      onPressed: () => Navigator.of(context).pop(false),
                     )),
                     const VerticalDivider(
                       indent: 5,
@@ -341,7 +334,7 @@ class TransactionDialog extends StatelessWidget {
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
                         child: Text("Add", style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? [cubit.closeTranscationDialog(), Navigator.of(context).pop(true)] : null),
+                        onPressed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? Navigator.of(context).pop(true) : null),
                       ),
                     ),
                   ],
@@ -357,13 +350,13 @@ class TransactionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    this.cubit = context.read<DetailViewCubit>();
+    this.cubit = context.read<TransactionDialogCubit>();
 
     return BlocConsumer(
       bloc: cubit,
-      listenWhen: (_, current) => current is DetailViewTransactionDialogShowSnackBar,
+      listenWhen: (_, current) => current is TransactionDialogShowSnackBar,
       listener: (context, state) {
-        if (state is DetailViewTransactionDialogShowSnackBar) {
+        if (state is TransactionDialogShowSnackBar) {
           showOverlayMessage(
             context: context, 
             message: state.message,
@@ -371,9 +364,9 @@ class TransactionDialog extends StatelessWidget {
           );
         }
       },
-      buildWhen: (_, current) => current is DetailViewTransactionDialog,
+      buildWhen: (_, current) => current is TransactionDialogLoaded,
       builder: (context, state) {
-        state as DetailViewTransactionDialog;
+        state as TransactionDialogLoaded;
         this.members = state.item.members;
         this.members = this.members.where((m) => !m.deleted).toList();
         
