@@ -687,7 +687,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     if (state.runtimeType == DetailViewLoaded) {
       newState = DetailViewEditMode.fromState(state as DetailViewLoaded);
     } else if (state.runtimeType == DetailViewEditMode) {
-      newState = DetailViewLoaded.from(state as DetailViewEditMode);
+      newState = DetailViewLoaded.fromState(state as DetailViewEditMode, unbalanced: checkBalances((state as DetailViewEditMode).item.members));
 
       if (update) {
         updateItem();
@@ -713,7 +713,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       name: (state as DetailViewEditMode).name?.text, 
       image: (state as DetailViewEditMode).imageFile);
 
-    final newState = DetailViewLoaded.from(state as DetailViewEditMode).copyWith(item: newItem);
+    final newState = DetailViewLoaded.fromState(state as DetailViewEditMode, unbalanced: checkBalances(newItem.members)).copyWith(item: newItem);
 
     emit(newState);
 

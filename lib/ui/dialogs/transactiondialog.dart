@@ -243,6 +243,15 @@ class TransactionDialog extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.black26,
           title: Text("Add new Transaction"),
+          leading: GestureDetector(
+            child: const Icon(
+              Icons.arrow_back,
+            ),
+            onTap: () {
+              cubit.closeTranscationDialog();
+              Navigator.of(context).pop(false);
+            },
+          ),
           actions: [
             GestureDetector(
               child: const Icon(
