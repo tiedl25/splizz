@@ -71,7 +71,7 @@ void showOverlayMessage({
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
               color: backgroundColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: Text(
               message,
