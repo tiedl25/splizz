@@ -135,56 +135,83 @@ class TransactionDialog extends StatelessWidget {
   //  return
   //}
 
+  List<Widget> dialogContent(state) {
+    return [
+      TextField(
+        autofocus: true,
+        controller: descriptionController,
+        onChanged: (value) {},
+        decoration: TfDecorationModel(context: context, title: 'Add a description')
+      ),
+      SizedBox(
+        height: 7.5,
+      ),
+      TextField(
+        controller: currencyController,
+        keyboardType: TextInputType.number,
+        onChanged: (value) => cubit.updateTransactionValue(value),
+        decoration: TfDecorationModel(
+          context: context,
+          title: '0,00',
+          icon: IconButton(
+            onPressed: () => cubit.toggleCurrency(),
+            icon: state.currency == false
+              ? const Icon(Icons.euro)
+              : const Icon(Icons.attach_money)
+          )
+        )
+      ),
+      if (state.help) Container(
+        margin: const EdgeInsets.only(left: 5, top: 5),
+        alignment: Alignment.centerLeft,
+        child: const Text('Select the person who paid'),
+      ),
+      SizedBox(
+        height: 60, //MediaQuery.of(context).size.height/14,
+        child: payerBar(state.selection)),
+      SizedBox(
+        height: 50,
+        child: dateBar(state),
+      ),
+    ];
+  }
+
   Widget dialog(state) {
     return AnimatedScale(
       duration: const Duration(milliseconds: 100),
       scale: state.scale,
       child: CustomDialog(
         pop: false,
-        title: 'Add new Transaction',
+        header: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Add new Transaction",
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            GestureDetector(
+              child: const Icon(
+                Icons.question_mark,
+              ),
+              onTap: () => !state.help ? cubit.toggleHelp() : null,
+            ),
+            GestureDetector(
+              onTap: () => cubit.showMore(), 
+                child: Transform.rotate(
+                angle: 45 * 3.14159 / 180, // 45 degrees in radians
+                child: Icon(Icons.unfold_more, color: Theme.of(context).colorScheme.primary, size: 30),
+                )
+            )
+          ]
+        ),
         content: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                TextField(
-                  autofocus: true,
-                  controller: descriptionController,
-                  onChanged: (value) {},
-                  decoration: TfDecorationModel(context: context, title: 'Add a description')),
-                Container(
-                  margin: const EdgeInsets.only(left: 5, top: 5),
-                  alignment: Alignment.centerLeft,
-                  child: const Text('Who payed?'),
-                ),
-                SizedBox(
-                  height: 60, //MediaQuery.of(context).size.height/14,
-                  child: payerBar(state.selection)),
-                TextField(
-                  controller: currencyController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) => cubit.updateTransactionValue(value),
-                  decoration: TfDecorationModel(
-                    context: context,
-                    title: '0,00',
-                    icon: IconButton(
-                      onPressed: () => cubit.toggleCurrency(),
-                      icon: state.currency == false
-                        ? const Icon(Icons.euro)
-                        : const Icon(Icons.attach_money)))),
-                SizedBox(
-                  height: 50,
-                  child: dateBar(state),
-                ),
-                Container(
-                  //margin: const EdgeInsets.only(left: 0, top: 5),
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    child: Text('Show more'),
-                    onPressed: () => cubit.showMore(),
-                  ),
-                ),
-              ]),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, 
+                children: dialogContent(state)
+              ),
             )),
         onConfirmed: () => showLoadingEntry(
           context: context, 
@@ -216,50 +243,40 @@ class TransactionDialog extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.black26,
           title: Text("Add new Transaction"),
+          actions: [
+            GestureDetector(
+              child: const Icon(
+                Icons.question_mark,
+              ),
+              onTap: () => !state.help ? cubit.toggleHelp() : null,
+            ),
+            GestureDetector(
+              child: Transform.rotate(
+                angle: 45 * 3.14159 / 180, // 45 degrees in radians
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Icon(Icons.unfold_less, color: Theme.of(context).colorScheme.primary, size: 30)
+                )
+              ),
+              onTap: () => cubit.showLess(),
+            ),
+          ],
         ),
         body: Container(
           padding: const EdgeInsets.all(10),
           child: Column(
-            children: [
-              TextField(
-                autofocus: true,
-                controller: descriptionController,
-                onChanged: (value) {
-                  //setState(() {
-                  //});
-                },
-                decoration: TfDecorationModel(
-                    context: context, title: 'Add a description')),
-              Container(
+            children: dialogContent(state) + [
+              if (state.help) Container(
                 margin: const EdgeInsets.only(left: 5, top: 5),
                 alignment: Alignment.centerLeft,
-                child: const Text('Who payed?'),
-              ),
-              SizedBox(
-                height: 60, //MediaQuery.of(context).size.height/14,
-                child: payerBar(state.selection)),
-              TextField(
-                controller: currencyController,
-                keyboardType: TextInputType.number,
-                onChanged: (value) => cubit.updateTransactionValue(value),
-                decoration: TfDecorationModel(
-                  context: context,
-                  title: '0,00',
-                  icon: IconButton(
-                    onPressed: () => cubit.toggleCurrency(),
-                    icon: state.currency == false
-                      ? const Icon(Icons.euro)
-                      : const Icon(Icons.attach_money)))),
-              SizedBox(
-                height: 50,
-                child: dateBar(state),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 5, top: 5),
-                alignment: Alignment.centerLeft,
-                child: const Text('For whom?'),
+                child: const Text('Select the members that are involved'),
               ),
               SizedBox(height: 70, child: memberBar(state.memberSelection)),
+              if (state.help ) Container(
+                margin: const EdgeInsets.only(left: 5, top: 5),
+                alignment: Alignment.centerLeft,
+                child: const Text("Customize how you want to divide the amount\nThe slider on the right can be used to adjust the stepsize \nAlternatively, for a more granular control toggle the switch"),
+              ),
               Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -286,13 +303,6 @@ class TransactionDialog extends StatelessWidget {
                 ],
               ),
               Spacer(),
-              Container(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  child: Text('Show less'),
-                  onPressed: () => cubit.showLess(),
-                ),
-              ),
               const Divider(
                 thickness: 0.5,
                 indent: 0,

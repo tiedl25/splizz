@@ -726,4 +726,14 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final newState = (state as DetailViewPayoffDialog).copyWith(whatToShare: whatToShare);
     emit(newState);
   }
+
+  toggleHelp() async {
+    final newState = (state as DetailViewTransactionDialog).copyWith(help: !(state as DetailViewTransactionDialog).help);
+    emit(newState);
+
+    await Future.delayed(const Duration(seconds: 3));
+    if (newState.help) {
+      emit((state as DetailViewTransactionDialog).copyWith(help: !(state as DetailViewTransactionDialog).help));
+    }
+  }
 }

@@ -81,6 +81,7 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
   double euros;
   bool zoomEnabled;
   int lastChangedMemberIndex;
+  bool help;
 
   DetailViewTransactionDialog({
     required super.item,
@@ -100,6 +101,7 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
     this.euros = 0.1,
     this.zoomEnabled = false,
     this.lastChangedMemberIndex = 0,
+    this.help = false
   });
 
   factory DetailViewTransactionDialog.fromState(DetailViewState state) =>
@@ -128,7 +130,8 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
     double? sliderIndex,
     double? euros,
     bool? zoomEnabled,
-    int? lastChangedMemberIndex}) =>
+    int? lastChangedMemberIndex,
+    bool? help}) =>
       DetailViewTransactionDialog(
         item: item ?? this.item,
         unbalanced: unbalanced ?? this.unbalanced,
@@ -147,6 +150,7 @@ class DetailViewTransactionDialog extends DetailViewLoaded {
         euros: euros ?? this.euros,
         zoomEnabled: zoomEnabled ?? this.zoomEnabled,
         lastChangedMemberIndex: lastChangedMemberIndex ?? this.lastChangedMemberIndex,
+        help: help ?? this.help
       );
 }
 

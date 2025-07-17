@@ -30,7 +30,7 @@ class CustomDialog extends StatelessWidget {
     this.leftText = 'Cancel',
     this.rightText = 'OK',
     this.insetPadding = const EdgeInsets.all(15),
-    this.contentPadding = const EdgeInsets.all(20),
+    this.contentPadding = const EdgeInsets.fromLTRB(20, 20, 20, 0),
     this.alignment = Alignment.bottomCenter,
     this.scrollable = true,
     this.returnValue,
