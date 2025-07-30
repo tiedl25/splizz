@@ -76,11 +76,13 @@ class DatabaseHelper {
 
     if (await checkQueue()) return;
 
-    db.destructiveLocalSyncFromRemote<Item>();
-    db.destructiveLocalSyncFromRemote<User>();
-    db.destructiveLocalSyncFromRemote<Member>();
-    db.destructiveLocalSyncFromRemote<Operation>();
-    db.destructiveLocalSyncFromRemote<Transaction>();
+    await Future.wait([
+      db.destructiveLocalSyncFromRemote<Item>(),
+      db.destructiveLocalSyncFromRemote<User>(),
+      db.destructiveLocalSyncFromRemote<Member>(),
+      db.destructiveLocalSyncFromRemote<Operation>(),
+      db.destructiveLocalSyncFromRemote<Transaction>(),
+    ]);
   }
 
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
