@@ -56,7 +56,10 @@ class DatabaseHelper {
         await queue.transmitRequest(request);
       } else {
         try {
-          await queue.transmitRequest(request);
+          final response = await queue.transmitRequest(request);
+          if(response.reasonPhrase == "Unauthorized") {
+            await queue.requestManager.deleteUnprocessedRequest(sqliteRequest["id"]);
+          }
         } catch (e) {
           if (e.toString().contains("Unauthorized")) {
             await queue.requestManager.deleteUnprocessedRequest(sqliteRequest["id"]);
