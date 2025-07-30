@@ -42,7 +42,25 @@ class DetailView extends StatelessWidget {
           bottom: false,
           child: BlocProvider(
             create: (context) => TransactionDialogCubit(cubit, state.item),
-          child: TransactionDialog()
+            child: TransactionDialog()
+          ),
+        );
+      },
+    );
+  }
+
+  void showTransactionEditDialog(Item item, Transaction transaction) async {
+    showDialog(
+      useSafeArea: false,
+      context: context, 
+      barrierDismissible: true,
+      builder: (_) {
+        return SafeArea(
+          top: true,
+          bottom: false,
+          child: BlocProvider(
+            create: (context) => TransactionDialogCubit.edit(cubit, item, transaction),
+            child: TransactionDialog(edit: true)
           ),
         );
       },
@@ -271,6 +289,7 @@ class DetailView extends StatelessWidget {
             )
           ],
         ),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -311,7 +330,22 @@ class DetailView extends StatelessWidget {
                 }),
               ),
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  onPressed: () => showTransactionEditDialog(item, transaction),
+                  icon: const Icon(
+                    Icons.edit,
+                  ),
+                )
+              ],
+            ),
           )
+          
         ],
       ),
     );

@@ -1,4 +1,3 @@
-import 'package:currency_textfield/currency_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,11 +12,9 @@ class TransactionDialog extends StatelessWidget {
   late BuildContext context;
   late TransactionDialogCubit cubit;
   late List<Member> members;
+  final bool edit;
 
-  final CurrencyTextFieldController currencyController = CurrencyTextFieldController(currencySymbol: '', decimalSymbol: ',', enableNegative: true);
-  final TextEditingController descriptionController = TextEditingController();
-
-  TransactionDialog();
+  TransactionDialog({this.edit = false});
 
   Widget payerBar(selection) {
     return ListView.builder(
@@ -139,7 +136,7 @@ class TransactionDialog extends StatelessWidget {
     return [
       TextField(
         autofocus: true,
-        controller: descriptionController,
+        controller: state.descriptionController,
         onChanged: (value) {},
         decoration: TfDecorationModel(context: context, title: 'Add a description')
       ),
@@ -147,7 +144,7 @@ class TransactionDialog extends StatelessWidget {
         height: 7.5,
       ),
       TextField(
-        controller: currencyController,
+        controller: state.currencyController,
         keyboardType: TextInputType.number,
         onChanged: (value) => cubit.updateTransactionValue(value),
         decoration: TfDecorationModel(
@@ -182,19 +179,22 @@ class TransactionDialog extends StatelessWidget {
       scale: state.scale,
       child: CustomDialog(
         pop: false,
+        rightText: edit ? "OK" : "Add",
         header: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Add new Transaction",
+              edit ? "Edit Transaction" : "Add new Transaction",
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+            Spacer(),
             GestureDetector(
               child: const Icon(
                 Icons.question_mark,
               ),
               onTap: () => !state.help ? cubit.toggleHelp() : null,
             ),
+            SizedBox(width: 10),
             GestureDetector(
               onTap: () => cubit.showMore(), 
                 child: Transform.rotate(
@@ -215,7 +215,7 @@ class TransactionDialog extends StatelessWidget {
             )),
         onConfirmed: () => showLoadingEntry(
           context: context, 
-          onWait: () async => await cubit.addTransaction(descriptionController.text).then(
+          onWait: () async => await (edit ? cubit.editTransaction() : cubit.addTransaction()).then(
             (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
         ),
       ));
@@ -241,7 +241,7 @@ class TransactionDialog extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           backgroundColor: Colors.black26,
-          title: Text("Add new Transaction"),
+          title: Text(this.edit ? "Edit Transaction" : "Add new Transaction"),
           leading: GestureDetector(
             child: const Icon(
               Icons.arrow_back,
@@ -333,8 +333,9 @@ class TransactionDialog extends StatelessWidget {
                     Expanded(
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text("Add", style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () => cubit.addTransaction(descriptionController.text).then((value) => value.isSuccess ? Navigator.of(context).pop(true) : null),
+                        child: Text(edit ? "OK" : "Add", style: Theme.of(context).textTheme.labelLarge,),
+                        onPressed: () async => await (edit ? cubit.editTransaction() : cubit.addTransaction()).then(
+                          (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
                       ),
                     ),
                   ],

@@ -74,6 +74,14 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
+  updateTransaction(Transaction transaction) async {
+    final newState = (state as DetailViewLoaded).copyWith();
+
+    newState.item.history[newState.item.history.indexWhere((element) => element.id == transaction.id)] = transaction;
+    newState.unbalanced = checkBalances(newState.item.members);
+    emit(newState);
+  }
+
   deleteTransaction(Transaction transaction, memberMap, memberListIndex) {
     final newState = (state as DetailViewLoaded).copyWith();
 

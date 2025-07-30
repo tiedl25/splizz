@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
-import 'package:http/http.dart';
 import 'package:splizz/data/result.dart';
 
 import 'package:splizz/brick/repository.dart';
