@@ -231,8 +231,6 @@ class DetailView extends StatelessWidget {
     Color color = Color(item.members.firstWhere((m) => m.id == transaction.memberId).color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
-    transaction.operations.removeWhere((t) => t.memberId == transaction.memberId && t.value == transaction.value);
-
     return Container(
       clipBehavior: Clip.hardEdge,
       foregroundDecoration: transaction.deleted
@@ -286,17 +284,17 @@ class DetailView extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
               ),
               child: Row(
-                children: List.generate(transaction.operations.length+1, (index) {
+                children: List.generate(transaction.operations.length, (index) {
+                  Member m = item.members.firstWhere((element) => element.id == transaction.operations[index].memberId);
                   if (index == 0) {
                     return Container(
                         padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
                         margin: const EdgeInsets.all(2),
                         child: Text(
-                          item.members.firstWhere((element) => element.id == transaction.memberId).name,
+                          m.name,
                           style: const TextStyle(color: Colors.black),
                         ));
                   }
-                  Member m = item.members.firstWhere((element) => element.id == transaction.operations[index-1].memberId);
                   return Container(
                     padding: const EdgeInsets.all(5),
                     margin: const EdgeInsets.all(2),

@@ -167,6 +167,12 @@ class DatabaseHelper {
     await Future.wait(
       transactions.map((t) {
         return getTransactionOperations(t.id, db: db, sync: sync).then((operations) {
+          final index = t.operations.indexWhere((op) => op.memberId == t.memberId && op.value == t.value);
+          if (index > 0) {
+            final op = t.operations.removeAt(index);
+            t.operations.insert(0, op);
+          }
+
           t.operations = operations;
         });
       }),
