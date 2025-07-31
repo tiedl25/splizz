@@ -219,6 +219,7 @@ class MemberDialog extends StatelessWidget {
 
         return CustomDialog(
           color: state.color,
+          contentPadding: EdgeInsets.all(20),
           content: FadeTransition(
             opacity: opacity,
             child: SizedBox(
