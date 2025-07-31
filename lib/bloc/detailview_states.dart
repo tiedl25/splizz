@@ -22,26 +22,28 @@ class DetailViewLoading extends DetailViewState {
 
 class DetailViewLoaded extends DetailViewState {
   bool unbalanced;
+  bool showPieChart;
 
-  DetailViewLoaded({required super.item, this.unbalanced = false});
+  DetailViewLoaded({required super.item, this.unbalanced = false, this.showPieChart = false});
 
-  factory DetailViewLoaded.fromState(DetailViewState state, {unbalanced = false}) =>
-    DetailViewLoaded(item: state.item, unbalanced: unbalanced);
+  factory DetailViewLoaded.fromState(DetailViewState state, {unbalanced = false, showPieChart = false}) =>
+    DetailViewLoaded(item: state.item, unbalanced: unbalanced, showPieChart: showPieChart);
 
   factory DetailViewLoaded.fromPayoffDialog(DetailViewPayoffDialog state) =>
-    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
+    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart);
 
   factory DetailViewLoaded.fromShareDialog(DetailViewShareDialog state) =>
-    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced);
+    DetailViewLoaded(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart);
 
-  factory DetailViewLoaded.from(final state, {unbalanced}) =>
-    DetailViewLoaded(item: state.item, unbalanced: unbalanced ?? state.unbalanced);
+  factory DetailViewLoaded.from(final state, {unbalanced, showPieChart}) =>
+    DetailViewLoaded(item: state.item, unbalanced: unbalanced ?? state.unbalanced, showPieChart: showPieChart ?? state.showPieChart);
 
   @override
-  DetailViewLoaded copyWith({Item? item, bool? unbalanced}) {
+  DetailViewLoaded copyWith({Item? item, bool? unbalanced, bool? showPieChart}) {
     return DetailViewLoaded(
       item: item ?? this.item, 
-      unbalanced: unbalanced ?? this.unbalanced
+      unbalanced: unbalanced ?? this.unbalanced,
+      showPieChart: showPieChart ?? this.showPieChart
     );
   }
 }
@@ -68,17 +70,18 @@ class DetailViewEditMode extends DetailViewState {
 class DetailViewShareDialog extends DetailViewLoaded {
   bool fullAccess;
 
-  DetailViewShareDialog({required super.item, super.unbalanced, this.fullAccess = false});
+  DetailViewShareDialog({required super.item, super.unbalanced, super.showPieChart, this.fullAccess = false});
 
   factory DetailViewShareDialog.fromLoaded(DetailViewLoaded state) =>
-    DetailViewShareDialog(item: state.item, unbalanced: state.unbalanced);
+    DetailViewShareDialog(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart);
 
   @override
-  DetailViewShareDialog copyWith({Item? item, bool? unbalanced, bool? fullAccess}) =>
+  DetailViewShareDialog copyWith({Item? item, bool? unbalanced, bool? showPieChart, bool? fullAccess}) =>
     DetailViewShareDialog(
       item: item ?? this.item, 
       unbalanced: unbalanced ?? this.unbalanced, 
-      fullAccess: fullAccess ?? this.fullAccess
+      showPieChart: showPieChart ?? this.showPieChart,
+      fullAccess: fullAccess ?? this.fullAccess,
     );
 }
 
@@ -87,16 +90,17 @@ class DetailViewPayoffDialog extends DetailViewLoaded {
   bool past;
   List<bool> whatToShare;
 
-  DetailViewPayoffDialog({required super.item, super.unbalanced, this.index, this.past = false, this.whatToShare = const [true, false, false]});
+  DetailViewPayoffDialog({required super.item, super.unbalanced, super.showPieChart, this.index, this.past = false, this.whatToShare = const [true, false, false]});
 
   factory DetailViewPayoffDialog.fromLoaded(DetailViewLoaded state, {bool past = false, List<bool> whatToShare = const [true, false, false]}) =>
-    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, past: past, whatToShare: whatToShare);
+    DetailViewPayoffDialog(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart, past: past, whatToShare: whatToShare);
 
   @override
-  DetailViewPayoffDialog copyWith({Item? item, bool? unbalanced, int? index, bool? past, List<bool>? whatToShare}) =>
+  DetailViewPayoffDialog copyWith({Item? item, bool? unbalanced, bool? showPieChart, int? index, bool? past, List<bool>? whatToShare}) =>
     DetailViewPayoffDialog(
       item: item ?? this.item, 
-      unbalanced: unbalanced ?? this.unbalanced, 
+      unbalanced: unbalanced ?? this.unbalanced,
+      showPieChart: showPieChart ?? this.showPieChart,
       index: index ?? this.index,
       past: past ?? this.past,
       whatToShare: whatToShare ?? this.whatToShare
@@ -109,16 +113,17 @@ class DetailViewMemberDialog extends DetailViewLoaded {
   TextEditingController? name;
   Color? color;
 
-  DetailViewMemberDialog({required super.item, super.unbalanced, required this.member, this.editMode = false, this.name, this.color});
+  DetailViewMemberDialog({required super.item, super.unbalanced, super.showPieChart, required this.member, this.editMode = false, this.name, this.color});
 
   factory DetailViewMemberDialog.fromState(final state, final Member member, final bool editMode, final TextEditingController name, final Color? color) =>
-    DetailViewMemberDialog(item: state.item, unbalanced: state.unbalanced, member: member, editMode: editMode, name: name, color: color);
+    DetailViewMemberDialog(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart, member: member, editMode: editMode, name: name, color: color);
 
   @override
-  DetailViewMemberDialog copyWith({Item? item, bool? unbalanced, Member? member, bool? editMode, TextEditingController? name, Color? color}) =>
+  DetailViewMemberDialog copyWith({Item? item, bool? unbalanced, bool? showPieChart, Member? member, bool? editMode, TextEditingController? name, Color? color}) =>
     DetailViewMemberDialog(
       item: item ?? this.item, 
       unbalanced: unbalanced ?? this.unbalanced, 
+      showPieChart: showPieChart ?? this.showPieChart,
       member: member ?? this.member, 
       editMode: editMode ?? this.editMode,
       name: name ?? this.name,
@@ -129,16 +134,17 @@ class DetailViewMemberDialog extends DetailViewLoaded {
 class DetailViewAddMemberDialog extends DetailViewLoaded {
   Color color;
 
-  DetailViewAddMemberDialog({required super.item, super.unbalanced, required this.color});
+  DetailViewAddMemberDialog({required super.item, super.unbalanced, super.showPieChart, required this.color});
 
   factory DetailViewAddMemberDialog.fromState(final state, Color color) =>
-    DetailViewAddMemberDialog(item: state.item, unbalanced: state.unbalanced, color: color);
+    DetailViewAddMemberDialog(item: state.item, unbalanced: state.unbalanced, showPieChart: state.showPieChart, color: color);
 
   @override
-  DetailViewAddMemberDialog copyWith({Item? item, bool? unbalanced, Color? color}) =>
+  DetailViewAddMemberDialog copyWith({Item? item, bool? unbalanced, bool? showPieChart, Color? color}) =>
     DetailViewAddMemberDialog(
       item: item ?? this.item, 
       unbalanced: unbalanced ?? this.unbalanced,
+      showPieChart: showPieChart ?? this.showPieChart,
       color: color ?? this.color
     );
 }

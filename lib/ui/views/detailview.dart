@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pie_chart/pie_chart.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/models/item.model.dart';
@@ -23,6 +24,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 class DetailView extends StatelessWidget {
   late BuildContext context;
   late DetailViewCubit cubit;
+
+  List<ExpansibleController> exController = [];
 
   Image? croppedImage;
   final ImagePicker picker = ImagePicker();
@@ -150,11 +153,11 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget transactionList(Item item) {
+  Widget transactionList(state) {
     Map<String, int> memberMap = {};
 
     int a = 0;
-    for (Member m in item.members) {
+    for (Member m in state.item.members) {
       memberMap.addAll({m.id: a});
       a++;
     }
@@ -171,7 +174,7 @@ class DetailView extends StatelessWidget {
           margin: const EdgeInsets.all(10),
           child: RefreshIndicator(
             onRefresh: () => cubit.fetchData(),
-            child: item.history.isEmpty
+            child: state.item.history.isEmpty
                 ? ListView(
                     physics: const BouncingScrollPhysics(
                         parent: AlwaysScrollableScrollPhysics()),
@@ -190,14 +193,13 @@ class DetailView extends StatelessWidget {
                     physics: const BouncingScrollPhysics(
                         parent: AlwaysScrollableScrollPhysics()),
                     shrinkWrap: false,
-                    itemCount: item.history.length,
+                    itemCount: state.item.history.length,
                     itemBuilder: (context, i) {
-                      Transaction transaction =
-                          item.history[item.history.length - 1 - i];
+                      Transaction transaction = state.item.history[state.item.history.length - 1 - i];
                       if (transaction.description == 'payoff') {
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () => cubit.showPastPayoffDialog(item.history.length - i - 1),
+                          onTap: () => cubit.showPastPayoffDialog(state.item.history.length - i - 1),
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             child: Row(
@@ -213,9 +215,9 @@ class DetailView extends StatelessWidget {
                         return transaction.deleted
                             ? Container(
                                 margin: const EdgeInsets.only(bottom: 5),
-                                child: expansionTile(transaction, item),
+                                child: expansionTile(state, transaction, i),
                               )
-                            : dismissibleTile(transaction, memberMap, i, item);
+                            : dismissibleTile(state, transaction, memberMap, i);
                       }
                     },
                   ),
@@ -223,7 +225,7 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget dismissibleTile(Transaction transaction, Map<String, int> memberMap, int index, Item item) {
+  Widget dismissibleTile(state, Transaction transaction, Map<String, int> memberMap, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -231,7 +233,8 @@ class DetailView extends StatelessWidget {
         color: Colors.red,
       ),
       child: Dismissible(
-        key: UniqueKey(),
+        key: ValueKey(transaction.id),
+        //key: UniqueKey(),
         direction: DismissDirection.endToStart,
         confirmDismiss: (_) => showDismissDialog(transaction, memberMap, index),
         background: Container(
@@ -241,13 +244,17 @@ class DetailView extends StatelessWidget {
             Icons.delete,
           ),
         ),
-        child: expansionTile(transaction, item)),
+        child: expansionTile(state, transaction, index)),
     );
   }
 
-  Widget expansionTile(Transaction transaction, Item item) {
-    Color color = Color(item.members.firstWhere((m) => m.id == transaction.memberId).color);
+  Widget expansionTile(state, Transaction transaction, int index) {
+    Color color = Color(state.item.members.firstWhere((m) => m.id == transaction.memberId).color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
+
+    if (exController.length <= index) {
+      exController.add(ExpansibleController());
+    }
 
     return Container(
       clipBehavior: Clip.hardEdge,
@@ -262,11 +269,13 @@ class DetailView extends StatelessWidget {
         color: color,
         borderRadius: const BorderRadius.all(Radius.circular(20))),
       child: ExpansionTile(
-        //expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        maintainState: true,
+        controller: exController[index],
+        onExpansionChanged: (value) => exController[index].isExpanded ? exController.where((e) => e != exController[index]).forEach((e) => e.collapse()) : cubit.togglePieChart(showPieChart: false),
         expandedAlignment: Alignment.centerLeft,
         shape: const Border(),
-        collapsedIconColor: Colors.black,
-        iconColor: Colors.black,
+        collapsedIconColor: textColor,
+        iconColor: textColor,
         tilePadding: const EdgeInsets.symmetric(horizontal: 15),
         childrenPadding: const EdgeInsets.symmetric(horizontal: 15),
         title: Text(
@@ -291,44 +300,23 @@ class DetailView extends StatelessWidget {
         ),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Container(
-              padding: const EdgeInsets.all(5),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: const Color(0xAAD5D5D5),
-                border: Border.all(style: BorderStyle.none, width: 0),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-              child: Row(
-                children: List.generate(transaction.operations.length, (index) {
-                  Member m = item.members.firstWhere((element) => element.id == transaction.operations[index].memberId);
-                  if (index == 0) {
-                    return Container(
-                        padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
-                        margin: const EdgeInsets.all(2),
-                        child: Text(
-                          m.name,
-                          style: const TextStyle(color: Colors.black),
-                        ));
-                  }
-                  return Container(
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Color(m.color),
-                      border: Border.all(style: BorderStyle.none, width: 0),
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    ),
-                    child: Text(
-                      m.name,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  );
-                }),
-              ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              reverseDuration: const Duration(milliseconds: 200),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: child,
+                );
+              },
+              child: state.showPieChart
+                ? transactionPieChart(state, transaction, textColor)
+                : transactionMemberBar(state, transaction, textColor)
             ),
           ),
           Padding(
@@ -337,9 +325,17 @@ class DetailView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 IconButton(
-                  onPressed: () => showTransactionEditDialog(item, transaction),
-                  icon: const Icon(
+                  onPressed: () => cubit.togglePieChart(),
+                  icon: Icon(
+                    Icons.pie_chart,
+                    color: textColor
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => showTransactionEditDialog(state.item, transaction),
+                  icon: Icon(
                     Icons.edit,
+                    color: textColor
                   ),
                 )
               ],
@@ -348,6 +344,94 @@ class DetailView extends StatelessWidget {
           
         ],
       ),
+    );
+  }
+
+  Widget transactionMemberBar(state, Transaction transaction, Color textColor) {
+    return SingleChildScrollView(
+      key: const ValueKey('memberBar'),
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        margin: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: textColor.withAlpha(96),
+          border: Border.all(style: BorderStyle.none, width: 0),
+          borderRadius: const BorderRadius.all(Radius.circular(20)),
+        ),
+        child: Row(
+          children: List.generate(transaction.operations.length, (index) {
+            Member m = state.item.members.firstWhere((element) => element.id == transaction.operations[index].memberId);
+            if (index == 0) {
+              return Container(
+                  padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
+                  margin: const EdgeInsets.all(2),
+                  child: Text(
+                    m.name,
+                    style: TextStyle(color: textColor),
+                  ));
+            }
+            return Container(
+              padding: const EdgeInsets.all(5),
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Color(m.color),
+                border: Border.all(style: BorderStyle.none, width: 0),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              child: Text(
+                m.name,
+                style: TextStyle(color: Color(m.color).computeLuminance() > 0.2 ? Colors.black : Colors.white),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget transactionPieChart(state, Transaction transaction, Color textColor) {
+    return Container(
+      key: const ValueKey('pieChart'),
+      decoration: BoxDecoration(
+        color: textColor.withAlpha(96),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: PieChart(
+        dataMap: Map.fromIterable(
+          transaction.operations,
+          key: (e) => state.item.members.firstWhere((m) => m.id == e.memberId).name,
+          value: (e) => e.value.abs(),
+        ),
+        legendOptions: LegendOptions(
+          legendPosition: LegendPosition.right,
+          showLegends: true,
+          legendTextStyle: TextStyle(
+            color: textColor,
+          ),
+        ),
+        chartType: ChartType.disc,
+        ringStrokeWidth: 20,
+        animationDuration: const Duration(milliseconds: 700),
+        chartLegendSpacing: 32,
+        chartRadius: MediaQuery.of(context).size.width / 2.5,
+        colorList: state.item.members.map<Color>((e) => Color(e.color)).toList(),
+        initialAngleInDegree: 0,
+        formatChartValues: (value) => "${value.toStringAsFixed(2)}€",
+        chartValuesOptions: const ChartValuesOptions(
+          showChartValues: true,
+          showChartValuesInPercentage: false,
+          showChartValuesOutside: false,
+          decimalPlaces: 2,
+          chartValueStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+          ),
+          chartValueBackgroundColor: Colors.transparent,
+        )
+      )
     );
   }
 
@@ -472,7 +556,7 @@ class DetailView extends StatelessWidget {
                   const Spacer(flex: 2,),
                   payoffButton(state.unbalanced),
                   const Spacer(),
-                  transactionList(state.item),
+                  transactionList(state),
                 ],
               ));
             } else {

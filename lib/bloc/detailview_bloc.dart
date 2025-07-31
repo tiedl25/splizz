@@ -364,4 +364,10 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final newState = (state as DetailViewPayoffDialog).copyWith(whatToShare: whatToShare);
     emit(newState);
   }
+
+  togglePieChart({bool? showPieChart}) {
+    final newState = (state as DetailViewLoaded).copyWith(showPieChart: showPieChart ??!(state as DetailViewLoaded).showPieChart);
+
+    emit(newState);
+  }
 }
