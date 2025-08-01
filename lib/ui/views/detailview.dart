@@ -196,6 +196,11 @@ class DetailView extends StatelessWidget {
                     itemCount: state.item.history.length,
                     itemBuilder: (context, i) {
                       Transaction transaction = state.item.history[state.item.history.length - 1 - i];
+
+                      if (exController.length < state.item.history.length) {
+                        exController.add(ExpansibleController());
+                      }
+
                       if (transaction.description == 'payoff') {
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
