@@ -8,7 +8,9 @@ Future<Item> _$ItemFromSupabase(Map<String, dynamic> data,
       id: data['id'] as String?,
       name: data['name'] as String,
       timestamp: DateTime.parse(data['timestamp'] as String),
-      image: await Item.downloadImage(data['id'] as String));
+      image: data['image'] == null
+          ? null
+          : await Item.downloadImage(data['id'] as String));
 }
 
 Future<Map<String, dynamic>> _$ItemToSupabase(Item instance,

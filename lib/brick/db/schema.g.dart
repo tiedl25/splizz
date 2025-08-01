@@ -1,19 +1,22 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250616101336.migration.dart';
 part '20241203223811.migration.dart';
+part '20250616101336.migration.dart';
 part '20241228115507.migration.dart';
+part '20250731211627.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250616101336(),
   const Migration20241203223811(),
-  const Migration20241228115507()
+  const Migration20250616101336(),
+  const Migration20241228115507(),
+  const Migration20250731211627()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250616101336, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20250731211627, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('User', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -34,6 +37,7 @@ final schema = Schema(20250616101336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('item_id', Column.varchar),
     SchemaColumn('description', Column.varchar),
     SchemaColumn('date', Column.datetime),
+    SchemaColumn('payoff_id', Column.varchar),
     SchemaColumn('value', Column.Double),
     SchemaColumn('deleted', Column.boolean),
     SchemaColumn('timestamp', Column.datetime)

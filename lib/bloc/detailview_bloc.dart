@@ -195,7 +195,9 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     newState.item.payoff();
     newState.unbalanced = checkBalances(newState.item.members);
 
-    DatabaseHelper.instance.upsertTransaction(newState.item.history.last);
+    List<Transaction> payoffTransactions = newState.item.history.where((element) => element.payoffId == null && (element.description != "payoff" || element.memberId != null)).toList();
+
+    DatabaseHelper.instance.upsertTransaction(newState.item.history.last, payoffTransactions: payoffTransactions);
 
     emit(newState);
   }

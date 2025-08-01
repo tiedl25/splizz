@@ -242,10 +242,16 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> upsertTransaction(Transaction transaction, {dynamic db}) async {
+  Future<void> upsertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {
     db = db ?? await instance.database;
 
     final operations = List<Operation>.from(transaction.operations);
+
+    if (payoffTransactions.isNotEmpty) {
+      await Future.wait(
+        payoffTransactions.map((t) => upsertTransaction(t..payoffId = transaction.id, db: db))
+      );
+    }
   
     await db.upsert<Transaction>(transaction);
 

@@ -10,6 +10,7 @@ Future<Transaction> _$TransactionFromSupabase(Map<String, dynamic> data,
       itemId: data['item_id'] == null ? null : data['item_id'] as String?,
       description: data['description'] as String,
       date: DateTime.parse(data['date'] as String),
+      payoffId: data['payoff_id'] == null ? null : data['payoff_id'] as String?,
       value: data['value'].toDouble(),
       deleted: data['deleted'],
       timestamp: data['timestamp'] == null
@@ -26,6 +27,7 @@ Future<Map<String, dynamic>> _$TransactionToSupabase(Transaction instance,
     'item_id': instance.itemId,
     'description': instance.description,
     'date': instance.date.toIso8601String(),
+    'payoff_id': instance.payoffId,
     'value': instance.value,
     'deleted': instance.deleted,
     'timestamp': instance.timestamp.toIso8601String()
@@ -41,6 +43,7 @@ Future<Transaction> _$TransactionFromSqlite(Map<String, dynamic> data,
       itemId: data['item_id'] == null ? null : data['item_id'] as String?,
       description: data['description'] as String,
       date: DateTime.parse(data['date'] as String),
+      payoffId: data['payoff_id'] == null ? null : data['payoff_id'] as String?,
       value: data['value'] as double,
       deleted: data['deleted'] == 1,
       timestamp: DateTime.parse(data['timestamp'] as String))
@@ -56,6 +59,7 @@ Future<Map<String, dynamic>> _$TransactionToSqlite(Transaction instance,
     'item_id': instance.itemId,
     'description': instance.description,
     'date': instance.date.toIso8601String(),
+    'payoff_id': instance.payoffId,
     'value': instance.value,
     'deleted': instance.deleted ? 1 : 0,
     'timestamp': instance.timestamp.toIso8601String()
@@ -91,6 +95,10 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
     'date': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'date',
+    ),
+    'payoffId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'payoff_id',
     ),
     'value': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -146,6 +154,12 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       columnName: 'date',
       iterable: false,
       type: DateTime,
+    ),
+    'payoffId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'payoff_id',
+      iterable: false,
+      type: String,
     ),
     'value': const RuntimeSqliteColumnDefinition(
       association: false,

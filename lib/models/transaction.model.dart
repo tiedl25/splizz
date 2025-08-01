@@ -19,6 +19,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   String description;
   DateTime date;
 
+  String? payoffId;
+
   @Supabase(fromGenerator: "%DATA_PROPERTY%.toDouble()")
   double value;
 
@@ -31,7 +33,7 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   late List<Operation> operations;
 
   //Constructor
-  Transaction({required this.description, required this.value, required this.date, String? id, this.memberId, this.itemId, DateTime? timestamp, deleted, operations}) : 
+  Transaction({required this.description, required this.value, required this.date, String? id, this.memberId, this.itemId, this.payoffId, DateTime? timestamp, deleted, operations}) : 
     this.id = id ?? Uuid().v4(),
     this.timestamp = timestamp ?? DateTime.now(),
     this.deleted = deleted ?? false,
@@ -49,6 +51,7 @@ class Transaction extends OfflineFirstWithSupabaseModel {
     ),
     memberId: transaction.memberId,
     itemId: transaction.itemId,
+    payoffId: transaction.payoffId,
   );
 
   factory Transaction.payoff({date, id, timestamp, operations}){
