@@ -403,7 +403,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
 
     // Update the main operation
     Operation transactionOperation = newState.transaction.operations.removeAt(0);
-    newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).deleteTransaction(newState.transaction);
+    //newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).deleteTransaction(newState.transaction);
     transactionOperation.memberId = newState.item.members[newState.selection].id;
     transactionOperation.value = newState.sum;
     newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).addTransaction(newState.transaction);
