@@ -291,7 +291,7 @@ class DetailView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${transaction.value.toString()}€',
+              '${transaction.value.toStringAsFixed(2)}€',
               style: TextStyle(
                   decoration:
                       transaction.deleted ? TextDecoration.lineThrough : null,
