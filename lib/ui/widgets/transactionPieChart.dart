@@ -27,9 +27,9 @@ class TransactionPieChart extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: PieChart(
         dataMap: Map.fromIterable(
-          members, 
-          key: (m) => m.id,
-          value: (m) => transaction.operations.sublist(1).firstWhere((o) => o.memberId == m.id).value.abs()
+          transaction.operations.sublist(1), 
+          key: (o) => o.memberId,
+          value: (o) => o.value.abs()
         ),
         legendOptions: LegendOptions(
           legendPosition: LegendPosition.right,
@@ -48,7 +48,7 @@ class TransactionPieChart extends StatelessWidget {
         animationDuration: const Duration(milliseconds: 700),
         chartLegendSpacing: 32,
         chartRadius: MediaQuery.of(context).size.width / 2.5,
-        colorList: members.map<Color>((e) => Color(e.color)).toList(),
+        colorList: transaction.operations.sublist(1).map((o) => Color(members.firstWhere((m) => m.id == o.memberId).color)).toList(),
         initialAngleInDegree: 0,
         formatChartValues: (value) => "${value.toStringAsFixed(2)}€",
         chartValuesOptions: const ChartValuesOptions(
