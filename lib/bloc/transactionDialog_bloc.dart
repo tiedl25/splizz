@@ -11,6 +11,7 @@ import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
+import 'package:splizz/resources/money_divisions.dart';
 
 class TransactionDialogCubit extends Cubit<TransactionDialogState> {
   TransactionDialogCubit(DetailViewCubit detailViewCubit, Item item)
@@ -343,7 +344,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
 
   toggleZoom(bool value) {
     final newState = whichState.copyWith(zoomEnabled: value);
-    newState.sliderIndex = value ? newState.involvedMembers[newState.lastChangedMemberIndex]['angle'] : 3;
+    newState.sliderIndex = value ? newState.involvedMembers[newState.lastChangedMemberIndex]['angle'] : divisions.indexWhere((e) => e == newState.euros).toDouble();
     emit(newState);
   }
 

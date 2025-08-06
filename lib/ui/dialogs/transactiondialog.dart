@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/bloc/transactionDialog_states.dart';
 import 'package:splizz/models/member.model.dart';
+import 'package:splizz/resources/money_divisions.dart';
 import 'package:splizz/ui/widgets/circularSlider.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
@@ -222,16 +223,6 @@ class TransactionDialog extends StatelessWidget {
   }
 
   Widget view(state) {
-    final divisions = [
-      0.01,
-      0.02,
-      0.05,
-      0.10,
-      0.20,
-      0.50,
-      1.00,
-    ];
-
     return ClipRRect(
       borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20), topRight: Radius.circular(20)),
