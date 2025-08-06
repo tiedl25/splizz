@@ -160,7 +160,7 @@ class DatabaseHelper {
     db = db ?? await instance.database;
     sync = sync && isSignedIn;
 
-    final transactionQuery = Query(where: [Where('itemId').isExactly(id)], providerArgs: {'orderBy': 'date ASC'});
+    final transactionQuery = Query(where: [Where('itemId').isExactly(id)], providerArgs: {'orderBy': 'date ASC, timestamp ASC'});
     final List<Transaction> transactions = isSignedIn
       ? await db.get<Transaction>(query: transactionQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
       : await db.get<Transaction>(query: transactionQuery);
