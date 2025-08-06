@@ -184,7 +184,7 @@ class TransactionDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              edit ? "Edit Transaction" : "Add new Transaction",
+              edit ? "Edit Transaction" : "Add Transaction",
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             Spacer(),
@@ -241,7 +241,7 @@ class TransactionDialog extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           backgroundColor: Colors.black26,
-          title: Text(this.edit ? "Edit Transaction" : "Add new Transaction"),
+          title: Text(this.edit ? "Edit Transaction" : "Add Transaction"),
           leading: GestureDetector(
             child: const Icon(
               Icons.arrow_back,
