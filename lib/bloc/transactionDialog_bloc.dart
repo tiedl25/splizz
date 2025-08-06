@@ -75,7 +75,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       final newState2 = newState.copyWith(
         scale: 1.0,
         extend: !newState.extend,
-        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList(), newState.memberBalances)
+        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList())
       );
 
       emit(newState2);
