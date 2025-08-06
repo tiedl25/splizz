@@ -8,8 +8,8 @@ ThemeData darkTheme = ThemeData(
     elevation: 0,
   ),
   colorScheme: const ColorScheme.dark(
-    surface: Color(0xFF282828), //2B2B2BFF
-    surfaceContainer: Color(0xFF383838), //0xFF383838
+    surface: Color.fromARGB(255, 38, 39, 45),
+    surfaceContainer: Color.fromARGB(255, 46, 47, 57),
     surfaceTint: Colors.cyanAccent,
   ),
   dividerColor: Colors.white54,

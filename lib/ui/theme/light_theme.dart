@@ -7,8 +7,8 @@ ThemeData lightTheme = ThemeData(
       foregroundColor: Colors.black,
       elevation: 0),
   colorScheme: const ColorScheme.light(
-      surface: Color(0xFFEFEFEF),
-      surfaceContainer: Color.fromARGB(255, 196, 196, 196),
+      surface: Color.fromARGB(255, 238, 236, 245),
+      surfaceContainer: Color.fromARGB(255, 227, 224, 236),
       surfaceTint: Colors.deepPurpleAccent),
   dividerColor: Colors.black,
   textButtonTheme: TextButtonThemeData(
