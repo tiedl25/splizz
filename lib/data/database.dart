@@ -151,13 +151,6 @@ class DatabaseHelper {
       m.history = await historyFuture;
     }));
 
-    //for(Member m in members){
-    //  m.balance = await getBalance(m.id, db: db);
-    //  m.total = await getTotal(m.id, db: db);
-    //  m.payoff = await getPayoff(m.id, db: db);
-    //  m.history = await getMemberTransactions(m.id, db: db);
-    //}
-
     members.sort((Member a, Member b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return members;
@@ -402,7 +395,9 @@ class DatabaseHelper {
     db = db ?? await instance.database;
 
     var query = Query.where('deleted', false);
-    final transactions = await db.get<Transaction>(query: query);
+    List<Transaction> transactions = await db.get<Transaction>(query: query);
+
+    transactions = transactions.where((t) => t.payoffId == null || t.description != "payoff").toList();
 
     if (transactions.isEmpty) return 0;
 

@@ -89,13 +89,14 @@ class Item extends OfflineFirstWithSupabaseModel {
   }
 
   // Mark transaction as deleted, while also updating total and balance of all members
-  void deleteTransaction(Transaction t, Map<String, int> memberMap, index){
+  void deleteTransaction(Transaction t){
     members.firstWhere((element) => element.id == t.memberId).deleteTransaction(t, balance: false);
     //members[memberMap[t.memberId]!].deleteTransaction(t, balance: false);
     history.firstWhere((e) => e.id == t.id).delete();
 
     for(Operation o in t.operations){
-      int mId = memberMap[o.memberId]!;
+      //int mId = memberMap[o.memberId]!;
+      int mId = members.indexWhere((element) => element.id == o.memberId);
       //members[mId].sub(o.value);
       o.itemId = this.id;
       this.members[mId].sub(o.value);

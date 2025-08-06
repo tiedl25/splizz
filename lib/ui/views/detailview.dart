@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pie_chart/pie_chart.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/models/item.model.dart';
+import 'package:splizz/models/member.model.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
 import 'package:splizz/ui/dialogs/sharedialog.dart';
@@ -16,9 +16,10 @@ import 'package:splizz/ui/dialogs/transactiondialog.dart';
 import 'package:splizz/ui/widgets/memberBar.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/transaction.model.dart';
+import 'package:splizz/ui/widgets/transactionMemberBar.dart';
+import 'package:splizz/ui/widgets/transactionPieChart.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
-import 'package:splizz/models/member.model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class DetailView extends StatelessWidget {
@@ -26,6 +27,7 @@ class DetailView extends StatelessWidget {
   late DetailViewCubit cubit;
 
   List<ExpansibleController> exController = [];
+  List<List<ExpansibleController>> payoffExController = [];
 
   Image? croppedImage;
   final ImagePicker picker = ImagePicker();
@@ -109,7 +111,7 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Future<bool?> showDismissDialog(transaction, memberMap, index) async {
+  Future<bool?> showDismissDialog(transaction, {List<Transaction>? payoffTransactions}) async {
     return await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -119,7 +121,7 @@ class DetailView extends StatelessWidget {
             'Do you really want to remove this Transaction',
             style: TextStyle(fontSize: 20),
           ),
-          onConfirmed: () => cubit.deleteTransaction(transaction, memberMap, index),
+          onConfirmed: () => cubit.deleteTransaction(transaction, payoffTransactions: payoffTransactions),
         );
       },
     ) as bool?;
@@ -154,13 +156,7 @@ class DetailView extends StatelessWidget {
   }
 
   Widget transactionList(state) {
-    Map<String, int> memberMap = {};
-
-    int a = 0;
-    for (Member m in state.item.members) {
-      memberMap.addAll({m.id: a});
-      a++;
-    }
+    List<Transaction> transactions = state.item.history.where((t) => t.payoffId == null).toList();
 
     return Expanded(
       flex: 50,
@@ -174,7 +170,7 @@ class DetailView extends StatelessWidget {
           margin: const EdgeInsets.all(10),
           child: RefreshIndicator(
             onRefresh: () => cubit.fetchData(),
-            child: state.item.history.isEmpty
+            child: transactions.isEmpty
                 ? ListView(
                     physics: const BouncingScrollPhysics(
                         parent: AlwaysScrollableScrollPhysics()),
@@ -193,36 +189,24 @@ class DetailView extends StatelessWidget {
                     physics: const BouncingScrollPhysics(
                         parent: AlwaysScrollableScrollPhysics()),
                     shrinkWrap: false,
-                    itemCount: state.item.history.length,
+                    itemCount: transactions.length,
                     itemBuilder: (context, i) {
-                      Transaction transaction = state.item.history[state.item.history.length - 1 - i];
+                      Transaction transaction = transactions[transactions.length - 1 - i];
 
-                      if (exController.length < state.item.history.length) {
+                      if (exController.length < transactions.length) {
                         exController.add(ExpansibleController());
                       }
 
-                      if (transaction.description == 'payoff') {
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => cubit.showPastPayoffDialog(state.item.history.length - i - 1),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Payoff'),
-                                Text(transaction.formatDate())
-                              ],
-                            ),
-                          ));
+                      if (transaction.description == 'payoff' && transaction.memberId == null) {
+                        //return payoffExpansionTile(state, transaction, i);
+                        return payoffTile(transaction);
                       } else {
                         return transaction.deleted
                             ? Container(
                                 margin: const EdgeInsets.only(bottom: 5),
                                 child: expansionTile(state, transaction, i),
                               )
-                            : dismissibleTile(state, transaction, memberMap, i);
+                            : dismissibleTile(state, transaction, i);
                       }
                     },
                   ),
@@ -230,7 +214,114 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget dismissibleTile(state, Transaction transaction, Map<String, int> memberMap, int index) {
+  Widget payoffExpansionTile(state, Transaction payoff, index) {
+    final transactions = state.item.history.where((Transaction e) => e.payoffId == payoff.id).toList();
+
+    if (payoffExController.length < transactions.length) {
+      payoffExController.add([]);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 5),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+          color: Color.fromARGB(255, 64, 64, 88),
+        ),
+        child: ExpansionTile(
+          clipBehavior: Clip.hardEdge,
+          maintainState: true,
+          controller: exController[index],
+          onExpansionChanged: (value) => exController[index].isExpanded
+              ? exController.where((e) => e != exController[index]).forEach((e) => e.collapse())
+              : payoffExController[index].forEach((e) => e.collapse()),
+          dense: true,
+          minTileHeight: 10,
+          shape: const Border(),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
+          childrenPadding: const EdgeInsets.all(0),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Payoff'),
+              Text(payoff.formatDate())
+            ],
+          ),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  onPressed: () => showDismissDialog(payoff, payoffTransactions: transactions),
+                  icon: const Icon(
+                    Icons.delete,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => cubit.showPastPayoffDialog(payoff.id),
+                  icon: const Icon(
+                    Icons.handshake,
+                  ),
+                )
+              ],
+            ),
+            ListView.builder(
+              padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: transactions.length,
+              itemBuilder: (context, i) {
+                if (payoffExController[index].length < transactions.length) {
+                  payoffExController[index].add(ExpansibleController());
+                }
+        
+                Transaction transaction = transactions[transactions.length - 1 - i];
+                return Container(
+                  margin: EdgeInsets.only(bottom: i != transactions.length - 1 ? 5 : 0, left: 0, right: 0),
+                  child: expansionTile(state, transaction, index, j: i),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget payoffTile(transaction){
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => cubit.showPastPayoffDialog(transaction.id),
+      child: Container(
+        decoration: BoxDecoration(
+          //color: const Color.fromARGB(255, 64, 64, 88),
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+        ),
+        margin: const EdgeInsets.only(bottom: 5),
+        padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
+        child: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+          children: [
+            Text(payoffDialogTitle),
+            Row(
+              children: [
+                Text(transaction.formatDate()),
+                const SizedBox(width: 15),
+                Transform.rotate(
+                angle: 45 * 3.14159 / 180, // 45 degrees in radians
+                child: Icon(Icons.unfold_more),
+                )
+              ],
+            )
+          ],
+        ),
+      )
+    );
+  }
+
+  Widget dismissibleTile(state, Transaction transaction, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -241,7 +332,7 @@ class DetailView extends StatelessWidget {
         key: ValueKey(transaction.id),
         //key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => showDismissDialog(transaction, memberMap, index),
+        confirmDismiss: (_) => showDismissDialog(transaction),
         background: Container(
           padding: const EdgeInsets.only(right: 20),
           alignment: Alignment.centerRight,
@@ -253,13 +344,13 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget expansionTile(state, Transaction transaction, int index) {
+  Widget expansionTile(state, Transaction transaction, int i, {int? j}) {
     Color color = Color(state.item.members.firstWhere((m) => m.id == transaction.memberId).color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
-    if (exController.length <= index) {
-      exController.add(ExpansibleController());
-    }
+    List<Member> members = state.item.members.where((m) => transaction.operations.any((e) => e.memberId == m.id)).toList();
+
+    ExpansibleController exco = j == null ? exController[i] : payoffExController[i][j];
 
     return Container(
       clipBehavior: Clip.hardEdge,
@@ -275,8 +366,8 @@ class DetailView extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(20))),
       child: ExpansionTile(
         maintainState: true,
-        controller: exController[index],
-        onExpansionChanged: (value) => exController[index].isExpanded ? exController.where((e) => e != exController[index]).forEach((e) => e.collapse()) : cubit.togglePieChart(showPieChart: false),
+        controller: exco,
+        onExpansionChanged: (value) => exco.isExpanded ? (j == null ? exController : payoffExController[i]).where((e) => e != exco).forEach((e) => e.collapse()) : cubit.togglePieChart(showPieChart: false),
         expandedAlignment: Alignment.centerLeft,
         shape: const Border(),
         collapsedIconColor: textColor,
@@ -320,11 +411,11 @@ class DetailView extends StatelessWidget {
                 );
               },
               child: state.showPieChart
-                ? transactionPieChart(state, transaction, textColor)
-                : transactionMemberBar(state, transaction, textColor)
+                ? TransactionPieChart(context: context, members: members, transaction: transaction, textColor: textColor)
+                : TransactionMemberBar(members: members, transaction: transaction, textColor: textColor)
             ),
           ),
-          Padding(
+          if (!transaction.deleted) Padding(
             padding: const EdgeInsets.all(5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -349,94 +440,6 @@ class DetailView extends StatelessWidget {
           
         ],
       ),
-    );
-  }
-
-  Widget transactionMemberBar(state, Transaction transaction, Color textColor) {
-    return SingleChildScrollView(
-      key: const ValueKey('memberBar'),
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        margin: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: textColor.withAlpha(96),
-          border: Border.all(style: BorderStyle.none, width: 0),
-          borderRadius: const BorderRadius.all(Radius.circular(20)),
-        ),
-        child: Row(
-          children: List.generate(transaction.operations.length, (index) {
-            Member m = state.item.members.firstWhere((element) => element.id == transaction.operations[index].memberId);
-            if (index == 0) {
-              return Container(
-                  padding: const EdgeInsets.only(right: 20, left: 5, top: 5, bottom: 5),
-                  margin: const EdgeInsets.all(2),
-                  child: Text(
-                    m.name,
-                    style: TextStyle(color: textColor),
-                  ));
-            }
-            return Container(
-              padding: const EdgeInsets.all(5),
-              margin: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: Color(m.color),
-                border: Border.all(style: BorderStyle.none, width: 0),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-              child: Text(
-                m.name,
-                style: TextStyle(color: Color(m.color).computeLuminance() > 0.2 ? Colors.black : Colors.white),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  Widget transactionPieChart(state, Transaction transaction, Color textColor) {
-    return Container(
-      key: const ValueKey('pieChart'),
-      decoration: BoxDecoration(
-        color: textColor.withAlpha(96),
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      padding: const EdgeInsets.all(10),
-      child: PieChart(
-        dataMap: Map.fromIterable(
-          transaction.operations,
-          key: (e) => state.item.members.firstWhere((m) => m.id == e.memberId).name,
-          value: (e) => e.value.abs(),
-        ),
-        legendOptions: LegendOptions(
-          legendPosition: LegendPosition.right,
-          showLegends: true,
-          legendTextStyle: TextStyle(
-            color: textColor,
-          ),
-        ),
-        chartType: ChartType.disc,
-        ringStrokeWidth: 20,
-        animationDuration: const Duration(milliseconds: 700),
-        chartLegendSpacing: 32,
-        chartRadius: MediaQuery.of(context).size.width / 2.5,
-        colorList: state.item.members.map<Color>((e) => Color(e.color)).toList(),
-        initialAngleInDegree: 0,
-        formatChartValues: (value) => "${value.toStringAsFixed(2)}€",
-        chartValuesOptions: const ChartValuesOptions(
-          showChartValues: true,
-          showChartValuesInPercentage: false,
-          showChartValuesOutside: false,
-          decimalPlaces: 2,
-          chartValueStyle: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          chartValueBackgroundColor: Colors.transparent,
-        )
-      )
     );
   }
 

@@ -82,11 +82,29 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  deleteTransaction(Transaction transaction, memberMap, memberListIndex) {
-    final newState = (state as DetailViewLoaded).copyWith();
+  deleteTransaction(Transaction transaction, {List<Transaction>? payoffTransactions}) async {
+    final whichState = state.runtimeType == DetailViewPayoffDialog ? state as DetailViewPayoffDialog : state as DetailViewLoaded;
+    final newState = whichState.copyWith();
 
-    newState.item.deleteTransaction(transaction, memberMap, memberListIndex);
-    DatabaseHelper.instance.upsertTransaction(transaction);
+    if (payoffTransactions != null) {
+      newState.item.history.where((element) => element.payoffId == transaction.id).forEach((element) {
+        element.payoffId = null;
+      });
+
+      await Future.wait(
+        payoffTransactions.map((t) {
+          t.payoffId = null;
+          return DatabaseHelper.instance.upsertTransaction(t);
+        })
+      );
+
+      newState.item.history.removeWhere((element) => element.id == transaction.id);
+      DatabaseHelper.instance.deleteTransaction(transaction);
+    } else {
+      newState.item.deleteTransaction(transaction);
+      DatabaseHelper.instance.upsertTransaction(transaction);
+    }
+    
     newState.unbalanced = checkBalances(newState.item.members);
     emit(newState);
   }
@@ -260,8 +278,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
-  showPastPayoffDialog(int index) {
-    final newState = DetailViewPayoffDialog.fromLoaded(state as DetailViewLoaded, past: true)..index = index;
+  showPastPayoffDialog(String id) {
+    final newState = DetailViewPayoffDialog.fromLoaded(state as DetailViewLoaded, past: true)..payoffId = id;
 
     emit(DetailViewShowPastPayoffDialog(item: state.item));
 
