@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:splizz/resources/strings.dart';
 
 class CustomDialog extends StatelessWidget {
   final String? title;
@@ -27,8 +28,8 @@ class CustomDialog extends StatelessWidget {
     required this.content,
     this.onConfirmed,
     this.onDismissed,
-    this.leftText = 'Cancel',
-    this.rightText = 'OK',
+    this.leftText = dialogCancel,
+    this.rightText = dialogOk,
     this.insetPadding = const EdgeInsets.all(15),
     this.contentPadding = const EdgeInsets.fromLTRB(20, 20, 20, 0),
     this.alignment = Alignment.bottomCenter,

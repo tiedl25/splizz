@@ -5,6 +5,7 @@ import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/resources/colormap.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 
@@ -26,15 +27,15 @@ class MemberDialog extends StatelessWidget {
         return BlocProvider.value(
           value: cubit, 
           child: CustomDialog(
-            title: 'Delete Member',
+            title: deleteMemberDialogTitle,
             content: Container(
                 padding: const EdgeInsets.all(5),
-                child: const Text(
-                  'Are you sure you want to delete this member?',
+                child: Text(
+                  deleteMemberDialogText,
                   style: TextStyle(fontSize: 20),
                 ),
               ),
-            rightText: 'Delete',
+            rightText: dialogDeleteButton,
             onConfirmed: () => cubit.deleteMember(),
           )
         );
@@ -84,7 +85,7 @@ class MemberDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Name', style: TextStyle(fontSize: 20, color: textColor)),
+                Text(name, style: TextStyle(fontSize: 20, color: textColor)),
                 IntrinsicWidth(
                   child: TextField(
                     controller: state.name,
@@ -117,7 +118,7 @@ class MemberDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total', style: TextStyle(fontSize: 20, color: textColor)),
+                Text(total, style: TextStyle(fontSize: 20, color: textColor)),
                 Text("${member.total.toStringAsFixed(2)} €",
                     style: TextStyle(fontSize: 15, color: textColor))
               ],
@@ -129,7 +130,7 @@ class MemberDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Expenses', style: TextStyle(fontSize: 20, color: textColor)),
+                Text(expenses, style: TextStyle(fontSize: 20, color: textColor)),
                 Text("${(member.total + member.payoff).toStringAsFixed(2)} €",
                     style: TextStyle(fontSize: 15, color: textColor))
               ],
@@ -141,7 +142,7 @@ class MemberDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Balance', style: TextStyle(fontSize: 20, color: textColor)),
+                Text(balance, style: TextStyle(fontSize: 20, color: textColor)),
                 Text("${member.balance.toStringAsFixed(2)} €",
                     style: TextStyle(fontSize: 15, color: textColor))
               ],
@@ -149,7 +150,7 @@ class MemberDialog extends StatelessWidget {
           ),
           SwitchListTile(
             contentPadding: const EdgeInsets.only(left: 15, right: 10),
-            title: Text("Active", style: TextStyle(fontSize: 20, color: textColor)),
+            title: Text(active, style: TextStyle(fontSize: 20, color: textColor)),
             value: member.active,
             onChanged: (bool value) =>
                 cubit.setMemberActivity(member, value),
@@ -191,8 +192,7 @@ class MemberDialog extends StatelessWidget {
                   ? showDeleteMemberDialog() 
                   : showOverlayMessage(
                       context: context, 
-                      message: 'You cannot delete a member with a non-zero balance', 
-                      //message: "A member cannot have any debt!",
+                      message: cannotDeleteNonZeroBalance, 
                       backgroundColor: Theme.of(context).colorScheme.surface
                     ),
               child: Icon(

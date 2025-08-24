@@ -13,6 +13,7 @@ import 'package:splizz/data/database.dart';
 import 'package:splizz/bloc/masterview_states.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MasterViewCubit extends Cubit<MasterViewState> {
@@ -149,7 +150,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final newState = (state as MasterViewItemDialog).copyWith();
 
     if (newState.title == '') {
-      final String message = 'Please enter a title!';
+      final String message = enterTitle;
       emit(MasterViewItemDialogShowSnackBar(
         sharedPreferences: state.sharedPreferences, 
         message: message
@@ -166,7 +167,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     }
 
     if (membersNew.length < 2) {
-      final String message = 'Please add at least two members!';
+      final String message = addMin2Members;
       emit(MasterViewItemDialogShowSnackBar(
         sharedPreferences: state.sharedPreferences, 
         message: message

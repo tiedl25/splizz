@@ -12,6 +12,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
 import 'package:splizz/resources/colormap.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class DetailViewCubit extends Cubit<DetailViewState> {
@@ -181,7 +182,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       if (!permission.fullAccess) {
         emit(DetailViewShowSnackBar(
           item: state.item,
-          message: "You are not authorized to share this item!"
+          message: notAuthorizedShareItem
         ));
         return;
       }
@@ -232,7 +233,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   showLink(email) async {
     final newState = state.copyWith();
     if (email.isEmpty){
-      emit(DetailViewShareDialogShowSnackBar(item: state.item, message: 'Email cannot be empty!'));
+      emit(DetailViewShareDialogShowSnackBar(item: state.item, message: emailCannotBeEmpty));
       emit(newState);
       return;
     }
@@ -250,7 +251,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       emit(DetailViewShareDialogShowSnackBar(item: state.item, message: result.message!));
     else {
       permission = result.value!;
-      String message = 'You are invited to a Splizz. Accept by opening this link.\n\n';
+      String message = invitedToSplizz;
       message += 'https://tmc.tiedl.rocks/splizz?id=${permission.id}';
       emit(DetailViewShareDialogShowLink(item: state.item, message: message));
     }
@@ -264,7 +265,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
       emit(DetailViewShowSnackBar(
         item: state.item, 
-        message: "There are no unbalanced transactions!")
+        message: noUnbalancedTransactions)
       );
       
       emit(newState);

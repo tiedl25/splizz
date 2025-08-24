@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/masterview_states.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -62,7 +63,7 @@ class MasterView extends StatelessWidget {
       builder: (BuildContext context) {
         return CustomDialog(
           content: Text(
-            'You are invited to a Splizz. Do you want to join?',
+            invitedToSplizz2,
             style: TextStyle(fontSize: 20),
           ),
           onConfirmed: () async => await cubit.acceptInvitation(),
@@ -88,13 +89,13 @@ class MasterView extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return CustomDialog(
-          title: 'Confirm Dismiss',
+          title: dismissDialogTitle,
           content: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(5),
-                child: const Text(
-                  'Do you really want to remove this Item',
+                child: Text(
+                  dismissDialogTextItem,
                   style: TextStyle(fontSize: 20),
                 ),
               ),
@@ -196,9 +197,9 @@ class MasterView extends StatelessWidget {
           SpeedDialChild(
               child: const Icon(Icons.bug_report),
               onTap: () async => await showLoadingEntry(context: context, onWait: () async => await cubit.addDebugItem())),
-          SpeedDialChild(
-              child: const Icon(Icons.remove),
-              onTap: () => cubit.removeAll()),
+          //SpeedDialChild(
+          //    child: const Icon(Icons.remove),
+          //    onTap: () => cubit.removeAll()),
           // add more options as needed
         ],
       )
@@ -207,7 +208,7 @@ class MasterView extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         onPressed: cubit.showItemDialog,
-        tooltip: 'Add Transaction',
+        tooltip: addItem,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       );
@@ -222,10 +223,10 @@ class MasterView extends StatelessWidget {
               ? ListView(
                   physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                   padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height / 2.5),
-                  children: const [
+                  children: [
                     Center(
                       child: Text(
-                        'No items in list',
+                        noItemsInList,
                         style: TextStyle(fontSize: 20),
                       ),
                     )
@@ -253,7 +254,7 @@ class MasterView extends StatelessWidget {
       extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Splizz'),
+        title: Text(appTitle),
         actions: [
           IconButton(onPressed: pushSettingsView, icon: const Icon(Icons.settings))
         ],

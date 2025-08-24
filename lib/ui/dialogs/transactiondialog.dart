@@ -5,6 +5,7 @@ import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/bloc/transactionDialog_states.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/resources/money_divisions.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/circularSlider.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
@@ -139,7 +140,7 @@ class TransactionDialog extends StatelessWidget {
         autofocus: true,
         controller: state.descriptionController,
         onChanged: (value) {},
-        decoration: TfDecorationModel(context: context, title: 'Add a description')
+        decoration: TfDecorationModel(context: context, title: addDescription)
       ),
       SizedBox(
         height: 7.5,
@@ -162,7 +163,7 @@ class TransactionDialog extends StatelessWidget {
       if (state.help) Container(
         margin: const EdgeInsets.only(left: 5, top: 5),
         alignment: Alignment.centerLeft,
-        child: const Text('Select the person who paid'),
+        child: Text(selectPayingPerson),
       ),
       SizedBox(
         height: 60, //MediaQuery.of(context).size.height/14,
@@ -180,12 +181,12 @@ class TransactionDialog extends StatelessWidget {
       scale: state.scale,
       child: CustomDialog(
         pop: false,
-        rightText: edit ? "OK" : "Add",
+        rightText: edit ? dialogOk : dialogAdd,
         header: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              edit ? "Edit Transaction" : "Add Transaction",
+              edit ? transactionDialogEditTitle : transactionDialogAddTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             Spacer(),
@@ -232,7 +233,7 @@ class TransactionDialog extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           backgroundColor: Colors.black26,
-          title: Text(this.edit ? "Edit Transaction" : "Add Transaction"),
+          title: Text(this.edit ? transactionDialogEditTitle : transactionDialogAddTitle),
           leading: GestureDetector(
             child: const Icon(
               Icons.arrow_back,
@@ -265,13 +266,13 @@ class TransactionDialog extends StatelessWidget {
               if (state.help) Container(
                 margin: const EdgeInsets.only(left: 5, top: 5),
                 alignment: Alignment.centerLeft,
-                child: const Text('Select the members that are involved'),
+                child: Text(transactionDialogHelpMembers),
               ),
               SizedBox(height: 70, child: memberBar(state.memberSelection)),
               if (state.help ) Container(
                 margin: const EdgeInsets.only(left: 5, top: 5),
                 alignment: Alignment.centerLeft,
-                child: const Text("Customize how you want to divide the amount\nThe slider on the right can be used to adjust the stepsize \nAlternatively, for a more granular control toggle the switch"),
+                child: Text(transactionDialogHelpCircularSlider),
               ),
               Spacer(),
               Row(
@@ -312,7 +313,7 @@ class TransactionDialog extends StatelessWidget {
                       child: CupertinoButton(
                       padding: const EdgeInsets.symmetric(vertical: 0),
                       child: Text(
-                        "Cancel",
+                        dialogCancel,
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       onPressed: () => Navigator.of(context).pop(false),
@@ -324,7 +325,7 @@ class TransactionDialog extends StatelessWidget {
                     Expanded(
                       child: CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(edit ? "OK" : "Add", style: Theme.of(context).textTheme.labelLarge,),
+                        child: Text(edit ? dialogOk : dialogAdd, style: Theme.of(context).textTheme.labelLarge,),
                         onPressed: () async => await (edit ? cubit.editTransaction() : cubit.addTransaction()).then(
                           (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
                       ),

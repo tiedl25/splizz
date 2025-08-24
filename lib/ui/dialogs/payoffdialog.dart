@@ -5,6 +5,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/overlayLoadingScreen.dart';
 import 'package:splizz/ui/widgets/transactionPieChart.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
@@ -33,9 +34,9 @@ class PayoffDialog extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return CustomDialog(
-          title: 'Confirm Dismiss',
-          content: const Text(
-            'Do you really want to remove this Transaction',
+          title: dismissDialogTitle,
+          content: Text(
+            dismissDialogText,
             style: TextStyle(fontSize: 20),
           ),
           onConfirmed: () async => await cubit.deleteTransaction(transaction, payoffTransactions: payoffTransactions),
@@ -66,11 +67,11 @@ class PayoffDialog extends StatelessWidget {
     var sheet = excel['Sheet1'];
 
     List<CellValue> headers = [
-      TextCellValue('Date'),
-      TextCellValue('Description'),
-      TextCellValue('Value'),
-      TextCellValue('Person who payed'),
-      TextCellValue('Member')
+      TextCellValue(date),
+      TextCellValue(description),
+      TextCellValue(value),
+      TextCellValue(personWhoPayed),
+      TextCellValue(member)
     ];
 
     // Add column headers
@@ -128,11 +129,11 @@ class PayoffDialog extends StatelessWidget {
     List<Transaction> transactions = await getPayoffTransactions(payoff);
 
     List<DataColumn> columns = [
-      const DataColumn(label: Text('Date')),
-      const DataColumn(label: Text('Description')),
-      const DataColumn(label: Text('Value')),
-      const DataColumn(label: Text('Person who payed')),
-      const DataColumn(label: Text('Member'))
+      DataColumn(label: Text(date)),
+      DataColumn(label: Text(description)),
+      DataColumn(label: Text(value)),
+      DataColumn(label: Text(personWhoPayed)),
+      DataColumn(label: Text(member))
     ];
     List<DataRow> rows = transactions.map<DataRow>((row) {
       return DataRow(
@@ -285,11 +286,11 @@ class PayoffDialog extends StatelessWidget {
                 mimeType:
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         ],
-        text: 'Payoff',
+        text: payoffDialogTitle,
         fileNameOverrides: [
-          if (state.whatToShare[0]) 'Payoff.png',
-          if (state.whatToShare[1]) 'Transactions.png',
-          if (state.whatToShare[2]) 'Transactions.xlsx'
+          if (state.whatToShare[0]) payoffDialogTitle + '.png',
+          if (state.whatToShare[1]) transactions + '.png',
+          if (state.whatToShare[2]) transactions + '.xlsx'
         ]);
 
     Navigator.of(context).pop();
@@ -306,7 +307,7 @@ class PayoffDialog extends StatelessWidget {
                 state as DetailViewPayoffDialog;
 
                 return CustomDialog(
-                  title: "Select what to share",
+                  title: shareSelectionDialogTitle,
                   content: Container(
                     width: MediaQuery.of(context).size.width,
                     child: Column(
@@ -316,7 +317,7 @@ class PayoffDialog extends StatelessWidget {
                           checkboxShape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          title: const Text("Payoff Overview"),
+                          title: Text(shareSelectionDialogCheckbox1),
                           value: state.whatToShare[0],
                           onChanged: (value) => cubit
                               .changeWhatToShare(<bool>[
@@ -329,7 +330,7 @@ class PayoffDialog extends StatelessWidget {
                           checkboxShape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          title: const Text("Transaction List (Image)"),
+                          title: Text(shareSelectionDialogCheckbox2),
                           value: state.whatToShare[1],
                           onChanged: (value) => cubit
                               .changeWhatToShare(<bool>[
@@ -342,7 +343,7 @@ class PayoffDialog extends StatelessWidget {
                           checkboxShape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          title: const Text("Transaction List (Excel Sheet)"),
+                          title: Text(shareSelectionDialogCheckbox3),
                           value: state.whatToShare[2],
                           onChanged: (value) => cubit
                               .changeWhatToShare(<bool>[
@@ -390,7 +391,7 @@ class PayoffDialog extends StatelessWidget {
 
         return CustomDialog(
           header: Row(children: [
-            const Text('Payoff'),
+            Text(payoffDialogTitle),
             const Spacer(),
             if(state.past) IconButton(
               onPressed: () => showDismissDialog(payoff, payoffTransactions: transactions).then((value) => value! ? Navigator.of(context).pop() : null),

@@ -12,6 +12,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/resources/money_divisions.dart';
+import 'package:splizz/resources/strings.dart';
 
 class TransactionDialogCubit extends Cubit<TransactionDialogState> {
   TransactionDialogCubit(DetailViewCubit detailViewCubit, Item item)
@@ -21,7 +22,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       memberSelection: item.members.where((m) => !m.deleted).map((Member m) => m.active).toList(),
       memberBalances: List.generate(item.members.length, (index) => 0.0),
       involvedMembers: [],
-      date: ["Today", "Yesterday", DateTime.now()]
+      date: [today, yesterday, DateTime.now()]
     ));
 
   TransactionDialogCubit.edit(DetailViewCubit detailViewCubit, Item item, Transaction transaction)
@@ -34,7 +35,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
         transaction.operations.sublist(1).firstWhere((op) => op.memberId == m.id, orElse: () => Operation(memberId: m.id, value: 0.0)).value
       ).toList(),
       involvedMembers: [],//transaction.operations.sublist(1).map((op) => {"id": op.memberId, "balance": op.value, "listId": item.members.indexWhere((m) => m.id == op.memberId)}).toList(),
-      date: ["Today", "Yesterday", transaction.date],
+      date: [today, yesterday, transaction.date],
       selection: item.members.indexWhere((m) => m.id == transaction.memberId),
       sum: transaction.value,
       descriptionController: TextEditingController(text: transaction.description),
@@ -361,7 +362,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
     final newState = whichState.copyWith();
 
     if (newState.descriptionController.text.isEmpty) {
-      final String message = 'Please enter a description!';
+      final String message = enterDescription;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -370,7 +371,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.sum == 0) {
-      final String message = 'Transaction value cannot be zero!';
+      final String message = transactionCannotBeZero;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -379,7 +380,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.selection == -1) {
-      final String message = 'Please select a payer!';
+      final String message = selectPayer;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -388,7 +389,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.memberSelection.contains(true) == false) {
-      final String message = 'Please select at least one member!';
+      final String message = selectMin1Member;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit, 
         message: message
@@ -452,7 +453,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
     final newState = whichState.copyWith();
 
     if (newState.descriptionController.text.isEmpty) {
-      final String message = 'Please enter a description!';
+      final String message = enterDescription;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -461,7 +462,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.sum == 0) {
-      final String message = 'Transaction value cannot be zero!';
+      final String message = transactionCannotBeZero;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -470,7 +471,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.selection == -1) {
-      final String message = 'Please select a payer!';
+      final String message = selectPayer;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message
@@ -479,7 +480,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       return Result.failure(message);
     }
     if (newState.memberSelection.contains(true) == false) {
-      final String message = 'Please select at least one member!';
+      final String message = selectMin1Member;
       emit(TransactionDialogShowSnackBar(
         cubit: newState.cubit,
         message: message

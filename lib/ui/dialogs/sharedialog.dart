@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
@@ -14,8 +15,8 @@ class AuthDialog extends StatelessWidget {
     final cubit = context.read<DetailViewCubit>();
 
     return CustomDialog(
-      content: const Text(
-        'Do you want to sign in to share your items and sync them across devices?',
+      content: Text(
+        wannaSignIn,
         style: TextStyle(fontSize: 20),
       ),
       onConfirmed: () => Navigator.pushReplacementNamed(context, '/auth'),
@@ -56,7 +57,7 @@ class ShareDialog extends StatelessWidget {
       builder: (context, state) {
         return CustomDialog(
           pop: false,
-          title: 'Share Splizz',
+          title: shareSplizzDialogTitle,
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(
@@ -67,7 +68,7 @@ class ShareDialog extends StatelessWidget {
                   controller: tfController,
                   decoration: TfDecorationModel(
                     context: context,
-                    title: 'Email',
+                    title: email,
                     //icon: IconButton(
                     //  icon: const Icon(Icons.copy),
                     //  color: Colors.black45,
@@ -79,8 +80,8 @@ class ShareDialog extends StatelessWidget {
                   height: 10,
                 ),
                 ListTile(
-                  title: const Text(
-                    'Full Access',
+                  title: Text(
+                    fullAccess,
                     style: TextStyle(fontSize: 20),
                   ),
                   contentPadding: const EdgeInsets.fromLTRB(5, 0, 0, 0),

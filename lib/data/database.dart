@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:splizz/data/result.dart';
 
 import 'package:splizz/brick/repository.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'package:synchronized/synchronized.dart';
 
@@ -265,7 +266,7 @@ class DatabaseHelper {
     final existingPermission = await db.get<User>(query: Query(where: [Where("itemId").isExactly(permission.itemId), Where("userEmail").isExactly(permission.userEmail)]));
 
     if (existingPermission.isNotEmpty){
-      if (existingPermission[0].expirationDate == null) return Result.failure("User is already granted access!");
+      if (existingPermission[0].expirationDate == null) return Result.failure(alreadyGrantedAccess);
 
       existingPermission[0].fullAccess = permission.fullAccess;
       existingPermission[0].expirationDate = permission.expirationDate;
@@ -285,12 +286,12 @@ class DatabaseHelper {
 
     final permissions = await db.get<User>(query: Query(where: [Where('id').isExactly(permissionId)]));
 
-    if (permissions.isEmpty) return Result.failure("You are not authorized for this action!");
+    if (permissions.isEmpty) return Result.failure(notAuthorized);
     
     User permission = permissions[0];
 
     if(permission.userEmail != null){
-      if (permission.userEmail != currentUser.email) return Result.failure("You are not authorized for this action!");
+      if (permission.userEmail != currentUser.email) return Result.failure(notAuthorized);
 
       permission.userId = currentUser.id;
       permission.expirationDate = null;
@@ -306,7 +307,7 @@ class DatabaseHelper {
     Query query = Query(where: [Where("itemId").isExactly(permission.itemId), Where("userId").isExactly(permission.userId)]);
     final existingPermissions = await db.get<User>(query: query);
 
-    if (existingPermissions.isNotEmpty) return Result.failure("The item has already been added");    
+    if (existingPermissions.isNotEmpty) return Result.failure(itemAlreadyAdded);    
 
     await db.upsert<User>(permission);
 

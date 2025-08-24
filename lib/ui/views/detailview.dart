@@ -8,6 +8,7 @@ import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
+import 'package:splizz/resources/strings.dart';
 
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
 import 'package:splizz/ui/dialogs/sharedialog.dart';
@@ -117,9 +118,9 @@ class DetailView extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return CustomDialog(
-          title: 'Confirm Dismiss',
-          content: const Text(
-            'Do you really want to remove this Transaction',
+          title: dismissDialogTitle,
+          content: Text(
+            dismissDialogText,
             style: TextStyle(fontSize: 20),
           ),
           onConfirmed: () => cubit.deleteTransaction(transaction, payoffTransactions: payoffTransactions),
@@ -136,7 +137,7 @@ class DetailView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Transactions', style: TextStyle(fontSize: 30), textAlign: TextAlign.center),
+          Text(transactions, style: TextStyle(fontSize: 30), textAlign: TextAlign.center),
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -177,10 +178,10 @@ class DetailView extends StatelessWidget {
                         parent: AlwaysScrollableScrollPhysics()),
                     padding: EdgeInsets.symmetric(
                         vertical: MediaQuery.of(context).size.height / 4),
-                    children: const [
+                    children: [
                         Center(
                           child: Text(
-                            "No transactions in list",
+                            noTransactionsInList,
                             style: TextStyle(fontSize: 20),
                           ),
                         ),
@@ -245,7 +246,7 @@ class DetailView extends StatelessWidget {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Payoff'),
+              Text(payoffDialogTitle),
               Text(payoff.formatDate())
             ],
           ),
@@ -639,7 +640,7 @@ class DetailView extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(20)),
                 ),
                 onPressed: cubit.showTransactionDialog,
-                tooltip: 'Add Item',
+                tooltip: addTransaction,
                 foregroundColor: Colors.white,
                 child: const Icon(Icons.add),
               ),

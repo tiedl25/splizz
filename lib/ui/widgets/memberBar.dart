@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/resources/animations.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/dialogs/addMemberDialog.dart';
 import 'package:splizz/ui/dialogs/memberDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
@@ -42,7 +43,7 @@ class MemberBar extends StatelessWidget {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: "Dismiss",
+      barrierLabel: dialogDismiss,
       anchorPoint: Offset(buttonPosition.dx, buttonPosition.dy),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, anim1, anim2) {

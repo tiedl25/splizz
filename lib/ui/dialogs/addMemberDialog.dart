@@ -4,6 +4,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/resources/colormap.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 
 class AddMemberDialog extends StatelessWidget {
@@ -44,7 +45,7 @@ class AddMemberDialog extends StatelessWidget {
     this.cubit = context.read<DetailViewCubit>();
 
     return CustomDialog(
-      title: "Add Member",
+      title: addMember,
       content: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: TextField(
@@ -52,7 +53,7 @@ class AddMemberDialog extends StatelessWidget {
           decoration: InputDecoration(
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
-              labelText: 'Name',
+              labelText: name,
               suffixIcon: IconButton(
                 onPressed: () => showColorPicker(),
                 icon: BlocBuilder<DetailViewCubit, DetailViewState>(

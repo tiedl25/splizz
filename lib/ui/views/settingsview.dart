@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:splizz/bloc/settingsview_bloc.dart';
-import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -22,7 +22,7 @@ class SettingsView extends StatelessWidget {
       builder: (BuildContext context) {
         return CustomDialog(
           content: Text(
-            "Are you sure you want to log out?",
+            logoutDialogTitle,
             style: TextStyle(fontSize: 20),
           ),
           pop: false,
@@ -55,7 +55,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: const Text('Privacy Policy'),
+              title: Text(privacyPolicy),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -81,7 +81,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: const Text('Buy me a Coffee'),
+              title: Text(buyMeACoffee),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -105,7 +105,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: const Text('PayPal'),
+              title: Text(paypal),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -134,7 +134,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           SwitchListTile(
-            title: const Text("Use system theme"),
+            title: Text(useSystemTheme),
             value: systemTheme,
             onChanged: (_) async => cubit.updateTheme(MediaQuery.of(context).platformBrightness),
           ),
@@ -144,7 +144,7 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           SwitchListTile(
-            title: const Text("Dark Mode"),
+            title: Text(darkModeText),
             value: darkMode,
             tileColor: systemTheme
               ? Theme.of(context).colorScheme.surfaceContainer
@@ -171,7 +171,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            title: Text("Version"),
+            title: Text(versionText),
             subtitle: Text(version),
           ),
           const Divider(
@@ -180,7 +180,7 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           ListTile(
-            title: Text("Privacy Policy"),
+            title: Text(privacyPolicy),
             trailing: Icon(Icons.open_in_browser),
             onTap: () => cubit.showPrivacyPolicy(),
           ),
@@ -201,12 +201,12 @@ class SettingsView extends StatelessWidget {
           borderRadius: BorderRadius.circular(20)),
       child: Supabase.instance.client.auth.currentSession != null
         ? ListTile(
-            title: const Text("Logout"),
+            title: Text(logout),
             trailing: Icon(Icons.logout),
             onTap: () => cubit.showLogoutDialog(),
           )
         : ListTile(
-            title: const Text("Login"),
+            title: Text(login),
             trailing: Icon(Icons.login),
             onTap: () async => cubit.login(),
           ),
@@ -226,7 +226,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            title: Text("Buy me a Coffee"),
+            title: Text(buyMeACoffee),
             trailing: Icon(Icons.coffee),
             onTap: () => showBuyMeACoffee(),
           ),
@@ -236,13 +236,13 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           ListTile(
-            title: Text('Let Elon bring me money!'),
+            title: Text(paypal2),
             trailing: Icon(Icons.paypal),
             onTap: () => showPaypal(),
           )
         ],
       ),
-);
+    );
   }
 
   @override
@@ -253,7 +253,7 @@ class SettingsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(settingsViewTitle),
         systemOverlayStyle: SystemUiOverlayStyle(
             systemNavigationBarColor: Colors.transparent, // Navigation bar
         ),

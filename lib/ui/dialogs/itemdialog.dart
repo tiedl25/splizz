@@ -5,6 +5,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/imageCropper.dart';
 
 import 'package:splizz/ui/widgets/uiModels.dart';
@@ -165,7 +166,7 @@ class ItemDialog extends StatelessWidget {
         onChanged: (name) => cubit.addMember(i, name),
         decoration: TfDecorationModel(
           context: context,
-          title: 'Member $i',
+          title: member + '$i',
           icon: IconButton(
             icon: const Icon(Icons.color_lens),
             color: colormap[i - 1],
@@ -205,7 +206,7 @@ class ItemDialog extends StatelessWidget {
         state as MasterViewItemDialog;
 
         return CustomDialog(
-          title: 'Create a new Splizz',
+          title: itemDialogTitle,
           pop: false,
           content: SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -221,7 +222,7 @@ class ItemDialog extends StatelessWidget {
                         onChanged: (value) => cubit.updateItemTitle(value),
                         decoration: TfDecorationModel(
                           context: context,
-                          title: 'Title',
+                          title: title,
                           icon: IconButton(
                               onPressed: cubit.showImagePicker,
                               icon: const Icon(

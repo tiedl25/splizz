@@ -6,6 +6,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/main_bloc.dart';
 import 'package:splizz/brick/repository.dart';
+import 'package:splizz/resources/strings.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 
 import 'package:splizz/bloc/masterview_bloc.dart';
@@ -79,7 +80,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return MaterialApp(
-            title: 'Splizz',
+            title: appTitle,
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeMode,
