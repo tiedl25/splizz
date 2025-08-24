@@ -85,11 +85,11 @@ class MyApp extends StatelessWidget {
             themeMode: themeMode,
             initialRoute: '/',
             routes: {
-              '/': (context) => SplashView(prefs: sharedPreferences),
+              '/': (context) => SplashView(prefs: sharedPreferences, themeMode: themeMode),
               '/auth': (context) => AuthView(prefs: sharedPreferences),
               '/home': (context) => BlocProvider(
                     create: (_) => MasterViewCubit(sharedPreferences),
-                    child: MasterView(),
+                    child: MasterView(themeMode: themeMode,),
                   ),
               '/settings': (context) => BlocProvider(
                     create: (_) => SettingsViewCubit(context.read<ThemeCubit>()),

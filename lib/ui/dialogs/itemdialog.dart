@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
+import 'package:splizz/ui/widgets/imageCropper.dart';
 
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
@@ -18,6 +18,10 @@ class ItemDialog extends StatelessWidget {
 
   Image? croppedImage;
   final ImagePicker picker = ImagePicker();
+  
+  final themeMode;
+
+  ItemDialog({this.themeMode});
 
   Future<void> showImagePicker() async {
     showDialog(
@@ -64,6 +68,10 @@ class ItemDialog extends StatelessWidget {
     int image = state.image;
     Uint8List? imageFile = state.imageFile;
 
+    bool isDarkTheme = themeMode == ThemeMode.system
+      ? MediaQuery.of(context).platformBrightness == Brightness.dark
+      : themeMode == ThemeMode.dark;
+
     return Container(
         decoration: BoxDecoration(
             border: image == index
@@ -94,7 +102,7 @@ class ItemDialog extends StatelessWidget {
                   children: [
                       GestureDetector(
                         onTap: () async {
-                          await imagePickCropper(ImageSource.camera);
+                          await imagePickCropper(ImageSource.camera, context, cubit, isDarkTheme: isDarkTheme);
                           if (imageFile == null) return;
                           cubit.changeImage(index);
                         },
@@ -106,7 +114,7 @@ class ItemDialog extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await imagePickCropper(ImageSource.gallery);
+                          await imagePickCropper(ImageSource.gallery, context, cubit, isDarkTheme: isDarkTheme);
                           if (imageFile == null) return;
                           cubit.changeImage(index);
                         },
@@ -118,28 +126,6 @@ class ItemDialog extends StatelessWidget {
                       )
                     ]),
         ));
-  }
-
-  Future<void> imagePickCropper(imageSource) async {
-    final imageFilePath = (await picker.pickImage(source: imageSource));
-    if (imageFilePath == null) return;
-
-    final croppedImage = await ImageCropper().cropImage(
-      sourcePath: imageFilePath.path,
-      aspectRatio: const CropAspectRatio(ratioX: 2.2, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(
-            toolbarTitle: 'Crop',
-            toolbarColor: Theme.of(context).colorScheme.surface,
-            toolbarWidgetColor: Colors.white,
-            backgroundColor: Theme.of(context).colorScheme.surface),
-        IOSUiSettings(
-          title: 'Crop',
-        ),
-      ],
-    );
-
-    cubit.setImage(croppedImage);
   }
 
   void showColorPicker() {

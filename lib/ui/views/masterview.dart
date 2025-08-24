@@ -22,10 +22,12 @@ var activeSession = Supabase.instance.client.auth.currentSession;
 
 class SplashView extends StatelessWidget {
   final SharedPreferences prefs;
+  final themeMode;
 
   const SplashView({
     super.key,
     required this.prefs,
+    this.themeMode,
   });
 
   @override
@@ -37,7 +39,7 @@ class SplashView extends StatelessWidget {
           ? AuthView(prefs: prefs)
           : BlocProvider(
               create: (context) => MasterViewCubit(prefs,), 
-              child: MasterView()
+              child: MasterView(themeMode: themeMode,)
             ),
       ),
     );
@@ -47,6 +49,10 @@ class SplashView extends StatelessWidget {
 class MasterView extends StatelessWidget {
   late final BuildContext context;
   late final MasterViewCubit cubit;
+  
+  final themeMode;
+
+  MasterView({super.key, this.themeMode});
 
   //Dialogs
 
@@ -72,7 +78,7 @@ class MasterView extends StatelessWidget {
         builder: (BuildContext context) {
           return BlocProvider.value(
             value: cubit,
-            child: ItemDialog(),
+            child: ItemDialog(themeMode: themeMode),
           );
         });
   }
@@ -113,7 +119,7 @@ class MasterView extends StatelessWidget {
         builder: (BuildContext context) {
           return BlocProvider(
             create: (context) => DetailViewCubit(item, masterViewCubit: cubit)..fetchData(),
-            child: DetailView()
+            child: DetailView(themeMode: themeMode,)
           );
         },
       ),

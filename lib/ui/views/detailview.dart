@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
@@ -13,6 +12,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/ui/dialogs/payoffdialog.dart';
 import 'package:splizz/ui/dialogs/sharedialog.dart';
 import 'package:splizz/ui/dialogs/transactiondialog.dart';
+import 'package:splizz/ui/widgets/imageCropper.dart';
 import 'package:splizz/ui/widgets/memberBar.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/transaction.model.dart';
@@ -30,9 +30,10 @@ class DetailView extends StatelessWidget {
   List<List<ExpansibleController>> payoffExController = [];
 
   Image? croppedImage;
-  final ImagePicker picker = ImagePicker();
+  
+  final themeMode;
 
-  DetailView();
+  DetailView({super.key, this.themeMode});
 
   // Show Dialog Methods
 
@@ -446,6 +447,10 @@ class DetailView extends StatelessWidget {
   Widget imageEdit(DetailViewEditMode state) {
     Uint8List? imageFile = state.imageFile ?? state.item.image;
 
+    bool isDarkTheme = themeMode == ThemeMode.system
+      ? MediaQuery.of(context).platformBrightness == Brightness.dark
+      : themeMode == ThemeMode.dark;
+
     return Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.width / 2.2,
@@ -459,41 +464,19 @@ class DetailView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                       GestureDetector(
-                        onTap: () async => await imagePickCropper(ImageSource.camera),
+                        onTap: () async => await imagePickCropper(ImageSource.camera, context, cubit, update: true, isDarkTheme: isDarkTheme),
                         child: Icon(Icons.camera_alt,
                             color: Colors.black54,
                             size: 50),
                       ),
                       GestureDetector(
-                        onTap: () async => await imagePickCropper(ImageSource.gallery),
+                        onTap: () async => await imagePickCropper(ImageSource.gallery, context, cubit, update: true, isDarkTheme: isDarkTheme),
                         child: Icon(Icons.image,
                             color: Colors.black54,
                             size: 50),
                       )
                     ]),
         ));
-  }
-
-  Future<void> imagePickCropper(imageSource) async {
-    final imageFilePath = (await picker.pickImage(source: imageSource));
-    if (imageFilePath == null) return;
-
-    final croppedImage = await ImageCropper().cropImage(
-      sourcePath: imageFilePath.path,
-      aspectRatio: const CropAspectRatio(ratioX: 2.2, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(
-            toolbarTitle: 'Crop',
-            toolbarColor: Theme.of(context).colorScheme.surface,
-            toolbarWidgetColor: Colors.white,
-            backgroundColor: Theme.of(context).colorScheme.surface),
-        IOSUiSettings(
-          title: 'Crop',
-        ),
-      ],
-    );
-
-    cubit.changeImage(croppedImage);
   }
 
   Widget body() {
