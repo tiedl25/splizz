@@ -120,6 +120,7 @@ class Item extends OfflineFirstWithSupabaseModel {
     List<Member> payer = [];
     for(Member e in members){
       Member a = Member.fromMember(e);
+      a.balance = double.parse(a.balance.toStringAsFixed(2));
       a.compensate();
       payer.add(a);
     }
@@ -139,7 +140,7 @@ class Item extends OfflineFirstWithSupabaseModel {
           double tmp = positive[a].balance;
           Member receiver = Member.fromMember(positive[a]);
           
-          if(negative[b].balance.abs() >= positive[a].balance){
+          if(negative[b].balance.abs() >= positive[a].balance && (a < positive.length-1 && b < negative.length-1)){
             positive[a].balance = 0;
             negative[b].balance += tmp;
           }else{
