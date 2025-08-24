@@ -407,7 +407,7 @@ class PayoffDialog extends StatelessWidget {
             child: Container(
                 margin: const EdgeInsets.all(10),
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height / 2.5,
+                  maxHeight: MediaQuery.of(context).size.height / 1.5,
                 ),
                 child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
