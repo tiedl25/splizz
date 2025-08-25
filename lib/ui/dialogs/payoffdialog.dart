@@ -5,6 +5,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/detailview_states.dart';
+import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/overlayLoadingScreen.dart';
 import 'package:splizz/ui/widgets/transactionPieChart.dart';
@@ -57,6 +58,61 @@ class PayoffDialog extends StatelessWidget {
     }
 
     item.members = members;
+  }
+
+  Future<Uint8List> exportTransactionTableToExcelImproved(Transaction payoff) async {
+    List<Transaction> transactions = await getPayoffTransactions(payoff);
+
+    // Create a new Excel document
+    var excel = Excel.createExcel();
+    var sheet = excel['Sheet1'];
+
+    List<CellValue> headers = [
+      TextCellValue(date),
+      TextCellValue(description),
+      TextCellValue(value),
+      TextCellValue(personWhoPayed),
+      ...item.members.map((m) => TextCellValue(m.name))
+    ];
+
+    // Add column headers
+    sheet.appendRow(headers);
+
+    List<List<CellValue>> rows = transactions.map<List<CellValue>>((row) {
+      return [
+        DateTimeCellValue.fromDateTime(row.timestamp),
+        TextCellValue(row.description),
+        DoubleCellValue(row.value),
+        TextCellValue(item.members
+            .firstWhere((element) => element.id == row.memberId)
+            .name),
+        ...item.members.map((m) {
+          double balance = row.operations.sublist(1)
+              .firstWhere((element) => element.memberId == m.id, orElse: () => Operation(value: 0)).value;
+          return DoubleCellValue(balance);
+        })
+      ];
+    }).toList();
+
+    // Add data rows
+    for (var row in rows) {
+      sheet.appendRow(row);
+    }
+
+    sheet.appendRow([...List<CellValue>.filled(item.members.length, TextCellValue(''))]); // Empty row before total
+
+    sheet.appendRow([
+      TextCellValue('Total'),
+      TextCellValue(''),
+      FormulaCellValue("SUM(C2:C${rows.length})"),
+      TextCellValue(''),
+      ...item.members.map((m) {
+        String col = String.fromCharCode(65 + 4 + item.members.indexOf(m));
+        return FormulaCellValue("SUM($col${2}:$col${rows.length+1})+SUMIF(D2:D${rows.length+1}, \"${m.name}\",C2:C${rows.length+1})");
+      })
+    ]);
+
+    return Uint8List.fromList(excel.save()!);
   }
 
   Future<Uint8List> exportTransactionTableToExcel(Transaction payoff) async {
@@ -147,7 +203,7 @@ class PayoffDialog extends StatelessWidget {
           DataCell(Text(row.operations
               .where((element) => element.value != row.value)
               .map((e) =>
-                  item.members.firstWhere((m) => m.id == e.memberId).name)
+                  "${item.members.firstWhere((m) => m.id == e.memberId).name} (${e.value.toStringAsFixed(2)}€)")
               .toList()
               .join(', ')))
         ],
@@ -269,7 +325,7 @@ class PayoffDialog extends StatelessWidget {
 
     final payoffBytes = await controller.capture();
     final transactionsBytes = await transactionTable(payoff);
-    final excelBytes = await exportTransactionTableToExcel(payoff);
+    final excelBytes = await exportTransactionTableToExcelImproved(payoff);
 
     if (overlayEntry.mounted) {
       overlayEntry.remove();
