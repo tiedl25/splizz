@@ -20,6 +20,7 @@ class Member extends OfflineFirstWithSupabaseModel {
   bool active;
   bool deleted;
   final DateTime timestamp;
+  String? email;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
@@ -38,7 +39,7 @@ class Member extends OfflineFirstWithSupabaseModel {
   List<Transaction> history;
 
   //Constructor
-  Member({required this.name, required this.color, String? id, String? itemId, double? total, double? balance, double? payoff,List<Transaction>? history, bool? active, bool? deleted, DateTime? timestamp}) : 
+  Member({required this.name, required this.color, String? id, String? itemId, double? total, double? balance, double? payoff,List<Transaction>? history, bool? active, bool? deleted, DateTime? timestamp, String? email}) : 
     this.id = id ?? const Uuid().v4(),
     this.itemId = itemId,
     this.total = total ?? 0,
@@ -47,9 +48,10 @@ class Member extends OfflineFirstWithSupabaseModel {
     this.history = history ?? [],
     this.active = active ?? true,
     this.deleted = deleted ?? false,
-    this.timestamp = timestamp ?? DateTime.now();
+    this.timestamp = timestamp ?? DateTime.now(),
+    this.email = email;
 
-  factory Member.fromMember(Member m, {name, color, id, itemId, total, balance, payoff, history, active, timestamp, String? user_id}){
+  factory Member.fromMember(Member m, {name, color, id, itemId, total, balance, payoff, history, active, timestamp, String? email}){
     return Member(
         name: name ?? m.name,
         color: color ?? m.color,
@@ -61,6 +63,7 @@ class Member extends OfflineFirstWithSupabaseModel {
         history: history ?? m.history,
         active: active ?? m.active,
         timestamp: timestamp ?? m.timestamp,
+        email: email
     );
   }
 

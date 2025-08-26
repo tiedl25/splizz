@@ -13,7 +13,8 @@ Future<Member> _$MemberFromSupabase(Map<String, dynamic> data,
       deleted: data['deleted'] as bool?,
       timestamp: data['timestamp'] == null
           ? null
-          : DateTime.tryParse(data['timestamp'] as String));
+          : DateTime.tryParse(data['timestamp'] as String),
+      email: data['email'] == null ? null : data['email'] as String?);
 }
 
 Future<Map<String, dynamic>> _$MemberToSupabase(Member instance,
@@ -26,7 +27,8 @@ Future<Map<String, dynamic>> _$MemberToSupabase(Member instance,
     'color': instance.color,
     'active': instance.active,
     'deleted': instance.deleted,
-    'timestamp': instance.timestamp.toIso8601String()
+    'timestamp': instance.timestamp.toIso8601String(),
+    'email': instance.email
   };
 }
 
@@ -40,7 +42,8 @@ Future<Member> _$MemberFromSqlite(Map<String, dynamic> data,
       color: data['color'] as int,
       active: data['active'] == 1,
       deleted: data['deleted'] == 1,
-      timestamp: DateTime.parse(data['timestamp'] as String))
+      timestamp: DateTime.parse(data['timestamp'] as String),
+      email: data['email'] == null ? null : data['email'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -54,7 +57,8 @@ Future<Map<String, dynamic>> _$MemberToSqlite(Member instance,
     'color': instance.color,
     'active': instance.active ? 1 : 0,
     'deleted': instance.deleted ? 1 : 0,
-    'timestamp': instance.timestamp.toIso8601String()
+    'timestamp': instance.timestamp.toIso8601String(),
+    'email': instance.email
   };
 }
 
@@ -95,6 +99,10 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
     'timestamp': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'timestamp',
+    ),
+    'email': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'email',
     )
   };
   @override
@@ -150,6 +158,12 @@ class MemberAdapter extends OfflineFirstWithSupabaseAdapter<Member> {
       columnName: 'timestamp',
       iterable: false,
       type: DateTime,
+    ),
+    'email': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'email',
+      iterable: false,
+      type: String,
     )
   };
   @override

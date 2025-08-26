@@ -340,6 +340,21 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(newState);
   }
 
+  setMemberIsMe(Member member, bool isMe) async {
+    bool isSignedIn = Supabase.instance.client.auth.currentSession != null;
+
+    final newState = (state as DetailViewMemberDialog).copyWith();
+    if (isMe) {
+      newState.item.members.firstWhere((m) => m.id == member.id).email = isSignedIn ? Supabase.instance.client.auth.currentUser?.email : "thisIsMe";
+      newState.item.members.where((m) => m.id != member.id).forEach((m) => m.email = "");
+      Future.wait(newState.item.members.map((member) => DatabaseHelper.instance.upsertMember(member)));
+    } else {
+      newState.item.members.firstWhere((m) => m.id == member.id).email = "";
+      DatabaseHelper.instance.upsertMember(member);
+    }
+    emit(newState);
+  }
+
   toggleEditMode({bool update=false}) {
     final newState;
 

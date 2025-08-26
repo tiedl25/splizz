@@ -466,6 +466,8 @@ class DatabaseHelper {
 
     final currentUser = Supabase.instance.client.auth.currentUser!;
 
+    members.where((member) => member.email == "thisIsMe").forEach((member) => member.email = currentUser.email);
+
     await Future.wait(items.map((item) => Repository.instance.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true))));
     await Future.wait(items.map((item) => Repository.instance.upsert<Item>(item)));
     await Future.wait(members.map((member) => Repository.instance.upsert<Member>(member)));

@@ -8,6 +8,7 @@ import 'package:splizz/resources/colormap.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MemberDialog extends StatelessWidget {
   Animation<double> opacity;
@@ -73,6 +74,8 @@ class MemberDialog extends StatelessWidget {
     Color textColor = Color(member.color).computeLuminance() > 0.2
         ? Colors.black
         : Colors.white;
+
+    String email = Supabase.instance.client.auth.currentUser?.email ?? "thisIsMe";
 
     return Expanded(
       flex: 7,
@@ -149,12 +152,25 @@ class MemberDialog extends StatelessWidget {
             ),
           ),
           SwitchListTile(
+            visualDensity: VisualDensity.compact,
             contentPadding: const EdgeInsets.only(left: 15, right: 10),
             title: Text(active, style: TextStyle(fontSize: 20, color: textColor)),
             value: member.active,
             onChanged: (bool value) =>
                 cubit.setMemberActivity(member, value),
           ),
+          CheckboxListTile(
+            checkboxShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            side: BorderSide(color: textColor, width: 2),
+            checkColor: textColor,
+            visualDensity: VisualDensity.compact,
+            contentPadding: const EdgeInsets.only(left: 15, right: 5),
+            title: Text(thisIsMe, style: TextStyle(fontSize: 20, color: textColor)),
+            value: member.email == email, 
+            onChanged: (bool? value) => cubit.setMemberIsMe(member, value ?? false),
+          )
         ],
       ),
     );
