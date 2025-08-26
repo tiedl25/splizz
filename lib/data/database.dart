@@ -458,6 +458,21 @@ class DatabaseHelper {
     return items[0].image;
   }
 
+  Future<void> uploadLocalToRemote() async {
+    final items = await Repository.instance.sqliteProvider.get<Item>();
+    final members = await Repository.instance.sqliteProvider.get<Member>();
+    final transactions = await Repository.instance.sqliteProvider.get<Transaction>();
+    final operations = await Repository.instance.sqliteProvider.get<Operation>();
+
+    final currentUser = Supabase.instance.client.auth.currentUser!;
+
+    await Future.wait(items.map((item) => Repository.instance.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true))));
+    await Future.wait(items.map((item) => Repository.instance.upsert<Item>(item)));
+    await Future.wait(members.map((member) => Repository.instance.upsert<Member>(member)));
+    await Future.wait(transactions.map((transaction) => Repository.instance.upsert<Transaction>(transaction)));
+    await Future.wait(operations.map((operation) => Repository.instance.upsert<Operation>(operation)));
+  }
+
   Future <void> deleteDatabase() async {
     await Repository.instance.reset();
     await Repository().initialize();
