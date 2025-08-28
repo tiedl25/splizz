@@ -15,18 +15,20 @@ class MasterViewLoading extends MasterViewState {
 
 class MasterViewLoaded extends MasterViewState {
   List<Item> items;
+  double? balance;
 
-  MasterViewLoaded({required this.items, required super.sharedPreferences});
+  MasterViewLoaded({required this.items, required this.balance, required super.sharedPreferences});
 
-  MasterViewLoaded copyWith({List<Item>? items, SharedPreferences? sharedPreferences}) {
+  MasterViewLoaded copyWith({List<Item>? items, double? balance, SharedPreferences? sharedPreferences}) {
     return MasterViewLoaded(
       items: items ?? this.items, 
+      balance: balance ?? this.balance,
       sharedPreferences: sharedPreferences ?? this.sharedPreferences
     );
   }
 
   factory MasterViewLoaded.fromItemDialog(MasterViewItemDialog state) {
-    return MasterViewLoaded(items: state.items, sharedPreferences: state.sharedPreferences);
+    return MasterViewLoaded(items: state.items, balance: state.balance, sharedPreferences: state.sharedPreferences);
   }
 }
 
@@ -86,6 +88,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
 
   MasterViewItemDialog({
     required super.items, 
+    required super.balance,
     required super.sharedPreferences, 
     required this.members, 
     this.title="", 
@@ -96,6 +99,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
 
   MasterViewItemDialog copyWith({
     List<Item>? items, 
+    double? balance,
     SharedPreferences? sharedPreferences, 
     String? title, 
     List<String>? members, 
@@ -105,6 +109,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
     }) {
       return MasterViewItemDialog(
         items: items ?? this.items, 
+        balance: balance ?? this.balance,
         sharedPreferences: sharedPreferences ?? this.sharedPreferences, 
         title: title ?? this.title, 
         members: members ?? this.members, 
@@ -117,6 +122,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
   factory MasterViewItemDialog.fromLoaded(MasterViewLoaded state) {
     return MasterViewItemDialog(
       items: state.items, 
+      balance: state.balance,
       sharedPreferences: state.sharedPreferences,
       members: [],
     );
@@ -125,6 +131,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
   factory MasterViewItemDialog.fromColorPicker(MasterViewItemDialogColorPicker state) {
     return MasterViewItemDialog(
       items: state.items, 
+      balance: state.balance,
       sharedPreferences: state.sharedPreferences,
       title: state.title, 
       members: state.members, 
@@ -137,6 +144,7 @@ class MasterViewItemDialog extends MasterViewLoaded {
   factory MasterViewItemDialog.fromImagePicker(MasterViewItemDialogImagePicker state) {
     return MasterViewItemDialog(
       items: state.items, 
+      balance: state.balance,
       sharedPreferences: state.sharedPreferences,
       title: state.title, 
       members: state.members, 
@@ -152,6 +160,7 @@ class MasterViewItemDialogColorPicker extends MasterViewItemDialog {
 
   MasterViewItemDialogColorPicker({
     required super.items, 
+    required super.balance,
     required super.sharedPreferences, 
     required super.title, 
     required super.members, 
@@ -164,6 +173,7 @@ class MasterViewItemDialogColorPicker extends MasterViewItemDialog {
   factory MasterViewItemDialogColorPicker.from(MasterViewItemDialog state, {required int i}) {
     return MasterViewItemDialogColorPicker(
       items: state.items, 
+      balance: state.balance,
       sharedPreferences: state.sharedPreferences,
       title: state.title, 
       members: state.members, 
@@ -178,6 +188,7 @@ class MasterViewItemDialogColorPicker extends MasterViewItemDialog {
 class MasterViewItemDialogImagePicker extends MasterViewItemDialog {
   MasterViewItemDialogImagePicker({
     required super.items, 
+    required super.balance,
     required super.sharedPreferences, 
     required super.title, 
     required super.members, 
@@ -189,6 +200,7 @@ class MasterViewItemDialogImagePicker extends MasterViewItemDialog {
   factory MasterViewItemDialogImagePicker.from(MasterViewItemDialog state) {
     return MasterViewItemDialogImagePicker(
       items: state.items, 
+      balance: state.balance,
       sharedPreferences: state.sharedPreferences,
       title: state.title, 
       members: state.members, 
@@ -201,6 +213,7 @@ class MasterViewItemDialogImagePicker extends MasterViewItemDialog {
   @override
   MasterViewItemDialogImagePicker copyWith({
     List<Item>? items, 
+    double? balance,
     SharedPreferences? sharedPreferences, 
     String? title, 
     List<String>? members, 
@@ -210,6 +223,7 @@ class MasterViewItemDialogImagePicker extends MasterViewItemDialog {
     }) {
       return MasterViewItemDialogImagePicker(
         items: items ?? this.items, 
+        balance: balance ?? this.balance,
         sharedPreferences: sharedPreferences ?? this.sharedPreferences, 
         title: title ?? this.title, 
         members: members ?? this.members, 

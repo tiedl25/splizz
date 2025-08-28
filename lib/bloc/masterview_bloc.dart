@@ -36,6 +36,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     }
     final newState = MasterViewLoaded(
       items: items, 
+      balance: await DatabaseHelper.instance.getUserBalance(),
       sharedPreferences: state.sharedPreferences
     );
 
@@ -45,9 +46,11 @@ class MasterViewCubit extends Cubit<MasterViewState> {
   void fetchData({bool destructive=true}) async {
     if (destructive) await DatabaseHelper.instance.destructiveSync();
     final items = await DatabaseHelper.instance.getItems();
+    final balance = await DatabaseHelper.instance.getUserBalance();
 
     final newState = MasterViewLoaded(
       items: items, 
+      balance: balance,
       sharedPreferences: state.sharedPreferences
     );
 
@@ -176,7 +179,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       return Result.failure(message);
     }
 
-    final newState2 = MasterViewLoaded(sharedPreferences: newState.sharedPreferences, items: newState.items);
+    final newState2 = MasterViewLoaded(sharedPreferences: newState.sharedPreferences, items: newState.items, balance: newState.balance);
     newState2.items.add(await saveItem(membersNew));
 
     emit(newState2);
@@ -319,19 +322,13 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  void removeAll() {
+  void removeAll() async {
+    final items = (state as MasterViewLoaded).items;
     final newState = (state as MasterViewLoaded).copyWith(items: []);
 
-    DatabaseHelper.instance.deleteDatabase();
+    //DatabaseHelper.instance.deleteDatabase();
 
-    //for (int i = 0; i < items.length; ++i) {
-    //  DatabaseHelper.instance
-    //      .deleteItem(items[i])
-    //      .then((value) => setState(() {
-    //            itemListFuture =
-    //                DatabaseHelper.instance.getItems();
-    //          }));
-    //}
+    await Future.wait(items.map((item) => DatabaseHelper.instance.deleteItem(item)));
 
     emit(newState);
   }

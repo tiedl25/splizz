@@ -124,7 +124,7 @@ class MasterView extends StatelessWidget {
           );
         },
       ),
-    );
+    ).then((value) => cubit.fetchData(destructive: false),);
   }
 
   Widget dismissTile(Item item) {
@@ -154,7 +154,11 @@ class MasterView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
+        color: item.balance == null || item.balance == 0
+          ? Theme.of(context).colorScheme.surfaceContainer
+          : item.balance! > 0
+            ? Colors.green.shade200
+            : Colors.red.shade200,
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
@@ -163,10 +167,22 @@ class MasterView extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
-        tileColor: Theme.of(context).colorScheme.surfaceContainer,
-        title: Text(
-          item.name,
-          style: const TextStyle(fontSize: 20),
+        tileColor: item.balance == null || item.balance == 0
+          ? Theme.of(context).colorScheme.surfaceContainer
+          : item.balance! > 0
+            ? Colors.green.shade100
+            : Colors.red.shade100,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              item.name,
+              style: const TextStyle(fontSize: 20),
+            ),
+            if(item.balance != null) Text(
+              item.balance!.toStringAsFixed(2) + '€',
+            )
+          ],
         ),
         onTap: () => pushDetailView(item),
       ),
@@ -232,13 +248,36 @@ class MasterView extends StatelessWidget {
                     )
                   ],
                 )
-              : ListView.builder(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                padding: const EdgeInsets.all(16),
-                itemCount: state.items.length,
-                itemBuilder: (context, i) {
-                  return dismissTile(state.items[i]);
-                }),
+              : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if(state.balance != null) ListTile(
+                    title: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          currentBalance,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        Text(
+                          '${state.balance!.toStringAsFixed(2)}€',
+                          style: TextStyle(fontSize: 20),
+                        )
+                      ],
+                    )
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.items.length,
+                      itemBuilder: (context, i) {
+                        return dismissTile(state.items[i]);
+                      }),
+                  ),
+                ],
+              ),
             onRefresh: () async => cubit.fetchData(destructive: false),
           )
         : const Center(child: CircularProgressIndicator())

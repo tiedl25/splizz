@@ -45,6 +45,8 @@ class Item extends OfflineFirstWithSupabaseModel {
   @Supabase(ignore: true)
   List<Transaction> history;
 
+  double? balance;
+
   //Constructor
   Item({required String this.name, String? id, this.owner=true, members, history, this.image, timestamp}) : 
     this.id = id ?? Uuid().v4(), 

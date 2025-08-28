@@ -49,8 +49,6 @@ class DatabaseHelper {
     final unprocessedRequests = await queue.requestManager.unprocessedRequests();
 
     for (final sqliteRequest in unprocessedRequests) {
-      
-
       final request = queue.requestManager.sqliteToRequest(sqliteRequest);
       if (sqliteRequest["attempts"] < 3) {
         await queue.transmitRequest(request);
@@ -97,13 +95,17 @@ class DatabaseHelper {
 
     sync = sync && isSignedIn && connection;
 
-    final items = sync 
+    final List<Item> items = sync 
       ? await db.destructiveLocalSyncFromRemote<Item>() 
       : isSignedIn
         ? await db.get<Item>(policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
         : await db.get<Item>();
 
     if (isSignedIn) db.get<Item>(policy: OfflineFirstGetPolicy.alwaysHydrate);
+
+    await Future.wait(items.map((item) async {
+      item.balance = await getUserBalance(itemId: item.id, db: db);
+    }));
    
     return items;
   }
@@ -234,6 +236,26 @@ class DatabaseHelper {
     await Future.wait(
       item.history.map((transaction) => upsertTransaction(transaction, db: db))
     );
+  }
+
+  Future<double?> getUserBalance({String? itemId, dynamic db}) async {
+    db = db ?? await instance.database;
+
+    final currentUser = Supabase.instance.client.auth.currentUser;
+
+    final memberQuery = Query(where: [Where('email').isExactly(currentUser != null ? currentUser.email : "thisIsMe")] + (itemId != null ? [Where('itemId').isExactly(itemId)] : []));
+    final List<Member> members = isSignedIn
+      ? await db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+      : await db.get<Member>(query: memberQuery);
+
+    if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
+
+    await Future.wait(members.map((m) async {
+      final balanceFuture = getBalance(m.id, db: db);
+      m.balance = await balanceFuture;
+    }));
+
+    return members.length > 0 ?members.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance)) : null;
   }
 
   Future<void> upsertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {

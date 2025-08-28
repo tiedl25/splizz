@@ -75,3 +75,4 @@ const String invitedToSplizz2 = "You are invited to a Splizz. Do you want to joi
 const String dismissDialogTextItem = "Do you really want to remove this Item";
 const String noItemsInList = "No items in list";
 const String thisIsMe = "This is me";
+const String currentBalance = "Your current balance is";
