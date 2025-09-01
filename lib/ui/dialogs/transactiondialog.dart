@@ -259,81 +259,84 @@ class TransactionDialog extends StatelessWidget {
             ),
           ],
         ),
-        body: Container(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: dialogContent(state) + [
-              if (state.help) Container(
-                margin: const EdgeInsets.only(left: 5, top: 5),
-                alignment: Alignment.centerLeft,
-                child: Text(transactionDialogHelpMembers),
-              ),
-              SizedBox(height: 70, child: memberBar(state.memberSelection)),
-              if (state.help ) Container(
-                margin: const EdgeInsets.only(left: 5, top: 5),
-                alignment: Alignment.centerLeft,
-                child: Text(transactionDialogHelpCircularSlider),
-              ),
-              Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  CircularSlider(),
-                  Column(
-                    children: [
-                      VerticalSlider(
-                        value: state.zoomEnabled ? state.involvedMembers[state.lastChangedMemberIndex]['angle'].toDouble() : state.sliderIndex.toDouble(),
-                        divisions: state.zoomEnabled ? state.sliderIndex : divisions,
-                        onChanged: (value) => state.zoomEnabled
-                          ? cubit.granularUpdateCircularSliderPosition(value)
-                          : cubit.changeCircularStepsize(divisions[value.toInt()], value),
-                      ),
-                      SizedBox.fromSize(
-                        size: const Size(0, 10),
-                      ),
-                      Switch(
-                        value: state.zoomEnabled, 
-                        onChanged: (value) => cubit.toggleZoom(value),
-                      )
-                    ],
-                  )
-                ],
-              ),
-              Spacer(),
-              const Divider(
-                thickness: 0.5,
-                indent: 0,
-                endIndent: 0,
-              ),
-              IntrinsicHeight(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: SingleChildScrollView(
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: dialogContent(state) + [
+                if (state.help) Container(
+                  margin: const EdgeInsets.only(left: 5, top: 5),
+                  alignment: Alignment.centerLeft,
+                  child: Text(transactionDialogHelpMembers),
+                ),
+                SizedBox(height: 70, child: memberBar(state.memberSelection)),
+                if (state.help ) Container(
+                  margin: const EdgeInsets.only(left: 5, top: 5),
+                  alignment: Alignment.centerLeft,
+                  child: Text(transactionDialogHelpCircularSlider),
+                ),
+                Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Expanded(
-                      child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 0),
-                      child: Text(
-                        dialogCancel,
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(false),
-                    )),
-                    const VerticalDivider(
-                      indent: 5,
-                      endIndent: 5,
-                    ),
-                    Expanded(
-                      child: CupertinoButton(
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: Text(edit ? dialogOk : dialogAdd, style: Theme.of(context).textTheme.labelLarge,),
-                        onPressed: () async => await (edit ? cubit.editTransaction() : cubit.addTransaction()).then(
-                          (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
-                      ),
-                    ),
+                    CircularSlider(),
+                    Column(
+                      children: [
+                        VerticalSlider(
+                          value: state.zoomEnabled ? state.involvedMembers[state.lastChangedMemberIndex]['angle'].toDouble() : state.sliderIndex.toDouble(),
+                          divisions: state.zoomEnabled ? state.sliderIndex : divisions,
+                          onChanged: (value) => state.zoomEnabled
+                            ? cubit.granularUpdateCircularSliderPosition(value)
+                            : cubit.changeCircularStepsize(divisions[value.toInt()], value),
+                        ),
+                        SizedBox.fromSize(
+                          size: const Size(0, 10),
+                        ),
+                        Switch(
+                          value: state.zoomEnabled, 
+                          onChanged: (value) => cubit.toggleZoom(value),
+                        )
+                      ],
+                    )
                   ],
                 ),
-              ),
-            ],
+                Spacer(),
+                const Divider(
+                  thickness: 0.5,
+                  indent: 0,
+                  endIndent: 0,
+                ),
+                IntrinsicHeight(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 0),
+                        child: Text(
+                          dialogCancel,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      )),
+                      const VerticalDivider(
+                        indent: 5,
+                        endIndent: 5,
+                      ),
+                      Expanded(
+                        child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          child: Text(edit ? dialogOk : dialogAdd, style: Theme.of(context).textTheme.labelLarge,),
+                          onPressed: () async => await (edit ? cubit.editTransaction() : cubit.addTransaction()).then(
+                            (value) => value.isSuccess ? Navigator.of(context).pop(true) : null)
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -281,14 +281,16 @@ class SettingsView extends StatelessWidget {
         builder: (context, state) {
           return state.runtimeType == SettingsViewLoading
             ? Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode),
-                  infoSegment(state.version),
-                  donationSegment(),
-                  userSegment(),
-                ]
-              );
+            : SingleChildScrollView(
+              child: Column(
+                  children: [
+                    themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode),
+                    infoSegment(state.version),
+                    donationSegment(),
+                    userSegment(),
+                  ]
+                ),
+            );
         },
       ),
     );

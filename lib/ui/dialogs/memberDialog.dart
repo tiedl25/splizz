@@ -79,99 +79,101 @@ class MemberDialog extends StatelessWidget {
 
     return Expanded(
       flex: 7,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(
-                left: 15, right: 15, top: 5, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(name, style: TextStyle(fontSize: 20, color: textColor)),
-                IntrinsicWidth(
-                  child: TextField(
-                    controller: state.name,
-                    maxLines: 1,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(fontSize: editMode ? 20 : 15, color: textColor),
-                    decoration: InputDecoration(
-                      prefixIcon: editMode 
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 10), 
-                            child: IconButton(
-                              onPressed: () => showColorPicker(member),
-                              icon: Icon(Icons.color_lens, size: 30, color: textColor),
-                            )
-                          ) 
-                        : null,
-                      prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-                      border: InputBorder.none, 
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.only(
+                  left: 15, right: 15, top: 5, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(name, style: TextStyle(fontSize: 20, color: textColor)),
+                  IntrinsicWidth(
+                    child: TextField(
+                      controller: state.name,
+                      maxLines: 1,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(fontSize: editMode ? 20 : 15, color: textColor),
+                      decoration: InputDecoration(
+                        prefixIcon: editMode 
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 10), 
+                              child: IconButton(
+                                onPressed: () => showColorPicker(member),
+                                icon: Icon(Icons.color_lens, size: 30, color: textColor),
+                              )
+                            ) 
+                          : null,
+                        prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+                        border: InputBorder.none, 
+                      ),
+                      enabled: editMode,
+                      onChanged: (String value) => cubit.changeMemberName(value),
                     ),
-                    enabled: editMode,
-                    onChanged: (String value) => cubit.changeMemberName(value),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.only(
-                left: 15, right: 15, top: 5, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(total, style: TextStyle(fontSize: 20, color: textColor)),
-                Text("${member.total.toStringAsFixed(2)} €",
-                    style: TextStyle(fontSize: 15, color: textColor))
-              ],
+            Container(
+              padding: const EdgeInsets.only(
+                  left: 15, right: 15, top: 5, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(total, style: TextStyle(fontSize: 20, color: textColor)),
+                  Text("${member.total.toStringAsFixed(2)} €",
+                      style: TextStyle(fontSize: 15, color: textColor))
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.only(
-                left: 15, right: 15, top: 5, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(expenses, style: TextStyle(fontSize: 20, color: textColor)),
-                Text("${(member.total + member.payoff).toStringAsFixed(2)} €",
-                    style: TextStyle(fontSize: 15, color: textColor))
-              ],
+            Container(
+              padding: const EdgeInsets.only(
+                  left: 15, right: 15, top: 5, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(expenses, style: TextStyle(fontSize: 20, color: textColor)),
+                  Text("${(member.total + member.payoff).toStringAsFixed(2)} €",
+                      style: TextStyle(fontSize: 15, color: textColor))
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.only(
-                left: 15, right: 15, top: 5, bottom: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(balance, style: TextStyle(fontSize: 20, color: textColor)),
-                Text("${member.balance.toStringAsFixed(2)} €",
-                    style: TextStyle(fontSize: 15, color: textColor))
-              ],
+            Container(
+              padding: const EdgeInsets.only(
+                  left: 15, right: 15, top: 5, bottom: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(balance, style: TextStyle(fontSize: 20, color: textColor)),
+                  Text("${member.balance.toStringAsFixed(2)} €",
+                      style: TextStyle(fontSize: 15, color: textColor))
+                ],
+              ),
             ),
-          ),
-          SwitchListTile(
-            visualDensity: VisualDensity.compact,
-            contentPadding: const EdgeInsets.only(left: 15, right: 10),
-            title: Text(active, style: TextStyle(fontSize: 20, color: textColor)),
-            value: member.active,
-            onChanged: (bool value) =>
-                cubit.setMemberActivity(member, value),
-          ),
-          CheckboxListTile(
-            checkboxShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+            SwitchListTile(
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.only(left: 15, right: 10),
+              title: Text(active, style: TextStyle(fontSize: 20, color: textColor)),
+              value: member.active,
+              onChanged: (bool value) =>
+                  cubit.setMemberActivity(member, value),
             ),
-            side: BorderSide(color: textColor, width: 2),
-            checkColor: textColor,
-            visualDensity: VisualDensity.compact,
-            contentPadding: const EdgeInsets.only(left: 15, right: 5),
-            title: Text(thisIsMe, style: TextStyle(fontSize: 20, color: textColor)),
-            value: member.email == email, 
-            onChanged: (bool? value) => cubit.setMemberIsMe(member, value ?? false),
-          )
-        ],
+            CheckboxListTile(
+              checkboxShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              side: BorderSide(color: textColor, width: 2),
+              checkColor: textColor,
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.only(left: 15, right: 5),
+              title: Text(thisIsMe, style: TextStyle(fontSize: 20, color: textColor)),
+              value: member.email == email, 
+              onChanged: (bool? value) => cubit.setMemberIsMe(member, value ?? false),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -234,6 +236,7 @@ class MemberDialog extends StatelessWidget {
         Member member = (state as DetailViewMemberDialog).member;
 
         return CustomDialog(
+          scrollable: false,
           color: state.color,
           contentPadding: EdgeInsets.all(20),
           content: FadeTransition(

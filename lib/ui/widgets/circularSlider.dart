@@ -34,6 +34,13 @@ class CircularSlider extends StatelessWidget {
               : (DragUpdateDetails details) =>
                   cubit.updateCircularSliderPositionStepwise(details, context.findRenderObject() as RenderBox),
           //onPanEnd: cubit.getInvolvedMembers(members),
+          onVerticalDragStart: (_) {
+            // prevent scroll view from winning vertical drag
+          },
+          onVerticalDragUpdate: state.lock
+              ? null
+              : (DragUpdateDetails details) =>
+                  cubit.updateCircularSliderPositionStepwise(details, context.findRenderObject() as RenderBox),
           child: CustomPaint(
             size: Size(200, 200),
             painter: CircularSliderPainter(
