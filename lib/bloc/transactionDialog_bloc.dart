@@ -32,7 +32,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       item: item,
       memberSelection: item.members.map((m) => transaction.operations.sublist(1).any((op) => op.memberId == m.id) ? true : false).toList(),
       memberBalances: item.members.map((m) => 
-        transaction.operations.sublist(1).firstWhere((op) => op.memberId == m.id, orElse: () => Operation(memberId: m.id, value: 0.0)).value
+        transaction.operations.sublist(1).firstWhere((op) => op.memberId == m.id, orElse: () => Operation(memberId: m.id, value: 0.0)).value.abs()
       ).toList(),
       involvedMembers: [],//transaction.operations.sublist(1).map((op) => {"id": op.memberId, "balance": op.value, "listId": item.members.indexWhere((m) => m.id == op.memberId)}).toList(),
       date: [today, yesterday, transaction.date],
@@ -48,7 +48,9 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       dateSelection: transaction.date.day == DateTime.now().day
         ? 0 : transaction.date.day == DateTime.now().subtract(Duration(days: 1)).day
         ? 1 : 2,
-    ));
+    )){
+      (super.state as TransactionDialogEdit).involvedMembers = getCircularMembers((super.state as TransactionDialogEdit).sum, (super.state as TransactionDialogEdit).memberSelection, (super.state as TransactionDialogEdit).item.members.where((m) => !m.deleted).toList(), (super.state as TransactionDialogEdit).memberBalances);
+    }
 
   get whichState => state is TransactionDialogEdit ? (state as TransactionDialogEdit) : (state as TransactionDialogLoaded);
 
@@ -77,7 +79,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
       final newState2 = newState.copyWith(
         scale: 1.0,
         extend: !newState.extend,
-        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList())
+        involvedMembers: getCircularMembers(newState.sum, newState.memberSelection, newState.item.members.where((m) => !m.deleted).toList(), newState is TransactionDialogEdit ? newState.memberBalances : null)
       );
 
       emit(newState2);
@@ -408,7 +410,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
     //newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).deleteTransaction(newState.transaction);
     transactionOperation.memberId = newState.item.members[newState.selection].id;
     transactionOperation.value = newState.sum;
-    newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).addTransaction(newState.transaction);
+    //newState.item.members.firstWhere((member) => member.id == transactionOperation.memberId).addTransaction(newState.transaction);
     
     // Update the involved operations
     List<Operation> toBeDeleted = newState.transaction.operations.where((op) => !newState.involvedMembers.any((m) => m['id'] == op.memberId)).toList();
