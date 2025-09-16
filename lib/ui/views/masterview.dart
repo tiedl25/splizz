@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/masterview_states.dart';
+import 'package:splizz/resources/helper.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -154,11 +155,11 @@ class MasterView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: item.balance == null || item.balance == 0
+        color: item.balance == null || approximatelyZero(item.balance!)
           ? Theme.of(context).colorScheme.surfaceContainer
           : item.balance! > 0
-            ? Colors.green.shade200
-            : Colors.red.shade200,
+            ? Colors.green.shade300
+            : Colors.red.shade300,
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
@@ -167,11 +168,11 @@ class MasterView extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
-        tileColor: item.balance == null || item.balance == 0
+        tileColor: item.balance == null || approximatelyZero(item.balance!)
           ? Theme.of(context).colorScheme.surfaceContainer
           : item.balance! > 0
-            ? Colors.green.shade100
-            : Colors.red.shade100,
+            ? Colors.green.shade300
+            : Colors.red.shade300,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

@@ -127,10 +127,10 @@ class Item extends OfflineFirstWithSupabaseModel {
       payer.add(a);
     }
 
-    List<Member> positive = List.from(payer.where((element) => element.balance > 1e-6));
+    List<Member> positive = List.from(payer.where((element) => element.balance > 0.005));
     positive.sort((a,b) => a.balance.compareTo(b.balance));
     positive.reversed;
-    List<Member> negative = List.from(payer.where((element) => element.balance < -1e-6));
+    List<Member> negative = List.from(payer.where((element) => element.balance < -0.005));
     negative.sort((a,b) => a.balance.compareTo(b.balance));
     negative.reversed;
     
@@ -138,7 +138,7 @@ class Item extends OfflineFirstWithSupabaseModel {
 
     for(int a=0; a<positive.length; a++){
       for(int b=0; b<negative.length; b++){
-        if(positive[a].balance > 1e-6){
+        if(positive[a].balance > 0.005){
           double tmp = positive[a].balance;
           Member receiver = Member.fromMember(positive[a]);
           

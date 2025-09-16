@@ -12,6 +12,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
 import 'package:splizz/resources/colormap.dart';
+import 'package:splizz/resources/helper.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
@@ -223,9 +224,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   bool checkBalances(members) {
     for (var m in members) {
-      if (m.balance > 1e-6 || m.balance < -1e-6) {
-        return true;
-      }
+      if (!approximatelyZero(m.balance)) return true;
     }
     return false;
   }
