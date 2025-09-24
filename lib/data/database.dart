@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/data/result.dart';
 
 import 'package:splizz/brick/repository.dart';
@@ -33,7 +37,9 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   static dynamic _database;
-  Future<dynamic> get database async => _database = _database == null || switchRepository() ? await _initDatabase() : _database;//_database ??= await _initDatabase();
+  Future<dynamic> get database async => _database = _database == null || switchRepository() 
+    ? await _initDatabase() 
+    : _database;
 
   static var lock = Lock(reentrant: true);
 
@@ -69,27 +75,73 @@ class DatabaseHelper {
     return (await queue.requestManager.unprocessedRequests()).length > 0;
   }
 
+  Future<void> waitForDestructiveSync() async {
+    await lock.synchronized((){});
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool lastSyncCompleted = prefs.getBool('LAST_SYNC_COMPLETED') ?? true;
+
+    if (!lastSyncCompleted) {
+      await restoreDatabase();
+      prefs.setBool('LAST_SYNC_COMPLETED', true);
+    }
+  }
+
+  Future<void> backupDatabase() async {
+    // Get the database path
+    final dir = await getApplicationDocumentsDirectory();
+    final dbPath = path.join(dir.path, '../databases/my_repository.sqlite');
+    final backupPath = path.join(dir.path, '../databases/my_repository_backup.sqlite');
+
+    final dbFile = File(dbPath);
+    if (await dbFile.exists()) {
+      await dbFile.copy(backupPath);
+      print('Backup created at $backupPath');
+    }
+  }
+
+  Future<void> restoreDatabase() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final dbPath = path.join(dir.path, '../databases/my_repository.sqlite');
+    final backupPath = path.join(dir.path, '../databases/my_repository_backup.sqlite');
+
+    final backupFile = File(backupPath);
+    if (await backupFile.exists()) {
+      await backupFile.copy(dbPath);
+      print('Database restored from $backupPath');
+      _database = null; // Reset the database instance to force re-initialization
+    }
+  }
+
   Future<void> destructiveSync() async {
-    final db = await Repository.instance;
+    final db = await instance.database; // Use the same getter as other methods
+    
+    await lock.synchronized(() async {
+      final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
+      if (!isSignedIn || !connection) return;
 
-    final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
-    if (!isSignedIn || !connection) return;
+      if (await checkQueue()) return;
 
-    if (await checkQueue()) return;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool('LAST_SYNC_COMPLETED', false);
+      await backupDatabase();
 
-    await Future.wait([
-      db.destructiveLocalSyncFromRemote<Item>(),
-      db.destructiveLocalSyncFromRemote<User>(),
-      db.destructiveLocalSyncFromRemote<Member>(),
-      db.destructiveLocalSyncFromRemote<Operation>(),
-      db.destructiveLocalSyncFromRemote<Transaction>(),
-    ]);
+      await Future.wait<dynamic>([
+        db.destructiveLocalSyncFromRemote<Item>(),
+        db.destructiveLocalSyncFromRemote<User>(),
+        db.destructiveLocalSyncFromRemote<Member>(),
+        db.destructiveLocalSyncFromRemote<Operation>(),
+        db.destructiveLocalSyncFromRemote<Transaction>(),
+      ]);
+
+      prefs.setBool('LAST_SYNC_COMPLETED', true);
+    });
   }
 
   Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
     db = db ?? await instance.database;
 
-    checkQueue();
+    await checkQueue();
 
     final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
 
@@ -111,7 +163,9 @@ class DatabaseHelper {
   }
 
   Future<Item> getItem(String id, {dynamic db, bool sync = false}) async {
-    db = db ?? await instance.database;
+    db = db ?? lock.locked 
+      ? await Repository.backupInstance
+      : await instance.database;
 
     final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
 
@@ -143,7 +197,7 @@ class DatabaseHelper {
     if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     await Future.wait(members.map((m) async {
-      final balanceFuture = getBalance(m.id, db: db);
+      final balanceFuture = getBalance(m.id, id, db: db);
       final totalFuture = getTotal(m.id, db: db);
       final payoffFuture = getPayoff(m.id, db: db);
       final historyFuture = getMemberTransactions(m.id, db: db);
@@ -223,6 +277,8 @@ class DatabaseHelper {
 
   Future<void> upsertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
+
+    await lock.synchronized((){});
   
     await db.upsert<Item>(item);
 
@@ -238,7 +294,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<double?> getUserBalance({String? itemId, dynamic db}) async {
+  Future<double> getUserBalance({String? itemId, dynamic db}) async {
     db = db ?? await instance.database;
 
     final currentUser = Supabase.instance.client.auth.currentUser;
@@ -251,15 +307,17 @@ class DatabaseHelper {
     if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     await Future.wait(members.map((m) async {
-      final balanceFuture = getBalance(m.id, db: db);
+      final balanceFuture = getBalance(m.id, m.itemId!, db: db);
       m.balance = await balanceFuture;
     }));
 
-    return members.length > 0 ?members.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance)) : null;
+    return members.length > 0 ? members.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance)) : 0;
   }
 
   Future<void> upsertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     final operations = List<Operation>.from(transaction.operations);
 
@@ -278,12 +336,16 @@ class DatabaseHelper {
 
   Future<void> upsertMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
   
     await db.upsert<Member>(member);
   }
 
   Future<Result> addPermission(User permission, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     final existingPermission = await db.get<User>(query: Query(where: [Where("itemId").isExactly(permission.itemId), Where("userEmail").isExactly(permission.userEmail)]));
 
@@ -303,6 +365,8 @@ class DatabaseHelper {
 
   Future<Result> confirmPermission(String permissionId, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     final currentUser = Supabase.instance.client.auth.currentUser!;
 
@@ -341,12 +405,16 @@ class DatabaseHelper {
 
   Future<void> upsertOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
   
     await db.upsert<Operation>(operation);
   }
 
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     item.upload = false;
 
@@ -370,6 +438,8 @@ class DatabaseHelper {
   Future<void> deleteTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
 
+    await lock.synchronized((){});
+
     transaction.operations = await getTransactionOperations(transaction.id, db: db);
 
     await Future.wait(
@@ -381,12 +451,16 @@ class DatabaseHelper {
 
   Future<void> deleteMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
   
     await db.delete<Member>(member);
   }
 
     Future<void> markMemberDeleted(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     member.deleted = true;
   
@@ -395,12 +469,16 @@ class DatabaseHelper {
 
   Future<void> deleteOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
   
     await db.delete<Operation>(operation);
   }
   
   Future<void> deleteUser(String id, {dynamic db}) async {
     db = db ?? await instance.database;
+
+    await lock.synchronized((){});
 
     final userQuery = Query(where: [Where('itemId').isExactly(id)]);
     final List<User> user = await db.get<User>(query: userQuery);
@@ -414,10 +492,11 @@ class DatabaseHelper {
     await Repository.instance.remoteProvider.client.storage.from('images').remove(['$id.jpg']);
   }
 
-  Future<double> getBalance(String id, {dynamic db}) async {
+  Future<double> getBalance(String memberId, String itemId, {dynamic db}) async {
     db = db ?? await instance.database;
 
     var query = Query.where('deleted', false);
+    query = Query(where: [Where('deleted').isExactly(false), Where('itemId').isExactly(itemId)]);
     List<Transaction> transactions = await db.get<Transaction>(query: query);
 
     transactions = transactions.where((t) => t.payoffId == null || t.description != "payoff").toList();
@@ -426,7 +505,7 @@ class DatabaseHelper {
 
     List transactionsNotDeleted = transactions.map((t) => t.id).toList();
 
-    query = Query(where: [Where('memberId').isExactly(id)]);
+    query = Query(where: [Where('memberId').isExactly(memberId)]);
     final operations = await db.get<Operation>(query: query);
 
     if (operations.isEmpty) return 0;

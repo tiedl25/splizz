@@ -43,20 +43,22 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  void fetchData({bool destructive=true}) async {
-    if (destructive) await DatabaseHelper.instance.destructiveSync();
-    final items = await DatabaseHelper.instance.getItems();
-    final balance = await DatabaseHelper.instance.getUserBalance();
+  Future<void> fetchData({bool destructive=true}) async {
+    await DatabaseHelper.instance.waitForDestructiveSync();
 
+    final items = await DatabaseHelper.instance.getItems();
+    final balance = items.length > 0 ? items.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance!)) : null;
+    
     final newState = MasterViewLoaded(
       items: items, 
       balance: balance,
       sharedPreferences: state.sharedPreferences
     );
-
-    handleIncomingLinks();
     
+    handleIncomingLinks();
     emit(newState);
+
+    if (destructive) DatabaseHelper.instance.destructiveSync();
   }
 
   void showInvitationDialog(final String? permissionId) {
