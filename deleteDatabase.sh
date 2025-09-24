@@ -1,2 +1,2 @@
 adb root
-adb shell rm -r /data/data/de.tmc.splizz/databases
+adb shell rm -r /data/data/de.tmc.splizz.splizz/databases
