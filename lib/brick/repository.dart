@@ -16,8 +16,10 @@ import 'brick.g.dart';
 
 class Repository extends OfflineFirstWithSupabaseRepository with DestructiveLocalSyncFromRemoteMixin {
   static late Repository? _instance;
+  static late Repository? _backupInstance;
 
   static Repository get instance => _instance!;
+  static Repository get backupInstance => _backupInstance!;
 
   Repository._({
     required super.supabaseProvider,
@@ -28,6 +30,7 @@ class Repository extends OfflineFirstWithSupabaseRepository with DestructiveLoca
   });
 
   factory Repository() => _instance!;
+  factory Repository.backup() => _backupInstance!;
 
   static Future<void> configure(DatabaseFactory databaseFactory) async {
     final cq = OfflineFirstWithSupabaseRepository.clientQueue(
@@ -54,6 +57,19 @@ class Repository extends OfflineFirstWithSupabaseRepository with DestructiveLoca
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
         'my_repository.sqlite',
+        databaseFactory: databaseFactory,
+        modelDictionary: sqliteModelDictionary,
+      ),
+      migrations: migrations,
+      offlineRequestQueue: queue,
+      // Specify class types that should be cached in memory
+      memoryCacheProvider: MemoryCacheProvider(),
+    );
+
+    _backupInstance = Repository._(
+      supabaseProvider: provider,
+      sqliteProvider: SqliteProvider(
+        'my_repository_backup.sqlite',
         databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
