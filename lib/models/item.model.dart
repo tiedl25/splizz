@@ -142,7 +142,7 @@ class Item extends OfflineFirstWithSupabaseModel {
           double tmp = positive[a].balance;
           Member receiver = Member.fromMember(positive[a]);
           
-          if(negative[b].balance.abs() >= positive[a].balance && (a < positive.length-1 && b < negative.length-1)){
+          if(negative[b].balance.abs() >= positive[a].balance){
             positive[a].balance = 0;
             negative[b].balance += tmp;
           }else{
