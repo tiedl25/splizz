@@ -139,6 +139,8 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
     if (negative) newValue *= -1;
     final newState = whichState.copyWith(sum: newValue);
 
+    updateBalances(newState, newState.sum);
+
     emit(newState);
   }
 
@@ -519,6 +521,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
   updateBalances(state, double value) {
     int memberCount = state.memberSelection.where((element) => element == true).length;
     final members = state.item.members.where((m) => !m.deleted).toList();
+    state.involvedMembers.clear();
     for (int i = 0; i < state.memberSelection.length; i++) {
       if (state.memberSelection[i]) {
         state.involvedMembers.add({
