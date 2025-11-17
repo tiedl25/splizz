@@ -261,7 +261,7 @@ class TransactionDialog extends StatelessWidget {
         ),
         body: SingleChildScrollView(
           child: Container(
-            height: MediaQuery.of(context).size.height,
+            height: MediaQuery.of(context).size.height - 120,
             padding: const EdgeInsets.all(10),
             child: Column(
               children: dialogContent(state) + [
@@ -301,7 +301,7 @@ class TransactionDialog extends StatelessWidget {
                     )
                   ],
                 ),
-                Spacer(),
+                Spacer(flex: 5),
                 const Divider(
                   thickness: 0.5,
                   indent: 0,
