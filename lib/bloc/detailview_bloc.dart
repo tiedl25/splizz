@@ -89,6 +89,24 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final newState = whichState.copyWith();
 
     if (payoffTransactions != null) {
+      final deletedIds = newState.item.members.where((m) => m.deleted).map((m) => m.id).toSet();
+
+      final hasDeletedInvolved = payoffTransactions.any((t) {
+        return t.operations.any((o) {
+          if (o.memberId != null) return deletedIds.contains(o.memberId);
+          return false;
+        });
+      });
+
+      if (hasDeletedInvolved) {
+        emit(DetailViewShowSnackBar(
+          item: state.item,
+          message: 'Cannot remove payoff: one or more payoff transactions involve deleted members'
+        ));
+        emit(newState);
+        return;
+      }
+
       newState.item.history.where((element) => element.payoffId == transaction.id).forEach((element) {
         element.payoffId = null;
       });
