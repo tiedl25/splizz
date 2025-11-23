@@ -43,6 +43,10 @@ class DatabaseHelper {
 
   static var lock = Lock(reentrant: true);
 
+  Future<void> get destructiveLock async {
+    return lock.synchronized(() async {});
+  }
+
   Future<dynamic> _initDatabase() async {
     return isSignedIn ? Repository.instance : Repository.instance.sqliteProvider;
   }
@@ -76,7 +80,7 @@ class DatabaseHelper {
   }
 
   Future<void> waitForDestructiveSync() async {
-    await lock.synchronized((){});
+    await destructiveLock;
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool lastSyncCompleted = prefs.getBool('LAST_SYNC_COMPLETED') ?? true;
@@ -278,7 +282,7 @@ class DatabaseHelper {
   Future<void> upsertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
   
     await db.upsert<Item>(item);
 
@@ -317,7 +321,7 @@ class DatabaseHelper {
   Future<void> upsertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     final operations = List<Operation>.from(transaction.operations);
 
@@ -337,7 +341,7 @@ class DatabaseHelper {
   Future<void> upsertMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
   
     await db.upsert<Member>(member);
   }
@@ -345,7 +349,7 @@ class DatabaseHelper {
   Future<Result> addPermission(User permission, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     final existingPermission = await db.get<User>(query: Query(where: [Where("itemId").isExactly(permission.itemId), Where("userEmail").isExactly(permission.userEmail)]));
 
@@ -366,7 +370,7 @@ class DatabaseHelper {
   Future<Result> confirmPermission(String permissionId, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     final currentUser = Supabase.instance.client.auth.currentUser!;
 
@@ -406,7 +410,7 @@ class DatabaseHelper {
   Future<void> upsertOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
   
     await db.upsert<Operation>(operation);
   }
@@ -414,7 +418,7 @@ class DatabaseHelper {
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     item.upload = false;
 
@@ -438,7 +442,7 @@ class DatabaseHelper {
   Future<void> deleteTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     transaction.operations = await getTransactionOperations(transaction.id, db: db);
 
@@ -452,7 +456,7 @@ class DatabaseHelper {
   Future<void> deleteMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
   
     await db.delete<Member>(member);
   }
@@ -460,7 +464,7 @@ class DatabaseHelper {
     Future<void> markMemberDeleted(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     member.deleted = true;
   
@@ -470,7 +474,7 @@ class DatabaseHelper {
   Future<void> deleteOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
   
     await db.delete<Operation>(operation);
   }
@@ -478,7 +482,7 @@ class DatabaseHelper {
   Future<void> deleteUser(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await lock.synchronized((){});
+    await destructiveLock;
 
     final userQuery = Query(where: [Where('itemId').isExactly(id)]);
     final List<User> user = await db.get<User>(query: userQuery);
