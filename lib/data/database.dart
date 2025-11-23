@@ -183,8 +183,24 @@ class DatabaseHelper {
 
     if (isSignedIn) db.get<Item>(query: itemQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
+    List<Operation> operations = await getOperations(id, db: db);
+
     item.members = await getMembers(id, db: db, sync: sync);
     item.history = await getTransactions(id, db: db, sync: sync);
+
+    item.members.forEach((m) {
+      m.history = item.history.where((t) => t.memberId == m.id).toList();
+      List<Transaction> balanceTransactions = item.history.where((t) => t.payoffId == null && t.description != "payoff" && t.deleted == false).toList();
+      print("test ");
+      m.balance = List<double>.from(operations.where((o) => o.memberId == m.id && balanceTransactions.any((t) => t.id == o.transactionId)).map((e) => e.value)).sum;
+      m.total = List<double>.from(m.history.where((t) => t.deleted == false).map((e) => e.value)).sum;
+      m.payoff = List<double>.from(operations.where((o) => o.memberId == m.id && m.history.any((t) => t.payoffId == o.transactionId && t.deleted == false)).map((e) => e.value)).sum;  
+    });
+
+    item.history.forEach((t) {
+      t.operations = operations.where((o) => o.transactionId == t.id).toList();
+      t.operations.sort((Operation a, Operation b) => b.value.compareTo(a.value));
+    });
 
     return item;
   }
@@ -199,18 +215,6 @@ class DatabaseHelper {
       : await db.get<Member>(query: memberQuery);
 
     if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
-
-    await Future.wait(members.map((m) async {
-      final balanceFuture = getBalance(m.id, id, db: db);
-      final totalFuture = getTotal(m.id, db: db);
-      final payoffFuture = getPayoff(m.id, db: db);
-      final historyFuture = getMemberTransactions(m.id, db: db);
-
-      m.balance = await balanceFuture;
-      m.total = await totalFuture;
-      m.payoff = await payoffFuture;
-      m.history = await historyFuture;
-    }));
 
     members.sort((Member a, Member b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
@@ -230,29 +234,6 @@ class DatabaseHelper {
 
     if (transactions.isEmpty) return [];
 
-    await Future.wait(
-      transactions.map((t) {
-        return getTransactionOperations(t.id, db: db, sync: sync).then((operations) {
-          final index = t.operations.indexWhere((op) => op.memberId == t.memberId && op.value == t.value);
-          if (index > 0) {
-            final op = t.operations.removeAt(index);
-            t.operations.insert(0, op);
-          }
-
-          t.operations = operations;
-        });
-      }),
-    );
-
-    return transactions;
-  }
-
-  Future<List<Transaction>> getMemberTransactions(String id, {dynamic db}) async {
-    db = db ?? await instance.database;
-
-    final transactionQuery = Query(where: [Where('memberId').isExactly(id)]);
-    final transactions = await db.get<Transaction>(query: transactionQuery);
-
     return transactions;
   }
 
@@ -263,6 +244,21 @@ class DatabaseHelper {
     final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
     List<Operation> operations = isSignedIn
       ? await db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+      : await db.get<Operation>(query: operationQuery);
+
+    if (isSignedIn) db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
+
+    operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
+
+    return operations;  
+  }
+
+  Future<List<Operation>> getOperations(String itemId, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    final operationQuery = Query(where: [Where('itemId').isExactly(itemId)]);
+    List<Operation> operations = isSignedIn
+      ? await db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.localOnly)
       : await db.get<Operation>(query: operationQuery);
 
     if (isSignedIn) db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
@@ -517,39 +513,6 @@ class DatabaseHelper {
     double balance = List<double>.from(operations.where((o) => transactionsNotDeleted.contains(o.transactionId)).map((e) => e.value)).sum;
     
     return balance;
-  }
-
-  Future<double> getTotal(String id, {dynamic db}) async {
-    db = db ?? await instance.database;
-
-    var query = Query(where: [Where('deleted').isExactly(false), Where('memberId').isExactly(id)]);
-    final transactions = await db.get<Transaction>(query: query);
-
-    if (transactions.isEmpty) return 0;
-
-    final total = List<double>.from(transactions.map((t) => t.value)).sum;
-
-    return total;
-  }
-
-  Future<double> getPayoff(String id, {dynamic db}) async {
-    db = db ?? await instance.database;
-
-    var query = Query(where: [Where('deleted').isExactly(false), Where('memberId').isExactly(null)]);
-    final transactions = await db.get<Transaction>(query: query);
-
-    if (transactions.isEmpty) return 0;
-
-    List transactionsNotDeleted = transactions.map((t) => t.id).toList();
-
-    query = Query(where: [Where('memberId').isExactly(id)]);
-    final operations = await db.get<Operation>(query: query);
-
-    if (operations.isEmpty) return 0;
-
-    double total = List<double>.from(operations.where((o) => transactionsNotDeleted.contains(o.transactionId)).map((Operation e) => e.value)).sum;
-    
-    return total;
   }
 
   Future<Uint8List?> getLocalImage(String id) async {
