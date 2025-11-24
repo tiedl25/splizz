@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
 import 'package:splizz/resources/strings.dart';
+import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:splizz/bloc/settingsview_bloc.dart';
@@ -26,7 +27,10 @@ class SettingsView extends StatelessWidget {
             style: TextStyle(fontSize: 20),
           ),
           pop: false,
-          onConfirmed: () async => cubit.confirmLogout(),
+          onConfirmed: () async => await showLoadingEntry(
+            context: context,
+            onWait: () async => await cubit.confirmLogout(),
+          ),
           onDismissed: () async => cubit.dismissLogout(),
         );
       },
