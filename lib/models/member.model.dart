@@ -1,17 +1,7 @@
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
-
 import 'package:splizz/models/transaction.model.dart';
 
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'members'),
-)
-
-class Member extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
-  @Sqlite(index: true, unique: true)
+class Member {
   final String id;
   
   String? itemId;
@@ -21,21 +11,9 @@ class Member extends OfflineFirstWithSupabaseModel {
   bool deleted;
   final DateTime timestamp;
   String? email;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   double total = 0;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   double balance = 0;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   double payoff = 0;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   List<Transaction> history;
 
   //Constructor

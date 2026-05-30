@@ -1,8 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_supabase/brick_supabase.dart';
 import 'package:splizz/data/database.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,37 +9,14 @@ import 'package:splizz/models/operation.model.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart' as Supabase_Flutter;
 
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'items'),
-)
-
-class Item extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
-  @Sqlite(index: true, unique: true)
+class Item{
   final String id;
-
   final String name;
-  @Supabase(fromGenerator: "DateTime.parse(%DATA_PROPERTY% as String)", toGenerator: "%INSTANCE_PROPERTY%.toIso8601String()")
   final DateTime timestamp;
-
-  @Supabase(fromGenerator: "await Item.downloadImage(data['id'] as String)", toGenerator: "instance.upload ? await Item.uploadImage(%INSTANCE_PROPERTY%!, instance.id) : null")
-  @Sqlite(fromGenerator: "%DATA_PROPERTY%", toGenerator: "%INSTANCE_PROPERTY%", columnType: Column.blob)
   Uint8List? image;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   bool owner;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   bool upload=true;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   List<Member> members;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   List<Transaction> history;
 
   double? balance;

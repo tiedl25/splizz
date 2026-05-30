@@ -1,23 +1,12 @@
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
 
-
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'operations'),
-)
-
-class Operation extends OfflineFirstWithSupabaseModel{
-  @Supabase(unique: true)
-  @Sqlite(index: true, unique: true)
+class Operation{
   final String id;
 
   String? itemId;
   String? memberId;
   String? transactionId;
 
-  @Supabase(fromGenerator: "%DATA_PROPERTY%.toDouble()")
   double value;
   
   final DateTime timestamp;
