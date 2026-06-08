@@ -38,23 +38,22 @@ dependencies:
   path_provider:
   currency_textfield:
   flutter_colorpicker: ^1.0.3
-  file_picker: ^10.2.0
+  file_picker: ^12.0.0-beta.5
   url_launcher:
   googleapis:
   googleapis_auth:
   google_sign_in:
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.3.1
   path:
   flutter_speed_dial:
   synchronized:
   shared_preferences:
   multi_dropdown: ^3.0.1
-  calendar_date_picker2: ^2.0.1
+  calendar_date_picker2: ^3.0.0
   flutter_rounded_date_picker: ^3.0.4
   image_picker: ^1.1.2
-  image_cropper: ^9.1.0
+  image_cropper: ^12.2.1
   http: ^1.1.0
-  flutter_inappwebview: ^6.1.5
   flutter_dotenv: ^6.0.0
   change_app_package_name: ^1.1.0
   flutter_custom_tabs: ^2.1.0
@@ -62,22 +61,22 @@ dependencies:
   widgets_to_image: ^2.0.1
   screenshot: ^3.0.0
   permission_handler:
-  share_plus: ^11.1.0
-  package_info_plus: ^8.1.1
+  share_plus: ^13.1.0
+  package_info_plus: ^10.1.0
   brick_offline_first_with_supabase: ^2.1.0
   sqflite: ^2.3.0
   brick_sqlite: ^4.1.0
   uuid: ^4.5.1
   supabase_flutter: ^2.8.0
   supabase_auth_ui: ^0.5.4
-  app_links: ^6.3.3
+  app_links: ^7.0.0
   excel: ^4.0.6
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.1.1
   flutter_bloc: ^9.1.1
   webview_flutter: ^4.13.0
   in_app_update: ^4.2.3
   pie_chart: ^5.4.0
-  powersync: ^1.18.0
+  powersync: ^2.2.0
 
 dev_dependencies:
   flutter_test:
