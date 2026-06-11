@@ -481,6 +481,9 @@ class DetailView extends StatelessWidget {
   }
 
   Widget body() {
+    bool isDarkTheme = themeMode == ThemeMode.system
+      ? MediaQuery.of(context).platformBrightness == Brightness.dark
+      : themeMode == ThemeMode.dark;
     //double imageRadius = window.viewPadding.top - AppBar().preferredSize.height - MediaQuery.of(context).viewPadding.top;
     return Column(
       children: [
@@ -493,10 +496,19 @@ class DetailView extends StatelessWidget {
               builder: (context, state) => ClipRRect(
                 borderRadius:
                   const BorderRadius.vertical(bottom: Radius.circular(25)),
-                child: state is DetailViewEditMode ? imageEdit(state) : Image.memory(state.item.image!,
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.width / 2.2,
-                  fit: BoxFit.fill),
+                child: state is DetailViewEditMode
+                  ? imageEdit(state)
+                  : state.item.image == null
+                    ? Container(
+                      color: isDarkTheme ? Colors.white24 : Colors.black26,
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.width / 2.2,
+                      child: Icon(Icons.image_not_supported, size: 100, color: const Color.fromARGB(179, 128, 8, 8)))
+                    : Image.memory(state.item.image!,
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.width / 2.2,
+                        fit: BoxFit.fill
+                      ),
               ),
             ),
             const Spacer(),
