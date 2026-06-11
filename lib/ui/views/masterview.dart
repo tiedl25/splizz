@@ -125,7 +125,7 @@ class MasterView extends StatelessWidget {
           );
         },
       ),
-    ).then((value) => cubit.fetchData(destructive: false),);
+    ).then((value) => cubit.fetchData(),);
   }
 
   Widget dismissTile(Item item) {
@@ -214,10 +214,9 @@ class MasterView extends StatelessWidget {
           SpeedDialChild(
               child: const Icon(Icons.bug_report),
               onTap: () async => await showLoadingEntry(context: context, onWait: () async => await cubit.addDebugItem())),
-          //SpeedDialChild(
-          //    child: const Icon(Icons.remove),
-          //    onTap: () => cubit.removeAll()),
-          // add more options as needed
+          SpeedDialChild(
+              child: const Icon(Icons.remove),
+              onTap: () => cubit.removeAll()),
         ],
       )
     : FloatingActionButton(
@@ -279,7 +278,7 @@ class MasterView extends StatelessWidget {
                   ),
                 ],
               ),
-            onRefresh: () async => cubit.fetchData(destructive: false),
+            onRefresh: () async => cubit.fetchData(),
           )
         : const Center(child: CircularProgressIndicator())
     ),

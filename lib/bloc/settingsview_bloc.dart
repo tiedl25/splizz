@@ -66,8 +66,7 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
 
   Future<void> confirmLogout() async {
     await (state as SettingsViewLogoutDialog).sharedPreferences.setBool('offline', false);
-    await Supabase.instance.client.auth.signOut();
-    await DatabaseHelper.instance.deleteDatabase();
+    await DatabaseHelper.instance.logout();
 
     emit(SettingsViewLogout());
   }

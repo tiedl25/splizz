@@ -80,4 +80,30 @@ class Member {
   void compensate(){
     total = balance;
   }
+
+  factory Member.fromMap(Map<String, dynamic> map) {
+    return Member(
+      name: map['name'],
+      color: map['color'],
+      id: map['id'],
+      itemId: map['item_id'],
+      active: map['active'] == 1,
+      deleted: map['deleted'] == 1,
+      timestamp: DateTime.parse(map['timestamp']),
+      email: map['email']
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'color': color,
+      'item_id': itemId,
+      'active': active ? 1 : 0,
+      'deleted': deleted ? 1 : 0,
+      'timestamp': timestamp.toString(),
+      'email': email,
+      'id': id,
+    };
+  }
 }

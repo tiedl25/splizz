@@ -76,3 +76,5 @@ const String dismissDialogTextItem = "Do you really want to remove this Item";
 const String noItemsInList = "No items in list";
 const String thisIsMe = "This is me";
 const String currentBalance = "Your current balance is";
+const String cannotShareWithYourself = "You cannot share an item with yourself!";
+const String logInForSharing = "Please log in to share items with other users!";

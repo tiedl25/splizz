@@ -1,197 +1,216 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splizz/data/result.dart';
-
-import 'package:splizz/brick/repository.dart';
-import 'package:splizz/resources/strings.dart';
+import 'package:powersync/powersync.dart';
+import 'package:logging/logging.dart';
+import 'package:powersync/attachments/attachments.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import 'package:synchronized/synchronized.dart';
 
+import 'package:splizz/data/result.dart';
+import 'package:splizz/data/storage_adapter.dart';
+import 'package:splizz/data/supabase.dart';
+import 'package:splizz/data/backend_connector.dart';
+import 'package:splizz/resources/strings.dart';
+
+import 'package:splizz/models/schema.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/operation.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
-
-bool isSignedIn = Supabase.instance.client.auth.currentSession != null;
-
-bool switchRepository() {
-  if (isSignedIn != (Supabase.instance.client.auth.currentSession != null))
-  {
-    isSignedIn = Supabase.instance.client.auth.currentSession != null;
-    return true;
-  }
-  return false;
-}
-
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  static final String _databaseName = "powersync.db";
+  static final int _databaseVersion = 1;
 
-  static dynamic _database;
-  Future<dynamic> get database async => _database = _database == null || switchRepository() 
-    ? await _initDatabase() 
-    : _database;
+  static PowerSyncDatabase? _database;
+  Future<PowerSyncDatabase> get database async => _database ??= await _initDatabase();
 
-  static var lock = Lock(reentrant: true);
+  final logger = Logger('AttachmentQueue');
+  late AttachmentQueue attachmentQueue;
 
-  Future<void> get destructiveLock async {
-    return lock.synchronized(() async {});
+  Future<String> getDatabasePath() async {
+    if (kIsWeb) {
+      return _databaseName;
+    }
+    final dir = await getApplicationSupportDirectory();
+    return path.join(dir.path, _databaseName);
   }
 
-  Future<dynamic> _initDatabase() async {
-    return isSignedIn ? Repository.instance : Repository.instance.sqliteProvider;
+  Future<void> connectToDatabase(PowerSyncDatabase db) async {
+    final connector = BackendConnector();
+    await db.connect(connector: connector);
+    return;
   }
 
-  Future<bool> checkQueue() async {
-    if (!isSignedIn) return true;
+  Future<PowerSyncDatabase> _initDatabase() async {
+    final path = await getDatabasePath();
 
-    // ignore: invalid_use_of_protected_member
-    final queue = Repository.instance.offlineRequestQueue;
-    final unprocessedRequests = await queue.requestManager.unprocessedRequests();
+    final db = PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
+    await db.initialize();
+    await initializeAttachmentQueue(db);
 
-    for (final sqliteRequest in unprocessedRequests) {
-      final request = queue.requestManager.sqliteToRequest(sqliteRequest);
-      if (sqliteRequest["attempts"] < 3) {
-        await queue.transmitRequest(request);
-      } else {
-        try {
-          final response = await queue.transmitRequest(request);
-          if(response.reasonPhrase == "Unauthorized") {
-            await queue.requestManager.deleteUnprocessedRequest(sqliteRequest["id"]);
-          }
-        } catch (e) {
-          if (e.toString().contains("Unauthorized")) {
-            await queue.requestManager.deleteUnprocessedRequest(sqliteRequest["id"]);
-          }
-        }
-      }
+    if (loggedIn) {
+      await connectToDatabase(db); //TODO: Move to auth listener
+      await attachmentQueue.startSync();
     }
 
-    return (await queue.requestManager.unprocessedRequests()).length > 0;
-  }
-
-  Future<void> waitForDestructiveSync() async {
-    await destructiveLock;
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool lastSyncCompleted = prefs.getBool('LAST_SYNC_COMPLETED') ?? true;
-
-    if (!lastSyncCompleted) {
-      await restoreDatabase();
-      prefs.setBool('LAST_SYNC_COMPLETED', true);
-    }
-  }
-
-  Future<void> backupDatabase() async {
-    // Get the database path
-    final dir = await getApplicationDocumentsDirectory();
-    final dbPath = path.join(dir.path, '../databases/my_repository.sqlite');
-    final backupPath = path.join(dir.path, '../databases/my_repository_backup.sqlite');
-
-    final dbFile = File(dbPath);
-    if (await dbFile.exists()) {
-      await dbFile.copy(backupPath);
-      print('Backup created at $backupPath');
-    }
-  }
-
-  Future<void> restoreDatabase() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final dbPath = path.join(dir.path, '../databases/my_repository.sqlite');
-    final backupPath = path.join(dir.path, '../databases/my_repository_backup.sqlite');
-
-    final backupFile = File(backupPath);
-    if (await backupFile.exists()) {
-      await backupFile.copy(dbPath);
-      print('Database restored from $backupPath');
-      _database = null; // Reset the database instance to force re-initialization
-    }
-  }
-
-  Future<void> destructiveSync() async {
-    final db = await instance.database; // Use the same getter as other methods
+    listenForAuthenticationChanges();
     
-    await lock.synchronized(() async {
-      final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
-      if (!isSignedIn || !connection) return;
+    return db;
+  }
 
-      if (await checkQueue()) return;
+  void listenForAuthenticationChanges() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      final AuthChangeEvent event = data.event;
+      PowerSyncDatabase db = await instance.database;
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool('LAST_SYNC_COMPLETED', false);
-      await backupDatabase();
+      if (event == AuthChangeEvent.signedIn) {
+        List<Item> items = await getItems();
+        List<Member> members = await getMembers(sort: false);
+        members.where((member) => member.email == "thisIsMe").forEach((member) => member.email = currentUser?.email);
+        List<Transaction> transactions = await getTransactions();
+        List<Operation> operations = await getOperations(sort: false);
+        await db.disconnect();
+        await db.updateSchema(schema);
 
-      await Future.wait<dynamic>([
-        db.destructiveLocalSyncFromRemote<Item>(),
-        db.destructiveLocalSyncFromRemote<User>(),
-        db.destructiveLocalSyncFromRemote<Member>(),
-        db.destructiveLocalSyncFromRemote<Operation>(),
-        db.destructiveLocalSyncFromRemote<Transaction>(),
-      ]);
+        // Connect to PowerSync when the user is signed in
+        final connector = BackendConnector();
+        await db.connect(connector: connector);
+        await attachmentQueue.startSync();
 
-      prefs.setBool('LAST_SYNC_COMPLETED', true);
+        await uploadAllData(items: items, members: members, transactions: transactions, operations: operations);
+      } else if (event == AuthChangeEvent.signedOut) {
+        // Implicit sign out - disconnect, but don't delete data
+        await db.disconnect();
+        await attachmentQueue.stopSyncing();
+        //await attachmentQueue.clearQueue();
+        //await attachmentQueue.close();
+
+        await db.updateSchema(localSchema);
+      } else if (event == AuthChangeEvent.tokenRefreshed) {
+        // Supabase token refreshed - trigger token refresh for PowerSync.
+        final connector = BackendConnector();
+        await connector.prefetchCredentials();
+      }
     });
   }
 
-  Future<List<Item>> getItems({dynamic db, bool sync = false}) async {
-    db = db ?? await instance.database;
+  Future<void> uploadAllData({List<Item> items = const [], List<Member> members = const [], List<Transaction> transactions = const [], List<Operation> operations = const []}) async {
+    PowerSyncDatabase db = await instance.database;
 
-    await checkQueue();
-
-    final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
-
-    sync = sync && isSignedIn && connection;
-
-    final List<Item> items = sync 
-      ? await db.destructiveLocalSyncFromRemote<Item>() 
-      : isSignedIn
-        ? await db.get<Item>(policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-        : await db.get<Item>();
-
-    if (isSignedIn) db.get<Item>(policy: OfflineFirstGetPolicy.alwaysHydrate);
+    List<User> permissions = [];
+    for (var item in items) {
+      permissions.add(User(
+        itemId: item.id,
+        userId: userId,
+        userEmail: currentUser!.email,
+        expirationDate: null,
+      ));
+    }
 
     await Future.wait(items.map((item) async {
-      item.balance = await getUserBalance(itemId: item.id, db: db);
+      if (item.image != null) await DatabaseHelper.instance.uploadItemImage(item.image!, item.id);
     }));
+
+    final sql = [
+      'INSERT INTO items (name, image, timestamp, id) VALUES (?, ?, ?, ?)',
+      'INSERT INTO shared (item_id, user_id, full_access, user_email, expiration_date, id) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO members (name, color, item_id, active, deleted, email, timestamp, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO transactions (description, value, date, member_id, item_id, payoff_id, deleted, timestamp, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO operations (value, item_id, member_id, transaction_id, timestamp, id) VALUES (?, ?, ?, ?, ?, ?)',
+    ];
+
+    final parameterSets = [
+      items.map((item) => item.toMap().values.toList()).toList(),
+      permissions.map((permission) => permission.toMap().values.toList()).toList(),
+      members.map((member) => member.toMap().values.toList()).toList(),
+      transactions.map((transaction) => transaction.toMap().values.toList()).toList(),
+      operations.map((operation) => operation.toMap().values.toList()).toList(),
+    ];
+
+    await db.executeBatch(sql[0], parameterSets[0]);
+    await db.executeBatch(sql[1], parameterSets[1]);
+    await db.executeBatch(sql[2], parameterSets[2]);
+    await db.executeBatch(sql[3], parameterSets[3]);
+    await db.executeBatch(sql[4], parameterSets[4]);
+  }
+
+  Future<void> logout() async {
+    PowerSyncDatabase db = await instance.database;
+    await Supabase.instance.client.auth.signOut();
+    await db.disconnectAndClear();
+  }
+
+  Future<void> deleteLocalDatabase() async {
+    Directory documentsDirectory = await getApplicationSupportDirectory();
+    String path = join(documentsDirectory.path, _databaseName);
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    _database = null;
+  }
+
+  Future<void> delete() async {
+    Directory documentsDirectory = await getApplicationSupportDirectory();
+    String path = join(documentsDirectory.path, _databaseName);
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    _database = null;
+
+    await Future.wait(
+      (await getItems()).map((item) => deleteItemImage(item.id))
+     );
+  }
+
+  Future<List<Item>> getItems({dynamic db}) async {
+    db = db ?? await instance.database;
+
+    final List<Map<String, dynamic>> rows = await db.getAll('SELECT * FROM items');
+    final List<Item> items = rows.isNotEmpty
+        ? rows.map(Item.fromMap).toList()
+        : <Item>[];
+
+    final futures = items.map<Future<void>>((item) async {
+      item.balance = await getUserBalance(itemId: item.id, db: db);
+      final imagePath = await getItemImagePath(db, item.id);
+      if (imagePath != null) {
+        item.image = Uint8List.fromList(File(imagePath).readAsBytesSync());
+      }
+    });
+
+    await Future.wait(futures);
    
     return items;
   }
 
-  Future<Item> getItem(String id, {dynamic db, bool sync = false}) async {
-    db = db ?? lock.locked 
-      ? await Repository.backupInstance
-      : await instance.database;
+  Future<Item> getItem(String id, {dynamic db}) async {
+    db = db ?? await instance.database;
 
-    final connection = (await Connectivity().checkConnectivity())[0] != ConnectivityResult.none;
+    final row = await db.get('SELECT * FROM items WHERE id = ?', [id]);
+    Item item = Item.fromMap(row);
+    final imagePath = await getItemImagePath(db, item.id);
+    if (imagePath != null) {
+      item.image = Uint8List.fromList(File(imagePath).readAsBytesSync());
+    }
 
-    sync = sync && isSignedIn && connection;
+    List<Operation> operations = await getOperations(id: id, db: db);
 
-    final itemQuery = Query(where: [Where('id').isExactly(id)]);
-
-    final item = (isSignedIn
-      ? await db.get<Item>(query: itemQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-      : await db.get<Item>(query: itemQuery))[0];
-
-    if (isSignedIn) db.get<Item>(query: itemQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
-
-    List<Operation> operations = await getOperations(id, db: db);
-
-    item.members = await getMembers(id, db: db, sync: sync);
-    item.history = await getTransactions(id, db: db, sync: sync);
+    item.members = await getMembers(id: id, db: db);
+    item.history = await getTransactions(id: id, db: db);
 
     item.members.forEach((m) {
       m.history = item.history.where((t) => t.memberId == m.id).toList();
       List<Transaction> balanceTransactions = item.history.where((t) => t.payoffId == null && t.description != "payoff" && t.deleted == false).toList();
-      print("test ");
       m.balance = List<double>.from(operations.where((o) => o.memberId == m.id && balanceTransactions.any((t) => t.id == o.transactionId)).map((e) => e.value)).sum;
       m.total = List<double>.from(m.history.where((t) => t.deleted == false).map((e) => e.value)).sum;
       m.payoff = List<double>.from(operations.where((o) => o.memberId == m.id && m.history.any((t) => t.payoffId == o.transactionId && t.deleted == false)).map((e) => e.value)).sum;  
@@ -205,65 +224,52 @@ class DatabaseHelper {
     return item;
   }
 
-  Future<List<Member>> getMembers(String id, {dynamic db, bool sync = false}) async {
+  Future<List<Member>> getMembers({String? id, sort=true, dynamic db}) async {
     db = db ?? await instance.database;
-    sync = sync && isSignedIn;
 
-    final memberQuery = Query(where: [Where('itemId').isExactly(id)]);
-    final List<Member> members = isSignedIn
-      ? await db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-      : await db.get<Member>(query: memberQuery);
+    final List<Map<String, dynamic>> rows = id == null ? 
+      await db.getAll('SELECT * FROM members') : 
+      await db.getAll('SELECT * FROM members WHERE item_id = ?', [id]);
 
-    if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
+    List<Member> members = rows.isNotEmpty ? rows.map((e) => Member.fromMap(e)).toList() : <Member>[];
 
-    members.sort((Member a, Member b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    if (sort) members.sort((Member a, Member b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return members;
   }
 
-  Future<List<Transaction>> getTransactions(String id, {dynamic db, bool sync = false}) async {
+  Future<List<Transaction>> getTransactions({String? id, dynamic db}) async {
     db = db ?? await instance.database;
-    sync = sync && isSignedIn;
 
-    final transactionQuery = Query(where: [Where('itemId').isExactly(id)], orderBy: [OrderBy.asc('date'), OrderBy.asc('timestamp')]);
-    final List<Transaction> transactions = isSignedIn
-      ? await db.get<Transaction>(query: transactionQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-      : await db.get<Transaction>(query: transactionQuery);
+    final List<Map<String, dynamic>> rows = id == null ? 
+      await db.getAll('SELECT * FROM transactions ORDER BY date ASC, timestamp ASC') : 
+      await db.getAll('SELECT * FROM transactions WHERE item_id = ? ORDER BY date ASC, timestamp ASC', [id]);
 
-    if (isSignedIn) db.get<Transaction>(query: transactionQuery, policy: OfflineFirstGetPolicy.alwaysHydrate); 
-
-    if (transactions.isEmpty) return [];
+    List<Transaction> transactions = rows.isNotEmpty ? rows.map((e) => Transaction.fromMap(e)).toList() : <Transaction>[];
 
     return transactions;
   }
 
-  Future<List<Operation>> getTransactionOperations(String id, {dynamic db, bool sync = false}) async {
+  Future<List<Operation>> getTransactionOperations(String id, {dynamic db}) async {
     db = db ?? await instance.database;
-    sync = sync && isSignedIn;
 
-    final operationQuery = Query(where: [Where('transactionId').isExactly(id)]);
-    List<Operation> operations = isSignedIn
-      ? await db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-      : await db.get<Operation>(query: operationQuery);
-
-    if (isSignedIn) db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
+    final List<Map<String, dynamic>> rows = await db.getAll('SELECT * FROM operations WHERE transaction_id = ?', [id]);
+    List<Operation> operations = rows.isNotEmpty ? rows.map((e) => Operation.fromMap(e)).toList() : <Operation>[];
 
     operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
 
     return operations;  
   }
 
-  Future<List<Operation>> getOperations(String itemId, {dynamic db}) async {
+  Future<List<Operation>> getOperations({String? id, sort=true, dynamic db}) async {
     db = db ?? await instance.database;
 
-    final operationQuery = Query(where: [Where('itemId').isExactly(itemId)]);
-    List<Operation> operations = isSignedIn
-      ? await db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.localOnly)
-      : await db.get<Operation>(query: operationQuery);
+    final List<Map<String, dynamic>> rows = id == null ? 
+      await db.getAll('SELECT * FROM operations') : 
+      await db.getAll('SELECT * FROM operations WHERE item_id = ?', [id]);
+    List<Operation> operations = rows.isNotEmpty ? rows.map((e) => Operation.fromMap(e)).toList() : <Operation>[];
 
-    if (isSignedIn) db.get<Operation>(query: operationQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
-
-    operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
+    if (sort) operations.sort((Operation a, Operation b) => b.value.compareTo(a.value), );
 
     return operations;  
   }
@@ -271,40 +277,56 @@ class DatabaseHelper {
   Future<User> getPermission(String itemId, String userId, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    final userQuery = Query(where: [Where('itemId').isExactly(itemId), Where('userId').isExactly(userId)]);
-    return (await db.get<User>(query: userQuery))[0];
+    final List<Map<String, dynamic>> rows = await db.getAll('SELECT * FROM shared WHERE item_id = ? AND user_id = ?', [itemId, userId]);
+    if (rows.isEmpty) throw Exception("Permission not found");
+    User user = User.fromMap(rows[0]);
+
+    return user;
   }
 
-  Future<void> upsertItem(Item item, {dynamic db}) async {
+  Future<void> insertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
 
-    await destructiveLock;
+    Attachment attachment = await uploadItemImage(item.image!, item.id);
+    item.imagePath = attachment.filename;
   
-    await db.upsert<Item>(item);
+    await db.execute('INSERT INTO items (name, image, timestamp, id) VALUES (?, ?, ?, ?)', item.toMap().values.toList());
 
-    final currentUser = Supabase.instance.client.auth.currentUser;
-
-    if (currentUser != null) await db.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true));
+    if (currentUser != null) await db.execute('INSERT INTO shared (item_id, user_id, full_access, user_email, expiration_date, id) VALUES (?, ?, ?, ?, ?, ?)', User(itemId: item.id, userId: currentUser?.id, userEmail: currentUser?.email, fullAccess: true).toMap().values.toList());
 
     await Future.wait(
-      item.members.map((member) => upsertMember(member, db: db))
+      item.members.map((member) => insertMember(member, db: db))
     );
     await Future.wait(
-      item.history.map((transaction) => upsertTransaction(transaction, db: db))
+      item.history.map((transaction) => insertTransaction(transaction, db: db))
     );
+  }
+
+  Future<void> updateItem(Item item, {bool updateImage = false, dynamic db}) async {
+    db ??= await instance.database;
+  
+    await db.execute('UPDATE items SET name = ?, image = ?, timestamp = ? WHERE id = ?', item.toMap().values.toList());
+
+    await Future.wait(
+      item.members.map((member) => updateMember(member, db: db))
+    );
+    await Future.wait(
+      item.history.map((transaction) => updateTransaction(transaction, db: db))
+    );
+
+    if (updateImage && item.image != null) {
+      await uploadItemImage(item.image!, item.id);
+    }
   }
 
   Future<double> getUserBalance({String? itemId, dynamic db}) async {
     db = db ?? await instance.database;
 
-    final currentUser = Supabase.instance.client.auth.currentUser;
+    final List<Map<String, dynamic>> rows;
+    if (itemId == null) rows = await db.getAll('SELECT * FROM members WHERE email = ?', [currentUser != null ? currentUser?.email : "thisIsMe"]);
+    else rows = await db.getAll('SELECT * FROM members WHERE item_id = ? AND email = ?', [itemId, currentUser != null ? currentUser?.email : "thisIsMe"]);
 
-    final memberQuery = Query(where: [Where('email').isExactly(currentUser != null ? currentUser.email : "thisIsMe")] + (itemId != null ? [Where('itemId').isExactly(itemId)] : []));
-    final List<Member> members = isSignedIn
-      ? await db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
-      : await db.get<Member>(query: memberQuery);
-
-    if (isSignedIn) db.get<Member>(query: memberQuery, policy: OfflineFirstGetPolicy.alwaysHydrate);
+    List<Member> members = rows.isNotEmpty ? rows.map((e) => Member.fromMap(e)).toList() : <Member>[];
 
     await Future.wait(members.map((m) async {
       final balanceFuture = getBalance(m.id, m.itemId!, db: db);
@@ -314,51 +336,97 @@ class DatabaseHelper {
     return members.length > 0 ? members.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance)) : 0;
   }
 
-  Future<void> upsertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {
+  Future<void> insertTransaction(Transaction transaction, {dynamic db, List<Transaction> payoffTransactions = const []}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-
     final operations = List<Operation>.from(transaction.operations);
+  
+    await db.execute('INSERT INTO transactions (description, value, date, member_id, item_id, payoff_id, deleted, timestamp, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', transaction.toMap().values.toList());
 
     if (payoffTransactions.isNotEmpty) {
       await Future.wait(
-        payoffTransactions.map((t) => upsertTransaction(t..payoffId = transaction.id, db: db))
+        payoffTransactions.map((t) => updateTransaction(t..payoffId = transaction.id, db: db))
       );
     }
   
-    await db.upsert<Transaction>(transaction);
-
     await Future.wait(
-      operations.map((operation) => upsertOperation(operation, db: db))
+      operations.map((operation) => insertOperation(operation, db: db))
     );
   }
 
-  Future<void> upsertMember(Member member, {dynamic db}) async {
+  Future<void> updateTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
+    final operations = List<Operation>.from(transaction.operations);
   
-    await db.upsert<Member>(member);
+    await db.execute('UPDATE transactions SET description = ?, value = ?, date = ?, member_id = ?, item_id = ?, payoff_id = ?, deleted = ?, timestamp = ? WHERE id = ?', transaction.toMap().values.toList());
+
+    await Future.wait(
+      operations.map((operation) => updateOperation(operation, db: db))
+    );
   }
+
+  Future<void> insertMember(Member member, {dynamic db}) async {
+    db = db ?? await instance.database;
+  
+    await db.execute('INSERT INTO members (name, color, item_id, active, deleted, timestamp, email, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', member.toMap().values.toList());
+  }
+
+  Future<void> updateMember(Member member, {dynamic db}) async {
+    db = db ?? await instance.database;
+  
+    await db.execute('UPDATE members SET name = ?, color = ?, item_id = ?, active = ?, deleted = ?, timestamp = ?, email = ? WHERE id = ?', member.toMap().values.toList());
+  }
+
+  Future<void> insertOperation(Operation operation, {dynamic db}) async {
+    db = db ?? await instance.database;
+
+    await db.execute('INSERT INTO operations (value, item_id, member_id, transaction_id, timestamp, id) VALUES (?, ?, ?, ?, ?, ?)', operation.toMap().values.toList());
+  }
+
+  Future<void> updateOperation(Operation operation, {dynamic db}) async {
+    db = db ?? await instance.database;
+  
+    await db.execute('UPDATE operations SET value = ?, item_id = ?, member_id = ?, transaction_id = ?, timestamp = ? WHERE id = ?', operation.toMap().values.toList());
+  }
+
+
+
+
+
+
+
+
+
+
+
 
   Future<Result> addPermission(User permission, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-
-    final existingPermission = await db.get<User>(query: Query(where: [Where("itemId").isExactly(permission.itemId), Where("userEmail").isExactly(permission.userEmail)]));
-
-    if (existingPermission.isNotEmpty){
-      if (existingPermission[0].expirationDate == null) return Result.failure(alreadyGrantedAccess);
-
-      existingPermission[0].fullAccess = permission.fullAccess;
-      existingPermission[0].expirationDate = permission.expirationDate;
-
-      permission = existingPermission[0];
+    if (currentUser == null) {
+      return Result.failure(notAuthorized);
     }
 
-    await db.upsert<User>(permission);
+    if (permission.userEmail == currentUser!.email) {
+      return Result.failure(cannotShareWithYourself);
+    }
+
+    final row = await db.getAll('SELECT * FROM shared WHERE item_id = ? and user_email = ?', [permission.itemId, permission.userEmail]);
+
+    if (row.isNotEmpty){
+      final existingPermission = User.fromMap(row[0]);
+      if (existingPermission.expirationDate == null) return Result.failure(alreadyGrantedAccess);
+
+      existingPermission.fullAccess = permission.fullAccess;
+      existingPermission.expirationDate = permission.expirationDate;
+
+      permission = existingPermission;
+
+      await db.execute('UPDATE shared SET full_access = ?, expiration_date = ? WHERE item_id = ? and user_email = ?', [permission.fullAccess ? 1 : 0, permission.expirationDate?.toString(), permission.itemId, permission.userEmail]);
+    } else {
+      await db.execute('INSERT INTO shared (item_id, user_id, full_access, user_email, expiration_date, id) VALUES (?, ?, ?, ?, ?, ?)', permission.toMap().values.toList());
+    }
 
     return Result.success(permission);
   }
@@ -366,60 +434,46 @@ class DatabaseHelper {
   Future<Result> confirmPermission(String permissionId, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
+    if (!loggedIn) {
+      return Result.failure(logInForSharing);
+    }
 
-    final currentUser = Supabase.instance.client.auth.currentUser!;
-
-    final permissions = await db.get<User>(query: Query(where: [Where('id').isExactly(permissionId)]));
-
-    if (permissions.isEmpty) return Result.failure(notAuthorized);
-    
-    User permission = permissions[0];
+    final row = await db.get('SELECT * FROM shared WHERE id = ?', [permissionId]);
+    if (row.isEmpty) return Result.failure(notAuthorized);
+    User permission = User.fromMap(row);
 
     if(permission.userEmail != null){
-      if (permission.userEmail != currentUser.email) return Result.failure(notAuthorized);
+      if (permission.userEmail != currentUser?.email) return Result.failure(notAuthorized);
 
-      permission.userId = currentUser.id;
+      permission.userId = currentUser?.id;
       permission.expirationDate = null;
+
+      final row2 = await db.getAll('SELECT * FROM shared WHERE item_id = ? AND user_id = ?', [permission.itemId, permission.userId]);
+      if (row2.isNotEmpty) return Result.failure(itemAlreadyAdded);
+
+      await db.execute('UPDATE shared SET item_id = ?, user_id = ?, full_access = ?, user_email = ?, expiration_date = ? WHERE id = ?', permission.toMap().values.toList());
     } else {
       permission = User(
         itemId: permission.itemId,
         userId: permission.userId,
         fullAccess: permission.fullAccess,
-        userEmail: currentUser.email,
+        userEmail: currentUser?.email,
       );
+
+      final row2 = await db.getAll('SELECT * FROM shared WHERE item_id = ? AND user_id = ?', [permission.itemId, permission.userId]);
+      if (row2.isNotEmpty) return Result.failure(itemAlreadyAdded);
+
+      await db.execute('INSERT INTO shared (item_id, user_id, full_access, user_email, expiration_date, id) VALUES (?, ?, ?, ?, ?, ?)', permission.toMap().values.toList());
     }
 
-    Query query = Query(where: [Where("itemId").isExactly(permission.itemId), Where("userId").isExactly(permission.userId)]);
-    final existingPermissions = await db.get<User>(query: query);
-
-    if (existingPermissions.isNotEmpty) return Result.failure(itemAlreadyAdded);    
-
-    await db.upsert<User>(permission);
-
-    Item item = await getItem(permission.itemId!, db: db);
-    await db.upsert<Item>(item);
-
     return Result.success(null);
-  }
-
-  Future<void> upsertOperation(Operation operation, {dynamic db}) async {
-    db = db ?? await instance.database;
-
-    await destructiveLock;
-  
-    await db.upsert<Operation>(operation);
   }
 
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-
-    item.upload = false;
-
-    item.members = await getMembers(item.id, db: db);
-    item.history = await getTransactions(item.id, db: db);
+    item.members = await getMembers(id: item.id, db: db);
+    item.history = await getTransactions(id: item.id, db: db);
 
     await Future.wait(
       item.history.map((transaction) => deleteTransaction(transaction, db: db))
@@ -428,17 +482,15 @@ class DatabaseHelper {
       item.members.map((member) => deleteMember(member, db: db))
     );
 
-    if (db != Repository.instance.sqliteProvider) await deleteImage(item.id, db: db);
+    await deleteItemImage(item.id);
 
-    await db.delete<Item>(item);
+    await db.execute('DELETE FROM items WHERE id = ?', [item.id]);
 
-    await deleteUser(item.id, db: db);
+    if (currentUser != null) await deleteUser(item.id, db: db);
   }
 
   Future<void> deleteTransaction(Transaction transaction, {dynamic db}) async {
     db = db ?? await instance.database;
-
-    await destructiveLock;
 
     transaction.operations = await getTransactionOperations(transaction.id, db: db);
 
@@ -446,67 +498,52 @@ class DatabaseHelper {
       transaction.operations.map((operation) => deleteOperation(operation, db: db))
     );
 
-    await db.delete<Transaction>(transaction);
+    await db.execute('DELETE FROM transactions WHERE id = ?', [transaction.id]);
   }
 
   Future<void> deleteMember(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-  
-    await db.delete<Member>(member);
+    await db.execute('DELETE FROM members WHERE id = ?', [member.id]);
   }
 
     Future<void> markMemberDeleted(Member member, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-
     member.deleted = true;
   
-    await db.upsert<Member>(member);
+    await db.execute('UPDATE members SET deleted = ? WHERE id = ?', [member.deleted, member.id]);
   }
 
   Future<void> deleteOperation(Operation operation, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-  
-    await db.delete<Operation>(operation);
+    await db.execute('DELETE FROM operations WHERE id = ?', [operation.id]);
   }
   
   Future<void> deleteUser(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    await destructiveLock;
-
-    final userQuery = Query(where: [Where('itemId').isExactly(id)]);
-    final List<User> user = await db.get<User>(query: userQuery);
+    final List<Map<String, dynamic>> rows = await db.getAll('SELECT * FROM shared WHERE item_id = ?', [id]);
+    List<User> users = rows.isNotEmpty ? rows.map((e) => User.fromMap(e)).toList() : [];
 
     await Future.wait<dynamic>(
-      user.map((u) => db.delete<User>(u))
+      users.map((u) => db.delete<User>(u))
     );
-  }
-
-  Future<void> deleteImage(String id, {dynamic db}) async {
-    await Repository.instance.remoteProvider.client.storage.from('images').remove(['$id.jpg']);
   }
 
   Future<double> getBalance(String memberId, String itemId, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    var query = Query.where('deleted', false);
-    query = Query(where: [Where('deleted').isExactly(false), Where('itemId').isExactly(itemId)]);
-    List<Transaction> transactions = await db.get<Transaction>(query: query);
-
-    transactions = transactions.where((t) => t.payoffId == null || t.description != "payoff").toList();
+    final List<Map<String, dynamic>> rows = await db.getAll('SELECT * FROM transactions WHERE item_id = ? AND deleted = ? AND description != ? AND payoff_id IS NULL', [itemId, false, "payoff"]);
+    List<Transaction> transactions = rows.isNotEmpty ? rows.map((e) => Transaction.fromMap(e)).toList() : [];
 
     if (transactions.isEmpty) return 0;
 
     List transactionsNotDeleted = transactions.map((t) => t.id).toList();
 
-    query = Query(where: [Where('memberId').isExactly(memberId)]);
-    final operations = await db.get<Operation>(query: query);
+    final List<Map<String, dynamic>> rows2 = await db.getAll('SELECT * FROM operations WHERE member_id = ?', [memberId]);
+    List<Operation> operations = rows2.isNotEmpty ? rows2.map((e) => Operation.fromMap(e)).toList() : [];
 
     if (operations.isEmpty) return 0;
 
@@ -515,36 +552,129 @@ class DatabaseHelper {
     return balance;
   }
 
-  Future<Uint8List?> getLocalImage(String id) async {
-    final db = await Repository.instance.sqliteProvider;
-
-    final Query query = Query(where: [Where('id').isExactly(id)]);
-    final items = await db.get<Item>(query: query);
-
-    if (items.isEmpty) return null;
-
-    return items[0].image;
+  Future<void> initializeAttachmentQueue(PowerSyncDatabase db) async {
+    attachmentQueue = AttachmentQueue(
+      db: db,
+      remoteStorage: SupabaseStorageAdapter(),
+      localStorage: await getLocalStorage(),
+      
+      // Define which attachments exist in your data model
+      watchAttachments: () => db.watch('''
+        SELECT id, image 
+        FROM items 
+        WHERE image IS NOT NULL
+      ''').map(
+        (results) => [
+          for (final row in results)
+            WatchedAttachmentItem(
+              id: row['id'] as String,
+              filename: row['image'] as String,
+            )
+        ],
+      ),
+      
+      // Optional configuration
+      syncInterval: const Duration(seconds: 30),  // Sync every 30 seconds
+      downloadAttachments: true,  // Auto-download referenced files
+      archivedCacheLimit: 100,  // Keep 100 archived files before cleanup
+      logger: logger,
+    );
   }
 
-  Future<void> uploadLocalToRemote() async {
-    final items = await Repository.instance.sqliteProvider.get<Item>();
-    final members = await Repository.instance.sqliteProvider.get<Member>();
-    final transactions = await Repository.instance.sqliteProvider.get<Transaction>();
-    final operations = await Repository.instance.sqliteProvider.get<Operation>();
-
-    final currentUser = Supabase.instance.client.auth.currentUser!;
-
-    members.where((member) => member.email == "thisIsMe").forEach((member) => member.email = currentUser.email);
-
-    await Future.wait(items.map((item) => Repository.instance.upsert<User>(User(itemId: item.id, userId: currentUser.id, userEmail: currentUser.email, fullAccess: true))));
-    await Future.wait(items.map((item) => Repository.instance.upsert<Item>(item)));
-    await Future.wait(members.map((member) => Repository.instance.upsert<Member>(member)));
-    await Future.wait(transactions.map((transaction) => Repository.instance.upsert<Transaction>(transaction)));
-    await Future.wait(operations.map((operation) => Repository.instance.upsert<Operation>(operation)));
+  Future<Attachment> uploadItemImage(
+    Uint8List image,
+    String id,
+    ) async {
+    final imageBytes = await image;
+    
+    final attachment = await attachmentQueue.saveFile(
+      id: id,
+      data: Stream.value(imageBytes),
+      mediaType: 'image/jpeg',
+      fileExtension: 'jpg',
+      
+      // updateHook runs in same transaction, ensuring atomicity
+      updateHook: (context, attachment) async {
+        await context.execute(
+          'UPDATE items SET image = ? WHERE id = ?',
+          [attachment.filename, id],
+        );
+      },
+    );
+    
+    return attachment;
   }
 
-  Future <void> deleteDatabase() async {
-    await Repository.instance.reset();
-    await Repository().initialize();
+  Future<String?> getItemImagePath(
+    PowerSyncDatabase db,
+    String id,
+  ) async {
+    final item = await db.get(
+      'SELECT id, image FROM items WHERE id = ?',
+      [id],
+    );
+    
+    if (item == null || item['image'] == null) {
+      return null;
+    }
+    
+    final attachment = await db.get(
+      'SELECT * FROM attachments_queue WHERE id = ?',
+      [id],
+    );
+    
+    if (attachment == null) {
+      return null;
+    }
+    
+    final state = AttachmentState.fromInt(attachment['state'] as int);
+    
+    if (state == AttachmentState.synced || state == AttachmentState.queuedUpload) {
+      // Resolve full path from local storage
+      final appDocDir = await getApplicationDocumentsDirectory();
+      if (await File('${appDocDir.path}/attachments/${attachment['local_uri']}').exists()) {
+        return '${appDocDir.path}/attachments/${attachment['local_uri']}';
+      }
+      
+    }
+    
+    return null;
+  }
+
+  Future<void> deleteItemImage(
+    String id,
+  ) async {
+    await attachmentQueue.deleteFile(
+      attachmentId: id,
+      
+      // updateHook ensures atomic deletion
+      updateHook: (context, attachment) async {
+        await context.execute(
+          'UPDATE items SET image = NULL WHERE id = ?',
+          [id],
+        );
+      },
+    );
+    
+    print('Photo queued for deletion');
+    // The queue will:
+    // 1. Delete from remote storage
+    // 2. Delete local file
+    // 3. Remove attachment record
+  }
+
+  // Alternative: Remove reference and let queue archive it automatically
+  Future<void> removeItemImageReference(
+    PowerSyncDatabase db,
+    String id,
+  ) async {
+    await db.execute(
+      'UPDATE items SET image = NULL WHERE id = ?',
+      [id],
+    );
+    
+    // The watchAttachments callback will detect this change
+    // The queue will automatically archive the unreferenced attachment
+    // After reaching archivedCacheLimit, it will be deleted
   }
 }

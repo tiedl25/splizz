@@ -26,7 +26,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   fetchData() async {
     final newState = DetailViewLoaded(
-      item: await DatabaseHelper.instance.getItem(state.item.id, sync: true),
+      item: await DatabaseHelper.instance.getItem(state.item.id),
       unbalanced: checkBalances(state.item.members)
     );
 
@@ -63,7 +63,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     newState.unbalanced = checkBalances(newState.item.members);
 
-    await DatabaseHelper.instance.upsertTransaction(transaction);
+    await DatabaseHelper.instance.insertTransaction(transaction);
 
     emit(newState);
   }
@@ -114,7 +114,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       await Future.wait(
         payoffTransactions.map((t) {
           t.payoffId = null;
-          return DatabaseHelper.instance.upsertTransaction(t);
+          return DatabaseHelper.instance.updateTransaction(t);
         })
       );
 
@@ -122,7 +122,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       DatabaseHelper.instance.deleteTransaction(transaction);
     } else {
       newState.item.deleteTransaction(transaction);
-      DatabaseHelper.instance.upsertTransaction(transaction);
+      DatabaseHelper.instance.updateTransaction(transaction);
     }
     
     newState.unbalanced = checkBalances(newState.item.members);
@@ -133,7 +133,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final newState = (state as DetailViewMemberDialog).copyWith();
 
     member = Member.fromMember(member, active: value, timestamp: DateTime.now());
-    DatabaseHelper.instance.upsertMember(member);
+    DatabaseHelper.instance.updateMember(member);
 
     newState.item.members[newState.item.members.indexWhere((element) => element.id == member.id)] = member;
     newState.member = member;
@@ -171,7 +171,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final newState = (state as DetailViewLoaded).copyWith();
     final member = Member(name: name, color: (state as DetailViewAddMemberDialog).color.value, itemId: newState.item.id);
     newState.item.members.add(member);
-    await DatabaseHelper.instance.upsertMember(member);
+    await DatabaseHelper.instance.insertMember(member);
 
     emit(newState);
   }
@@ -235,7 +235,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     List<Transaction> payoffTransactions = newState.item.history.where((element) => element.payoffId == null && (element.description != "payoff" || element.memberId != null)).toList();
 
-    DatabaseHelper.instance.upsertTransaction(newState.item.history.last, payoffTransactions: payoffTransactions);
+    DatabaseHelper.instance.insertTransaction(newState.item.history.last, payoffTransactions: payoffTransactions);
 
     emit(newState);
   }
@@ -349,7 +349,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     
     final newState = (state as DetailViewMemberDialog).copyWith(editMode: false, member: newMember);
 
-    await DatabaseHelper.instance.upsertMember(newMember);
+    await DatabaseHelper.instance.updateMember(newMember);
 
     int index = newState.item.members.indexOf((state as DetailViewMemberDialog).member);
     newState.item.members[index] = newMember;
@@ -365,10 +365,10 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       final email = isSignedIn ? Supabase.instance.client.auth.currentUser?.email : "thisIsMe";
       newState.item.members.where((m) => m.email == email).forEach((m) => m.email = "");
       newState.item.members.firstWhere((m) => m.id == member.id).email = email;
-      Future.wait(newState.item.members.map((member) => DatabaseHelper.instance.upsertMember(member)));
+      Future.wait(newState.item.members.map((member) => DatabaseHelper.instance.updateMember(member)));
     } else {
       newState.item.members.firstWhere((m) => m.id == member.id).email = "";
-      DatabaseHelper.instance.upsertMember(member);
+      DatabaseHelper.instance.updateMember(member);
     }
     emit(newState);
   }
@@ -409,9 +409,9 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     emit(newState);
 
-    await DatabaseHelper.instance.upsertItem(newItem);
+    await DatabaseHelper.instance.updateItem(newItem, updateImage: true);
 
-    masterViewCubit.fetchData(destructive: false);
+    masterViewCubit.fetchData();
   }
 
   changeWhatToShare(List<bool> whatToShare) {

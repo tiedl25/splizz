@@ -448,7 +448,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
     newState.transaction.operations = operations;
     
     newState.cubit.updateTransaction(newState.transaction);
-    DatabaseHelper.instance.upsertTransaction(newState.transaction);
+    DatabaseHelper.instance.updateTransaction(newState.transaction);
 
     return Result.success(newState.transaction);
   }
@@ -511,7 +511,7 @@ class TransactionDialogCubit extends Cubit<TransactionDialogState> {
 
     newState.cubit.addTransaction(transaction, newState.selection, newState.involvedMembers);
 
-    DatabaseHelper.instance.upsertTransaction(transaction);
+    DatabaseHelper.instance.insertTransaction(transaction);
 
     newState.selection = -1;
 

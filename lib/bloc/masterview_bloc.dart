@@ -23,7 +23,8 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     if (!checkAuth()) {
       return;
     }
-    fetchData(destructive: true);
+    //DatabaseHelper.instance.deleteLocalDatabase();
+    fetchData();
     //recover();
     //handleIncomingLinks();
   }
@@ -32,7 +33,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final items = await DatabaseHelper.instance.getItems();
     for (Item item in items) {
       final i = await DatabaseHelper.instance.getItem(item.id);
-      await DatabaseHelper.instance.upsertItem(i);
+      await DatabaseHelper.instance.insertItem(i);
     }
     final newState = MasterViewLoaded(
       items: items, 
@@ -43,9 +44,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  Future<void> fetchData({bool destructive=true}) async {
-    await DatabaseHelper.instance.waitForDestructiveSync();
-
+  Future<void> fetchData() async {
     final items = await DatabaseHelper.instance.getItems();
     final balance = items.length > 0 ? items.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance!)) : null;
     
@@ -57,8 +56,6 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     
     handleIncomingLinks();
     emit(newState);
-
-    if (destructive) DatabaseHelper.instance.destructiveSync();
   }
 
   void showInvitationDialog(final String? permissionId) {
@@ -104,7 +101,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       final newState = MasterViewLoading(sharedPreferences: state.sharedPreferences);
       emit(newState);
 
-      fetchData(destructive: false);
+      fetchData();
     } else {
       final newState = MasterViewShowSnackBar(
         sharedPreferences: state.sharedPreferences, 
@@ -119,7 +116,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final newState = MasterViewLoading(sharedPreferences: state.sharedPreferences);
     emit(newState);
 
-    fetchData(destructive: false);
+    fetchData();
   }
 
   bool checkAuth() {
@@ -276,7 +273,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     }
 
     //DatabaseHelper.instance.add(newItem);
-    await DatabaseHelper.instance.upsertItem(newItem);
+    await DatabaseHelper.instance.insertItem(newItem);
 
     return newItem;
   }
@@ -316,7 +313,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       m.itemId = newItem.id;
     }
 
-    DatabaseHelper.instance.upsertItem(newItem);
+    await DatabaseHelper.instance.insertItem(newItem);
 
     final newState = (state as MasterViewLoaded).copyWith();
     newState.items.add(newItem);
@@ -328,9 +325,9 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final items = (state as MasterViewLoaded).items;
     final newState = (state as MasterViewLoaded).copyWith(items: []);
 
-    //DatabaseHelper.instance.deleteDatabase();
+    //DatabaseHelper.instance.delete();
 
-    await Future.wait(items.map((item) => DatabaseHelper.instance.deleteItem(item)));
+    //await Future.wait(items.map((item) => DatabaseHelper.instance.deleteItem(item)));
 
     emit(newState);
   }

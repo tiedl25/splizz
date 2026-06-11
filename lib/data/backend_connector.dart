@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:powersync/powersync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:logging/logging.dart';
@@ -34,8 +36,10 @@ class BackendConnector extends PowerSyncBackendConnector {
         ? null
         : DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 3600);
 
+    await dotenv.load(fileName: 'keys.env');
+
     return PowerSyncCredentials(
-      endpoint: const String.fromEnvironment("posersyncProductionUrl"),
+      endpoint: kDebugMode ? dotenv.get('POWERSYNC_DEBUG_URL') : dotenv.get('POWERSYNC_URL'),
       token: token,
       userId: userId,
       expiresAt: expiresAt,
@@ -62,9 +66,11 @@ class BackendConnector extends PowerSyncBackendConnector {
   }
 
   Future<SupabaseClient> getSupabaseClient(PowerSyncDatabase database) async {
+    await dotenv.load(fileName: 'keys.env');
+
     final supabase = SupabaseClient(
-      const String.fromEnvironment("supabaseUrl"),
-      const String.fromEnvironment("supabaseAnonKey"),
+      kDebugMode ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
+      kDebugMode ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
     );
 
     return supabase;

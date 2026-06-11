@@ -77,4 +77,32 @@ class Transaction{
   void addOperation(Operation operation){
     operations.add(operation);
   }
+
+  factory Transaction.fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      description: map['description'],
+      value: map['value'],
+      date: DateTime.parse(map['date']),
+      memberId: map['member_id'],
+      itemId: map['item_id'],
+      payoffId: map['payoff_id'],
+      deleted: map['deleted'] == 1,
+      id: map['id'],
+      timestamp: DateTime.parse(map['timestamp']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'description': description,
+      'value': value,
+      'date': date.toString(),
+      'member_id': memberId,
+      'item_id': itemId,
+      'payoff_id': payoffId,
+      'deleted': deleted ? 1 : 0,
+      'timestamp': timestamp.toString(),
+      'id': id,
+    };
+  }
 }

@@ -1,10 +1,11 @@
 import 'package:powersync/powersync.dart';
+import 'package:powersync/attachments/attachments.dart';
 
-const schema = Schema([
+Schema schema = Schema([
   Table('items', [
     Column.text('timestamp'),
     Column.text('name'),
-    Column.integer('image'), //TODO: change to blob
+    Column.text('image'),
   ], viewName: 'items'),
   Table('members', [
     Column.text('timestamp'),
@@ -20,8 +21,8 @@ const schema = Schema([
     Column.text('description'),
     Column.text('item_id'),
     Column.text('member_id'),
-    Column.integer('payoff_id'),
-    Column.integer('value'),
+    Column.text('payoff_id'),
+    Column.real('value'),
     Column.text('date'),
     Column.integer('deleted'),
   ], viewName: 'transactions'),
@@ -30,10 +31,9 @@ const schema = Schema([
     Column.text('item_id'),
     Column.text('member_id'),
     Column.text('transaction_id'),
-    Column.integer('value'),
+    Column.real('value'),
   ], viewName: 'operations'),
-  Table('users', [
-    Column.text('timestamp'),
+  Table('shared', [
     Column.text('user_email'),
     Column.text('item_id'),
     Column.text('user_id'),
@@ -43,7 +43,7 @@ const schema = Schema([
   Table.localOnly('local_items', [
     Column.text('timestamp'),
     Column.text('name'),
-    Column.integer('image'), //TODO: change to blob
+    Column.text('image'),
   ], viewName: 'inactive_local_items'),
   Table.localOnly('local_members', [
     Column.text('timestamp'),
@@ -59,8 +59,8 @@ const schema = Schema([
     Column.text('description'),
     Column.text('item_id'),
     Column.text('member_id'),
-    Column.integer('payoff_id'),
-    Column.integer('value'),
+    Column.text('payoff_id'),
+    Column.real('value'),
     Column.text('date'),
     Column.integer('deleted'),
   ], viewName: 'inactive_local_transactions'),
@@ -69,15 +69,16 @@ const schema = Schema([
     Column.text('item_id'),
     Column.text('member_id'),
     Column.text('transaction_id'),
-    Column.integer('value'),
-  ], viewName: 'inactive_local_operations')
+    Column.real('value'),
+  ], viewName: 'inactive_local_operations'),
+  AttachmentsQueueTable(),
 ]);
 
-const localSchema = Schema([
+Schema localSchema = Schema([
   Table('items', [
     Column.text('timestamp'),
     Column.text('name'),
-    Column.integer('image'), //TODO: change to blob
+    Column.text('image'),
   ], viewName: 'inactive_synced_items'),
   Table('members', [
     Column.text('timestamp'),
@@ -93,8 +94,8 @@ const localSchema = Schema([
     Column.text('description'),
     Column.text('item_id'),
     Column.text('member_id'),
-    Column.integer('payoff_id'),
-    Column.integer('value'),
+    Column.text('payoff_id'),
+    Column.real('value'),
     Column.text('date'),
     Column.integer('deleted'),
   ], viewName: 'inactive_synced_transactions'),
@@ -103,12 +104,12 @@ const localSchema = Schema([
     Column.text('item_id'),
     Column.text('member_id'),
     Column.text('transaction_id'),
-    Column.integer('value'),
+    Column.real('value'),
   ], viewName: 'inactive_synced_operations'),
   Table.localOnly('local_items', [
     Column.text('timestamp'),
     Column.text('name'),
-    Column.integer('image'), //TODO: change to blob
+    Column.text('image'),
   ], viewName: 'items'),
   Table.localOnly('local_members', [
     Column.text('timestamp'),
@@ -124,8 +125,8 @@ const localSchema = Schema([
     Column.text('description'),
     Column.text('item_id'),
     Column.text('member_id'),
-    Column.integer('payoff_id'),
-    Column.integer('value'),
+    Column.text('payoff_id'),
+    Column.real('value'),
     Column.text('date'),
     Column.integer('deleted'),
   ], viewName: 'transactions'),
@@ -134,6 +135,7 @@ const localSchema = Schema([
     Column.text('item_id'),
     Column.text('member_id'),
     Column.text('transaction_id'),
-    Column.integer('value'),
-  ], viewName: 'operations')
+    Column.real('value'),
+  ], viewName: 'operations'),
+  AttachmentsQueueTable(),
 ]);

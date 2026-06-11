@@ -1,34 +1,30 @@
 import 'dart:typed_data';
-
-import 'package:splizz/data/database.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/operation.model.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart' as Supabase_Flutter;
-
 class Item{
   final String id;
   final String name;
   final DateTime timestamp;
   Uint8List? image;
+  String? imagePath;
   bool owner;
-  bool upload=true;
   List<Member> members;
   List<Transaction> history;
 
   double? balance;
 
   //Constructor
-  Item({required String this.name, String? id, this.owner=true, members, history, this.image, timestamp}) : 
+  Item({required String this.name, String? id, this.owner=true, members, history, this.image, this.imagePath, timestamp}) : 
     this.id = id ?? Uuid().v4(), 
     this.timestamp = timestamp ?? DateTime.now(),
     this.members = members ?? [],
     this.history = history ?? [];
 
-  Item.copyWith({required Item item, String? name, String? id, bool? owner, List<Member>? members, List<Transaction>? history, Uint8List? image, DateTime? timestamp})
+  Item.copyWith({required Item item, String? name, String? id, bool? owner, List<Member>? members, List<Transaction>? history, Uint8List? image, String? imagePath, DateTime? timestamp})
     : this(
         name: name ?? item.name,
         id: id ?? item.id,
@@ -36,6 +32,7 @@ class Item{
         members: members ?? List<Member>.from(item.members.map((m) => Member.fromMember(m))),
         history: history ?? List<Transaction>.from(item.history.map((h) => Transaction.copy(h))),
         image: image ?? item.image,
+        imagePath: imagePath ?? item.imagePath,
         timestamp: timestamp ?? item.timestamp
   );
 
@@ -138,30 +135,21 @@ class Item{
   @override
   String toString() => 'Item(id: $id, name: $name)';
 
-
-  static Future<String> uploadImage(Uint8List image, String itemId) async {
-    String path;
-    try{
-      path = await Supabase_Flutter.Supabase.instance.client.storage
-          .from('images') // Replace with your storage bucket name
-          .uploadBinary('$itemId.jpg', image);
-    } catch (e) {
-      //path = await Supabase_Flutter.Supabase.instance.client.storage
-      //    .from('images') // Replace with your storage bucket name
-      //    .updateBinary('$itemId.jpg', image);
-      path = 'images/$itemId.jpg';
-    }
-            
-    return path;
+  factory Item.fromMap(Map<String, dynamic> map) {
+    return Item(
+      id: map['id'],
+      name: map['name'],
+      imagePath: map['image'],
+      timestamp: DateTime.parse(map['timestamp']),
+    );
   }
 
-  static Future<Uint8List> downloadImage(String path) async {
-    Uint8List? image = await DatabaseHelper.instance.getLocalImage(path);
-
-    if (image == null) image = await Supabase_Flutter.Supabase.instance.client.storage
-        .from('images') // Replace with your storage bucket name
-        .download(path + ".jpg");
-        
-    return image;
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'image': imagePath,
+      'timestamp': timestamp.toString(),
+      'id': id,
+    };
   }
 }

@@ -6,9 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/main_bloc.dart';
-import 'package:splizz/brick/repository.dart';
 import 'package:splizz/resources/strings.dart';
-import 'package:sqflite/sqflite.dart' show databaseFactory;
 
 import 'package:splizz/bloc/masterview_bloc.dart';
 import 'package:splizz/bloc/settingsview_bloc.dart';
@@ -17,6 +15,7 @@ import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/views/authview.dart';
 import 'package:splizz/ui/theme/dark_theme.dart';
 import 'package:splizz/ui/theme/light_theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +26,16 @@ void main() async {
     systemNavigationBarColor: Colors.transparent,
   ));
 
-  await Repository.configure(databaseFactory);
-  await Repository().initialize();
+  //await Repository.configure(databaseFactory);
+  //await Repository().initialize();
+  //await dotenv.load(fileName: 'keys.env');
+
   await dotenv.load(fileName: 'keys.env');
+
+  await Supabase.initialize(
+    url: kDebugMode ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
+    anonKey: kDebugMode ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
+  );
 
   final SharedPreferences sharedPreferences =
       await SharedPreferences.getInstance();
