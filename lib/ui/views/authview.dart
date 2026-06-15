@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splizz/data/database.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
@@ -14,7 +15,13 @@ class AuthView extends StatelessWidget {
 
   get emailAuth => SupaEmailAuth(
     redirectTo: kIsWeb ? null : "splizz://de.tmc.splizz",
-    onSignInComplete: (res) => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+    onSignInComplete: (res) async {
+      await showLoadingEntry(
+        context: context, 
+        onWait: () async => await DatabaseHelper.instance.login()
+      );
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    },
     onSignUpComplete: (res) => showOverlayMessage(
         context: context, 
         message: checkEmail,

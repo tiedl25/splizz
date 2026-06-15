@@ -101,8 +101,8 @@ class Member {
       'item_id': itemId,
       'active': active ? 1 : 0,
       'deleted': deleted ? 1 : 0,
-      'timestamp': timestamp.toString(),
       'email': email,
+      'timestamp': timestamp.toString(),
       'id': id,
     };
   }

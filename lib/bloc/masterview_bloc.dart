@@ -18,38 +18,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MasterViewCubit extends Cubit<MasterViewState> {
   bool _initialLinkProcessed = false;
-  StreamSubscription? _lateSyncSubscription;
 
   MasterViewCubit(SharedPreferences sharedPreferences) : super(MasterViewLoading(sharedPreferences: sharedPreferences)) {
     if (!checkAuth()) {
       return;
     }
     //DatabaseHelper.instance.deleteLocalDatabase();
-    fetchData(awaitFirstSync: true);
+    fetchData();
     //recover();
     //handleIncomingLinks();
-  }
-
-  Future<void> _watchForLateSyncRefresh() async {
-    if (_lateSyncSubscription != null) {
-      return;
-    }
-
-    final db = await DatabaseHelper.instance.database;
-    if (db.currentStatus.hasSynced == true) {
-      return;
-    }
-
-    _lateSyncSubscription = db.statusStream.listen((status) {
-      if (status.hasSynced == true) {
-        _lateSyncSubscription?.cancel();
-        _lateSyncSubscription = null;
-
-        if (!isClosed) {
-          fetchData();
-        }
-      }
-    });
   }
 
   void recover() async {
@@ -67,15 +44,8 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  Future<void> fetchData({bool awaitFirstSync = false}) async {
-    if (awaitFirstSync) {
-      emit(MasterViewLoading(sharedPreferences: state.sharedPreferences));
-      final synced = await DatabaseHelper.instance.waitForFirstSync();
-      if (!synced) {
-        await _watchForLateSyncRefresh();
-        return;
-      }
-    }
+  Future<void> fetchData() async {
+    emit(MasterViewLoading(sharedPreferences: state.sharedPreferences));
     final items = await DatabaseHelper.instance.getItems();
     final balance = items.length > 0 ? items.fold<double>(0.0, (previousValue, element) => previousValue + (element.balance!)) : null;
     

@@ -38,7 +38,7 @@ class DatabaseHelper {
 
   final logger = Logger('AttachmentQueue');
   late AttachmentQueue attachmentQueue;
-
+  
   Future<String> getDatabasePath() async {
     if (kIsWeb) {
       return _databaseName;
@@ -53,82 +53,64 @@ class DatabaseHelper {
     return;
   }
 
-  Future<bool> waitForFirstSync({
-    Duration pollInterval = const Duration(milliseconds: 250),
-    Duration timeout = const Duration(seconds: 20),
-  }) async {
-    if (!loggedIn) {
-      return true;
+  Future<PowerSyncDatabase> _initDatabase() async {
+    final path = await getDatabasePath();
+
+    final db =
+        PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
+    await db.initialize();
+    await initializeAttachmentQueue(db);
+
+    if (loggedIn) {
+      await connectToDatabase(db);
+      await attachmentQueue.startSync();
     }
 
-    final db = await instance.database;
-    final syncFuture = () async {
-      await _waitForDatabaseConnection(db, pollInterval: pollInterval);
-
-      if (Supabase.instance.client.auth.currentSession == null) {
-        return false;
-      }
-
-      try {
-        await db.waitForFirstSync();
-      } catch (error) {
-        logger.warning('Initial table sync failed, continuing with local data.', error);
-        return false;
-      }
-
-      await _waitForAttachmentSync(db, pollInterval: pollInterval);
-      return true;
-    }();
-
-    final signOutFuture = Supabase.instance.client.auth.onAuthStateChange
-        .firstWhere((data) => data.event == AuthChangeEvent.signedOut)
-        .then((_) => false);
-
-    final result = await Future.any<bool>([
-      syncFuture,
-      signOutFuture,
-      Future<bool>.delayed(timeout, () {
-        logger.warning('Timed out waiting for initial sync, continuing with local data.');
-        return false;
-      }),
-    ]);
-
-    return result;
+    return db;
   }
 
-  Future<void> _waitForDatabaseConnection(
+  Future<void> login() async {
+    PowerSyncDatabase db = await instance.database;
+
+    List<Item> items = await getItems();
+    List<Member> members = await getMembers(sort: false);
+    members
+        .where((member) => member.email == "thisIsMe")
+        .forEach((member) => member.email = currentUser?.email);
+    List<Transaction> transactions = await getTransactions();
+    List<Operation> operations = await getOperations(sort: false);
+    await db.disconnectAndClear();
+    await db.updateSchema(schema);
+
+    // Connect to PowerSync when the user is signed in
+    final connector = BackendConnector();
+    await db.connect(connector: connector);
+    await db.waitForFirstSync();
+      
+    await attachmentQueue.startSync();
+    await waitForAttachmentSync(db).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        logger.warning('Timed out while waiting for attachment sync during login.');
+      },
+    );
+
+    await uploadAllData(
+        items: items,
+        members: members,
+        transactions: transactions,
+        operations: operations);
+  }
+
+  Future<void> waitForAttachmentSync(
     PowerSyncDatabase db, {
     Duration pollInterval = const Duration(milliseconds: 250),
   }) async {
-    while (!db.currentStatus.connected) {
-      await Future.delayed(pollInterval);
-    }
-  }
-
-  Future<void> _waitForAttachmentSync(
-    PowerSyncDatabase db, {
-    Duration pollInterval = const Duration(milliseconds: 250),
-    Duration emptyGracePeriod = const Duration(seconds: 2),
-  }) async {
-    DateTime? emptySince;
 
     while (true) {
       final rows = await db.getAll(
         'SELECT id, image FROM items WHERE image IS NOT NULL',
       );
-
-      if (rows.isEmpty) {
-        emptySince ??= DateTime.now();
-
-        if (DateTime.now().difference(emptySince) >= emptyGracePeriod) {
-          return;
-        }
-
-        await Future.delayed(pollInterval);
-        continue;
-      }
-
-      emptySince = null;
 
       var allAttachmentsAvailable = true;
 
@@ -151,62 +133,6 @@ class DatabaseHelper {
 
       await Future.delayed(pollInterval);
     }
-  }
-
-  Future<PowerSyncDatabase> _initDatabase() async {
-    final path = await getDatabasePath();
-
-    final db =
-        PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
-    await db.initialize();
-    await initializeAttachmentQueue(db);
-
-    if (loggedIn) {
-      await connectToDatabase(db); //TODO: Move to auth listener
-      await attachmentQueue.startSync();
-    }
-
-    listenForAuthenticationChanges();
-
-    return db;
-  }
-
-
-
-  void listenForAuthenticationChanges() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      final AuthChangeEvent event = data.event;
-      PowerSyncDatabase db = await instance.database;
-
-      if (event == AuthChangeEvent.signedIn) {
-        List<Item> items = await getItems();
-        List<Member> members = await getMembers(sort: false);
-        members
-            .where((member) => member.email == "thisIsMe")
-            .forEach((member) => member.email = currentUser?.email);
-        List<Transaction> transactions = await getTransactions();
-        List<Operation> operations = await getOperations(sort: false);
-        await db.disconnect();
-        await db.updateSchema(schema);
-
-        // Connect to PowerSync when the user is signed in
-        final connector = BackendConnector();
-        await db.connect(connector: connector);
-        await attachmentQueue.startSync();
-
-        await uploadAllData(
-            items: items,
-            members: members,
-            transactions: transactions,
-            operations: operations);
-      } else if (event == AuthChangeEvent.signedOut) {
-        
-      } else if (event == AuthChangeEvent.tokenRefreshed) {
-        // Supabase token refreshed - trigger token refresh for PowerSync.
-        final connector = BackendConnector();
-        await connector.prefetchCredentials();
-      }
-    });
   }
 
   Future<void> uploadAllData(
@@ -299,7 +225,7 @@ class DatabaseHelper {
       await imagesDir.create(recursive: true);
     }
 
-    db.close();
+    await db.close();
 
     _database = await _initDatabase();
   }
@@ -598,7 +524,7 @@ class DatabaseHelper {
     db = db ?? await instance.database;
 
     await db.execute(
-        'INSERT INTO members (name, color, item_id, active, deleted, timestamp, email, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO members (name, color, item_id, active, deleted, email, timestamp, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         member.toMap().values.toList());
   }
 
@@ -606,7 +532,7 @@ class DatabaseHelper {
     db = db ?? await instance.database;
 
     await db.execute(
-        'UPDATE members SET name = ?, color = ?, item_id = ?, active = ?, deleted = ?, timestamp = ?, email = ? WHERE id = ?',
+        'UPDATE members SET name = ?, color = ?, item_id = ?, active = ?, deleted = ?, email = ?, timestamp = ? WHERE id = ?',
         member.toMap().values.toList());
   }
 
