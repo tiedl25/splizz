@@ -6,6 +6,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:splizz/bloc/detailview_states.dart';
 import 'package:splizz/bloc/transactionDialog_bloc.dart';
+import 'package:splizz/data/app_config.dart';
 import 'package:splizz/models/item.model.dart';
 import 'package:splizz/models/member.model.dart';
 import 'package:splizz/resources/strings.dart';
@@ -620,7 +621,7 @@ class DetailView extends StatelessWidget {
             ],
           ),
           body: body(),
-          floatingActionButton: state.runtimeType == DetailViewEditMode ? null : kDebugMode
+          floatingActionButton: state.runtimeType == DetailViewEditMode ? null : AppConfig.isDebug
             ? SpeedDial(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                 spacing: 5,

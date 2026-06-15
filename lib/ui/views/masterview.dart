@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/masterview_states.dart';
+import 'package:splizz/data/app_config.dart';
 import 'package:splizz/resources/helper.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
@@ -190,7 +190,7 @@ class MasterView extends StatelessWidget {
     );
   }
 
-  Widget speedDial() => kDebugMode
+  Widget speedDial() => AppConfig.isDebug
     ? SpeedDial(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))),

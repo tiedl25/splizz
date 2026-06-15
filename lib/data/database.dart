@@ -200,13 +200,7 @@ class DatabaseHelper {
             transactions: transactions,
             operations: operations);
       } else if (event == AuthChangeEvent.signedOut) {
-        // Implicit sign out - disconnect, but don't delete data
-        await db.disconnect();
-        await attachmentQueue.stopSyncing();
-        //await attachmentQueue.clearQueue();
-        //await attachmentQueue.close();
-
-        await db.updateSchema(localSchema);
+        
       } else if (event == AuthChangeEvent.tokenRefreshed) {
         // Supabase token refreshed - trigger token refresh for PowerSync.
         final connector = BackendConnector();
@@ -268,12 +262,14 @@ class DatabaseHelper {
     PowerSyncDatabase db = await instance.database;
     _logoutInProgress = true;
 
+    // 1. Stop syncing attachments first
     try {
       await attachmentQueue.stopSyncing();
     } catch (error) {
       logger.warning('Failed to stop attachment syncing during logout.', error);
     }
 
+    // 2. Disconnect and clear the SQLite database
     try {
       await db.disconnectAndClear().timeout(
         const Duration(seconds: 10),
@@ -283,9 +279,42 @@ class DatabaseHelper {
       );
     } catch (error) {
       logger.warning('Failed to disconnect and clear PowerSync during logout.', error);
+    }
+
+    // 3. Delete locally stored images/attachments
+    try {
+      await _clearLocalImages();
+    } catch (error) {
+      logger.warning('Failed to delete local images during logout.', error);
     } finally {
       _logoutInProgress = false;
+      // 4. Finally, sign out of Supabase Auth
       await Supabase.instance.client.auth.signOut();
+    }
+
+
+    final docDir = await getApplicationDocumentsDirectory();
+    final imagesDir = Directory('${docDir.path}/attachments');
+    if (!await imagesDir.exists()) {
+      await imagesDir.create(recursive: true);
+    }
+
+    db.close();
+
+    _database = await _initDatabase();
+  }
+
+  /// Helper method to delete the local images directory
+  Future<void> _clearLocalImages() async {
+    // Get the directory where your attachments are stored.
+    // Replace this with the exact path logic your app uses to save images.
+    final docDir = await getApplicationDocumentsDirectory();
+    final imagesDir = Directory('${docDir.path}/attachments'); // e.g., 'attachments' folder
+
+    if (await imagesDir.exists()) {
+      // recursive: true deletes the folder and everything inside it
+      await imagesDir.delete(recursive: true);
+      logger.info('Successfully deleted local images directory.');
     }
   }
 

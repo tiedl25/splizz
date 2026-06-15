@@ -1,13 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:splizz/data/app_config.dart';
 
 class SecureStorage {
   final storage = const FlutterSecureStorage();
 
   //Save Credentials
   Future saveCredentials(AccessToken token, String refreshToken) async {
-    if (kDebugMode) {
+    if (AppConfig.isDebug) {
       print(token.expiry.toIso8601String());
     }
     await storage.write(key: "type", value: token.type);

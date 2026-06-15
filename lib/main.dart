@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/main_bloc.dart';
+import 'package:splizz/data/app_config.dart';
 import 'package:splizz/resources/strings.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
@@ -33,8 +33,8 @@ void main() async {
   await dotenv.load(fileName: 'keys.env');
 
   await Supabase.initialize(
-    url: kDebugMode ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
-    anonKey: kDebugMode ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
+    url: AppConfig.isDebug ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
+    publishableKey: AppConfig.isDebug ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
   );
 
   final SharedPreferences sharedPreferences =
@@ -45,26 +45,41 @@ void main() async {
     sharedPreferences.setBool('offline', false);
   }
 
-  if (!kDebugMode) InAppUpdate.checkForUpdate().then((updateInfo) {
-    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+  if (!AppConfig.isDebug) {
+    try {
+      // 1. Check for updates
+      final updateInfo = await InAppUpdate.checkForUpdate();
+
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        
+        // 2. Handle Immediate Update
         if (updateInfo.immediateUpdateAllowed) {
-            // Perform immediate update
-            InAppUpdate.performImmediateUpdate().then((appUpdateResult) {
-                if (appUpdateResult == AppUpdateResult.success) {
-                  //App Update successful
-                }
-            });
+          final result = await InAppUpdate.performImmediateUpdate();
+          if (result == AppUpdateResult.success) {
+            // App Update successful
+          }
+          
+        // 3. Handle Flexible Update
         } else if (updateInfo.flexibleUpdateAllowed) {
-          //Perform flexible update
-          InAppUpdate.startFlexibleUpdate().then((appUpdateResult) {
-                if (appUpdateResult == AppUpdateResult.success) {
-                  //App Update successful
-                  InAppUpdate.completeFlexibleUpdate();
-                }
-            });
+          final result = await InAppUpdate.startFlexibleUpdate();
+          if (result == AppUpdateResult.success) {
+            // Flexible download finished, now install it
+            await InAppUpdate.completeFlexibleUpdate();
+          }
         }
+      }
+    } on PlatformException catch (e) {
+      // This catches the -6 error (low battery/storage) and other Play Store issues
+      print('Play Store Update Error: ${e.code} - ${e.message}');
+      
+      if (e.message?.contains('-6') ?? false) {
+        // Optional: Show a subtle toast telling the user to charge their phone or free up space
+      }
+    } catch (e) {
+      // Catches any other unexpected errors
+      print('Unknown update error: $e');
     }
-  });
+  }
 
   runApp(MyApp(sharedPreferences: sharedPreferences));
 }

@@ -3,7 +3,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/main_bloc.dart';
 import 'package:splizz/bloc/settingsview_states.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 import 'package:splizz/data/database.dart';

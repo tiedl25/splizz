@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:powersync/powersync.dart';
+import 'package:splizz/data/app_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:logging/logging.dart';
 final log = Logger('powersync-supabase');
@@ -39,7 +39,7 @@ class BackendConnector extends PowerSyncBackendConnector {
     await dotenv.load(fileName: 'keys.env');
 
     return PowerSyncCredentials(
-      endpoint: kDebugMode ? dotenv.get('POWERSYNC_DEBUG_URL') : dotenv.get('POWERSYNC_URL'),
+      endpoint: AppConfig.isDebug ? dotenv.get('POWERSYNC_DEBUG_URL') : dotenv.get('POWERSYNC_URL'),
       token: token,
       userId: userId,
       expiresAt: expiresAt,
@@ -69,8 +69,8 @@ class BackendConnector extends PowerSyncBackendConnector {
     await dotenv.load(fileName: 'keys.env');
 
     final supabase = SupabaseClient(
-      kDebugMode ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
-      kDebugMode ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
+      AppConfig.isDebug ? dotenv.get('DEBUG_SUPABASE_URL') : dotenv.get('SUPABASE_URL'),
+      AppConfig.isDebug ? dotenv.get('DEBUG_SUPABASE_ANON_KEY') : dotenv.get('SUPABASE_ANON_KEY'),
     );
 
     return supabase;
