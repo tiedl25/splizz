@@ -645,6 +645,14 @@ class DatabaseHelper {
   Future<void> deleteItem(Item item, {dynamic db}) async {
     db = db ?? await instance.database;
 
+    if (currentUser != null) {
+      User user = await getPermission(item.id, userId!, db: db);
+      if (user.fullAccess == false) {
+        await deleteUser(item.id, db: db);
+        return;
+      }
+    }
+
     item.members = await getMembers(id: item.id, db: db);
     item.history = await getTransactions(id: item.id, db: db);
 
@@ -696,12 +704,8 @@ class DatabaseHelper {
   Future<void> deleteUser(String id, {dynamic db}) async {
     db = db ?? await instance.database;
 
-    final List<Map<String, dynamic>> rows =
-        await db.getAll('SELECT * FROM shared WHERE item_id = ?', [id]);
-    List<User> users =
-        rows.isNotEmpty ? rows.map((e) => User.fromMap(e)).toList() : [];
+    await db.execute('DELETE FROM shared WHERE item_id = ?', [id]);
 
-    await Future.wait<dynamic>(users.map((u) => db.delete<User>(u)));
   }
 
   Future<double> getBalance(String memberId, String itemId,
