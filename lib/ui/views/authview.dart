@@ -7,7 +7,7 @@ import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthView extends StatelessWidget {
-  late final context;
+  late BuildContext context;
 
   final SharedPreferences prefs;
 

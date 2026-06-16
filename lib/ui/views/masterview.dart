@@ -49,17 +49,16 @@ class SplashView extends StatelessWidget {
   }
 }
 
-class MasterView extends StatelessWidget {
-  late final BuildContext context;
-  late final MasterViewCubit cubit;
-  
+class MasterView extends StatelessWidget {  
   final themeMode;
 
   MasterView({super.key, this.themeMode});
 
   //Dialogs
 
-  void showInvitationDialog() {
+  void showInvitationDialog(BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -75,7 +74,9 @@ class MasterView extends StatelessWidget {
     );
   }
 
-  void showItemDialog() {
+  void showItemDialog(BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -88,17 +89,19 @@ class MasterView extends StatelessWidget {
 
   //Navigation
 
-  void pushSettingsView() {
+  void pushSettingsView(BuildContext context) {
     Navigator.pushNamed(context, '/settings');
   }
 
-  void pushDetailView(Item item) {
+  void pushDetailView(Item item, BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
     Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return BlocProvider(
-            create: (context) => DetailViewCubit(item, masterViewCubit: cubit)..fetchData(),
+            create: (context) => DetailViewCubit(item, masterViewCubit: cubit),
             child: DetailView(themeMode: themeMode,)
           );
         },
@@ -106,7 +109,9 @@ class MasterView extends StatelessWidget {
     ).then((value) => cubit.fetchData(),);
   }
 
-  Widget dismissTile(Item item) {
+  Widget dismissTile(Item item, BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -129,12 +134,12 @@ class MasterView extends StatelessWidget {
               ),
             ],
           ),
-          child: itemTile(item),
+          child: itemTile(item, context),
       ),
     );
   }
 
-  Widget itemTile(Item item) {
+  Widget itemTile(Item item, BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
@@ -168,12 +173,15 @@ class MasterView extends StatelessWidget {
             )
           ],
         ),
-        onTap: () => pushDetailView(item),
+        onTap: () => pushDetailView(item, context),
       ),
     );
   }
 
-  Widget speedDial() => AppConfig.isDebug
+  Widget speedDial(BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
+    return AppConfig.isDebug
     ? SpeedDial(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))),
@@ -211,10 +219,14 @@ class MasterView extends StatelessWidget {
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       );
+  }
 
-  get body => Center(
+  body(BuildContext context) {
+    final cubit = context.read<MasterViewCubit>();
+
+    return Center(
     child: BlocBuilder<MasterViewCubit, MasterViewState>(
-      bloc: this.cubit,
+      bloc: cubit,
       buildWhen: (_, current) => current.runtimeType == MasterViewLoaded || current.runtimeType == MasterViewLoading,
       builder: (context, state) => state.runtimeType == MasterViewLoaded
         ? RefreshIndicator(
@@ -256,7 +268,7 @@ class MasterView extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       itemCount: state.items.length,
                       itemBuilder: (context, i) {
-                        return dismissTile(state.items[i]);
+                        return dismissTile(state.items[i], context);
                       }),
                   ),
                 ],
@@ -266,11 +278,11 @@ class MasterView extends StatelessWidget {
         : const Center(child: CircularProgressIndicator())
     ),
   );
+  }
 
   @override
   Widget build(BuildContext context) {
-    this.context = context;
-    this.cubit = BlocProvider.of<MasterViewCubit>(context);
+    final cubit = context.read<MasterViewCubit>();
 
     return Scaffold(
       extendBody: true,
@@ -278,7 +290,7 @@ class MasterView extends StatelessWidget {
       appBar: AppBar(
         title: Text(appTitle),
         actions: [
-          IconButton(onPressed: pushSettingsView, icon: const Icon(Icons.settings))
+          IconButton(onPressed: () => pushSettingsView(context), icon: const Icon(Icons.settings))
         ],
         systemOverlayStyle: SystemUiOverlayStyle(
             systemNavigationBarColor: Colors.transparent
@@ -300,16 +312,16 @@ class MasterView extends StatelessWidget {
               Navigator.pushReplacementNamed(context, '/auth');
               break;
             case MasterViewShowInvitationDialog:
-              showInvitationDialog();
+              showInvitationDialog(context);
               break;
             case MasterViewShowItemDialog:
-              showItemDialog();
+              showItemDialog(context);
               break;
           }
         },
-        child: body,
+        child: body(context),
       ),
-      floatingActionButton: speedDial(),
+      floatingActionButton: speedDial(context),
     );
   }
 }

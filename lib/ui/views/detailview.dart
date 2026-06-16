@@ -26,9 +26,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class DetailView extends StatelessWidget {
-  late BuildContext context;
-  late DetailViewCubit cubit;
-
   List<ExpansibleController> exController = [];
   List<List<ExpansibleController>> payoffExController = [];
 
@@ -40,7 +37,9 @@ class DetailView extends StatelessWidget {
 
   // Show Dialog Methods
 
-  void showTransactionDialog(state) async {
+  void showTransactionDialog(state, BuildContext context) async {
+    final cubit = context.read<DetailViewCubit>();
+
     showDialog(
       useSafeArea: false,
       context: context, 
@@ -58,7 +57,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  void showTransactionEditDialog(Item item, Transaction transaction) async {
+  void showTransactionEditDialog(Item item, Transaction transaction, BuildContext context) async {
+    final cubit = context.read<DetailViewCubit>();
+
     showDialog(
       useSafeArea: false,
       context: context, 
@@ -76,7 +77,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  void showShareDialog() {
+  void showShareDialog(BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -90,7 +93,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  void showPayoffDialog() {
+  void showPayoffDialog(BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     showDialog(
       context: context, 
       barrierDismissible: true, // user must tap button!
@@ -103,7 +108,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  void showPastPayoffDialog() {
+  void showPastPayoffDialog(BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -115,7 +122,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Future<bool?> showDismissDialog(transaction, {List<Transaction>? payoffTransactions}) async {
+  Future<bool?> showDismissDialog(transaction, BuildContext context, {List<Transaction>? payoffTransactions}) async {
+    final cubit = context.read<DetailViewCubit>();
+
     return await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -133,7 +142,9 @@ class DetailView extends StatelessWidget {
 
   //Custom Widgets
 
-  Widget payoffButton(unbalanced) {
+  Widget payoffButton(unbalanced, BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -159,7 +170,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget transactionList(state) {
+  Widget transactionList(state, BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     List<Transaction> transactions = state.item.history.where((t) => t.payoffId == null).toList();
 
     return Expanded(
@@ -203,14 +216,14 @@ class DetailView extends StatelessWidget {
 
                       if (transaction.description == 'payoff' && transaction.memberId == null) {
                         //return payoffExpansionTile(state, transaction, i);
-                        return payoffTile(transaction);
+                        return payoffTile(transaction, context);
                       } else {
                         return transaction.deleted
                             ? Container(
                                 margin: const EdgeInsets.only(bottom: 5),
-                                child: expansionTile(state, transaction, i),
+                                child: expansionTile(state, transaction, context, i),
                               )
-                            : dismissibleTile(state, transaction, i);
+                            : dismissibleTile(state, transaction, i, context);
                       }
                     },
                   ),
@@ -218,7 +231,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget payoffExpansionTile(state, Transaction payoff, index) {
+  Widget payoffExpansionTile(state, Transaction payoff, index, BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     final transactions = state.item.history.where((Transaction e) => e.payoffId == payoff.id).toList();
 
     if (payoffExController.length < transactions.length) {
@@ -257,7 +272,7 @@ class DetailView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 IconButton(
-                  onPressed: () => showDismissDialog(payoff, payoffTransactions: transactions),
+                  onPressed: () => showDismissDialog(payoff, context, payoffTransactions: transactions),
                   icon: const Icon(
                     Icons.delete,
                   ),
@@ -283,7 +298,7 @@ class DetailView extends StatelessWidget {
                 Transaction transaction = transactions[transactions.length - 1 - i];
                 return Container(
                   margin: EdgeInsets.only(bottom: i != transactions.length - 1 ? 5 : 0, left: 0, right: 0),
-                  child: expansionTile(state, transaction, index, j: i),
+                  child: expansionTile(state, transaction, context, index, j: i),
                 );
               },
             ),
@@ -293,7 +308,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget payoffTile(transaction){
+  Widget payoffTile(transaction, BuildContext context){
+    final cubit = context.read<DetailViewCubit>();
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => cubit.showPastPayoffDialog(transaction.id),
@@ -325,7 +342,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget dismissibleTile(state, Transaction transaction, int index) {
+  Widget dismissibleTile(state, Transaction transaction, int index, BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -348,11 +367,13 @@ class DetailView extends StatelessWidget {
               ),
             ],
           ),
-          child: expansionTile(state, transaction, index)),
+          child: expansionTile(state, transaction, context, index)),
     );
   }
 
-  Widget expansionTile(state, Transaction transaction, int i, {int? j}) {
+  Widget expansionTile(state, Transaction transaction, BuildContext context, int i, {int? j}) {
+    final cubit = context.read<DetailViewCubit>();
+
     Color color = Color(state.item.members.firstWhere((m) => m.id == transaction.memberId).color);
     Color textColor = color.computeLuminance() > 0.2 ? Colors.black : Colors.white;
 
@@ -436,7 +457,7 @@ class DetailView extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => showTransactionEditDialog(state.item, transaction),
+                  onPressed: () => showTransactionEditDialog(state.item, transaction, context),
                   icon: Icon(
                     Icons.edit,
                     color: textColor
@@ -451,7 +472,9 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget imageEdit(DetailViewEditMode state) {
+  Widget imageEdit(DetailViewEditMode state, BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     Uint8List? imageFile = state.imageFile ?? state.item.image;
 
     bool isDarkTheme = themeMode == ThemeMode.system
@@ -486,7 +509,9 @@ class DetailView extends StatelessWidget {
         ));
   }
 
-  Widget body() {
+  Widget body(BuildContext context) {
+    final cubit = context.read<DetailViewCubit>();
+
     bool isDarkTheme = themeMode == ThemeMode.system
       ? MediaQuery.of(context).platformBrightness == Brightness.dark
       : themeMode == ThemeMode.dark;
@@ -503,7 +528,7 @@ class DetailView extends StatelessWidget {
                 borderRadius:
                   const BorderRadius.vertical(bottom: Radius.circular(25)),
                 child: state is DetailViewEditMode
-                  ? imageEdit(state)
+                  ? imageEdit(state, context)
                   : state.item.image == null
                     ? Container(
                       color: isDarkTheme ? Colors.white24 : Colors.black26,
@@ -526,10 +551,10 @@ class DetailView extends StatelessWidget {
           listener: (context, state) {
             switch (state.runtimeType) {
               case DetailViewShowTransactionDialog:
-                showTransactionDialog(state);
+                showTransactionDialog(state, context);
                 break;
               case DetailViewShowShareDialog:
-                showShareDialog();
+                showShareDialog(context);
                 break;
               case DetailViewShowSnackBar:
                 showOverlayMessage(
@@ -539,10 +564,10 @@ class DetailView extends StatelessWidget {
                 );
                 break;
               case DetailViewShowPayoffDialog:
-                showPayoffDialog();
+                showPayoffDialog(context);
                 break;
               case DetailViewShowPastPayoffDialog:
-                showPastPayoffDialog();
+                showPastPayoffDialog(context);
                 break;
             }
           },
@@ -564,9 +589,9 @@ class DetailView extends StatelessWidget {
                   const Spacer(),
                   MemberBar(),
                   const Spacer(flex: 2,),
-                  payoffButton(state.unbalanced),
+                  payoffButton(state.unbalanced, context),
                   const Spacer(),
-                  transactionList(state),
+                  transactionList(state, context),
                 ],
               ));
             } else {
@@ -579,8 +604,8 @@ class DetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    this.context = context;
-    this.cubit = context.read<DetailViewCubit>(); //BlocProvider.of<DetailViewBloc>(context);
+    final cubit = context.read<DetailViewCubit>();
+
     return BlocBuilder<DetailViewCubit, DetailViewState>(
       bloc: cubit,
       builder: (context, state) {
@@ -625,7 +650,7 @@ class DetailView extends StatelessWidget {
                   )
             ],
           ),
-          body: body(),
+          body: body(context),
           floatingActionButton: state.runtimeType == DetailViewEditMode ? null : AppConfig.isDebug
             ? SpeedDial(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),

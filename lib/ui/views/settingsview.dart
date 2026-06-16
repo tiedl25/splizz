@@ -14,10 +14,9 @@ import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class SettingsView extends StatelessWidget {
-  late final context;
-  late final SettingsViewCubit cubit;
+  Future<void> showLogoutDialog(BuildContext context) async {
+    final cubit = context.read<SettingsViewCubit>();
 
-  Future<void> showLogoutDialog() async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -37,7 +36,9 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Future<void> showPrivacyPolicy() async {
+  Future<void> showPrivacyPolicy(BuildContext context) async {
+    final cubit = context.read<SettingsViewCubit>();
+
     await launchUrl(
       Uri.parse("https://tmc.tiedl.rocks/splizz/dsgvo"),
       customTabsOptions: CustomTabsOptions(
@@ -51,7 +52,9 @@ class SettingsView extends StatelessWidget {
     cubit.closePrivacyPolicy();
   }
 
-  Future<void> showPrivacyPolicyWebView() async {
+  Future<void> showPrivacyPolicyWebView(BuildContext context) async {
+    final cubit = context.read<SettingsViewCubit>();
+
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -77,7 +80,7 @@ class SettingsView extends StatelessWidget {
     cubit.closePrivacyPolicy();
   }
 
-  Future<void> showBuyMeACoffee() async {
+  Future<void> showBuyMeACoffee(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -101,7 +104,7 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Future<void> showPaypal() async {
+  Future<void> showPaypal(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -125,7 +128,9 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget themeSegment(systemTheme, darkMode) {
+  Widget themeSegment(systemTheme, darkMode, BuildContext context) {
+    final cubit = context.read<SettingsViewCubit>();
+
     return Container(
       margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(5),
@@ -162,7 +167,9 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget infoSegment(String version) {
+  Widget infoSegment(String version, BuildContext context) {
+    final cubit = context.read<SettingsViewCubit>();
+
     return Container(
       margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(5),
@@ -193,7 +200,9 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget userSegment() {
+  Widget userSegment(BuildContext context) {
+    final cubit = context.read<SettingsViewCubit>();
+
     return Container(
       margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(5),
@@ -217,7 +226,7 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget donationSegment() {
+  Widget donationSegment(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(5),
@@ -232,7 +241,7 @@ class SettingsView extends StatelessWidget {
           ListTile(
             title: Text(buyMeACoffee),
             trailing: Icon(Icons.coffee),
-            onTap: () => showBuyMeACoffee(),
+            onTap: () => showBuyMeACoffee(context),
           ),
           const Divider(
             thickness: 0.2,
@@ -242,7 +251,7 @@ class SettingsView extends StatelessWidget {
           ListTile(
             title: Text(paypal2),
             trailing: Icon(Icons.paypal),
-            onTap: () => showPaypal(),
+            onTap: () => showPaypal(context),
           )
         ],
       ),
@@ -251,8 +260,7 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    this.context = context;
-    this.cubit = context.read<SettingsViewCubit>();
+    final cubit = context.read<SettingsViewCubit>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -268,10 +276,10 @@ class SettingsView extends StatelessWidget {
         listener: (context, state) {
           switch (state.runtimeType) {
             case SettingsViewShowPrivacyPolicy:
-              showPrivacyPolicyWebView();
+              showPrivacyPolicyWebView(context);
               break;
             case SettingsViewShowLogoutDialog:
-              showLogoutDialog();
+              showLogoutDialog(context);
               break;
             case SettingsViewLogin:
               Navigator.pushNamedAndRemoveUntil(context, '/auth', (route) => false);
@@ -288,10 +296,10 @@ class SettingsView extends StatelessWidget {
             : SingleChildScrollView(
               child: Column(
                   children: [
-                    themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode),
-                    infoSegment(state.version),
-                    donationSegment(),
-                    userSegment(),
+                    themeSegment((state as SettingsViewLoaded).systemTheme, state.darkMode, context),
+                    infoSegment(state.version, context),
+                    donationSegment(context),
+                    userSegment(context),
                   ]
                 ),
             );
