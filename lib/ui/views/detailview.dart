@@ -23,6 +23,7 @@ import 'package:splizz/ui/widgets/transactionPieChart.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class DetailView extends StatelessWidget {
   late BuildContext context;
@@ -331,19 +332,23 @@ class DetailView extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(20)),
         color: Colors.red,
       ),
-      child: Dismissible(
-        key: ValueKey(transaction.id),
-        //key: UniqueKey(),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => showDismissDialog(transaction),
-        background: Container(
-          padding: const EdgeInsets.only(right: 20),
-          alignment: Alignment.centerRight,
-          child: const Icon(
-            Icons.delete,
+      clipBehavior: Clip.hardEdge,
+        child: Slidable(
+          key: ValueKey(transaction.id),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: 0.25,
+            children: [
+              SlidableAction(
+                onPressed: (_) => cubit.deleteTransaction(transaction),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: dismissText,
+              ),
+            ],
           ),
-        ),
-        child: expansionTile(state, transaction, index)),
+          child: expansionTile(state, transaction, index)),
     );
   }
 

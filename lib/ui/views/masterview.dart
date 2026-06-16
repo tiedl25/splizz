@@ -9,6 +9,7 @@ import 'package:splizz/resources/helper.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/masterview_bloc.dart';
@@ -85,29 +86,6 @@ class MasterView extends StatelessWidget {
         });
   }
 
-  Future<bool?> showDismissDialog(Item item) async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CustomDialog(
-          title: dismissDialogTitle,
-          content: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Text(
-                  dismissDialogTextItem,
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-          onConfirmed: () => cubit.deleteItem(item),
-        );
-      },
-    ) as bool?;
-  }
-
   //Navigation
 
   void pushSettingsView() {
@@ -135,18 +113,23 @@ class MasterView extends StatelessWidget {
         color: Colors.red,
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
-      child: Dismissible(
-        key: UniqueKey(),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) => showDismissDialog(item),
-        background: Container(
-          padding: const EdgeInsets.only(right: 20),
-          alignment: Alignment.centerRight,
-          child: const Icon(
-            Icons.delete,
+      clipBehavior: Clip.hardEdge,
+        child: Slidable(
+          key: ValueKey(item.id),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: 0.25,
+            children: [
+              SlidableAction(
+                onPressed: (_) => cubit.deleteItem(item),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: dismissText,
+              ),
+            ],
           ),
-        ),
-        child: itemTile(item),
+          child: itemTile(item),
       ),
     );
   }

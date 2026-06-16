@@ -75,6 +75,7 @@ dependencies:
   in_app_update: ^4.2.3
   pie_chart: ^5.4.0
   powersync: ^2.2.0
+  flutter_slidable: ^4.0.3
 
 dev_dependencies:
   flutter_test:
