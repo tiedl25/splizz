@@ -8,15 +8,13 @@ import 'package:splizz/ui/dialogs/memberDialog.dart';
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/models/member.model.dart';
 
-class MemberBar extends StatelessWidget {
-  late final DetailViewCubit cubit;
-  late final BuildContext context;
+class DetailviewMemberBar extends StatelessWidget {
   late List<GlobalKey> memberKeys;
   late bool alreadyInit = false;
 
-  MemberBar();
+  DetailviewMemberBar();
 
-  void showMemberDialog(Member member) {
+  void showMemberDialog(Member member, BuildContext context, DetailViewCubit cubit) {
     showDialog(
       context: context,
       builder: (_) {
@@ -35,7 +33,7 @@ class MemberBar extends StatelessWidget {
     });
   }
 
-  void showAnimatedMemberDialog(Member member, GlobalKey memberKey) {
+  void showAnimatedMemberDialog(Member member, GlobalKey memberKey, BuildContext context, DetailViewCubit cubit) {
     final RenderBox box = memberKey.currentContext?.findRenderObject() as RenderBox;
     final Offset buttonPosition = box.localToGlobal(Offset.zero);
     final Size buttonSize = box.size;
@@ -77,7 +75,7 @@ class MemberBar extends StatelessWidget {
     );
   }
 
-  void showAddMemberDialog() {
+  void showAddMemberDialog(BuildContext context, DetailViewCubit cubit) {
     cubit.showAddMemberDialog();
     showDialog(
       context: context,
@@ -86,7 +84,76 @@ class MemberBar extends StatelessWidget {
       });
   }
 
-  Container memberTileExpandable(Member member, width) {
+  List<Widget> memberBar(state, DetailViewCubit cubit) {
+    List<Member> members = state.item.members;
+    members = members.where((m) => !m.deleted).toList();
+    if (!alreadyInit) {
+      alreadyInit = true;
+      memberKeys = createMemberKeys(state);
+    } else if (memberKeys.length != members.length) {
+      memberKeys = createMemberKeys(state);
+    }
+
+    return List.generate(members.length, (index) {
+      return MemberTile(
+        member: members[index], 
+        memberKey: memberKeys[index], 
+        onPressed: () => cubit.showMemberDialog(members[index], key: memberKeys[index])
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    DetailViewCubit cubit = context.read<DetailViewCubit>();
+
+    return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        scrollDirection: Axis.horizontal,
+        child: BlocConsumer<DetailViewCubit, DetailViewState>(
+          bloc: cubit,
+          listener: (BuildContext context, DetailViewState state) {
+            switch (state.runtimeType) {
+              case DetailViewShowMemberDialog:
+                showAnimatedMemberDialog((state as DetailViewShowMemberDialog).member, state.memberKey!, context, cubit);
+                break;
+            }
+          },
+          builder: (context, state) => Row(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: memberBar(state, cubit),
+              ),
+              Container(
+                  margin: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary,
+                    border: Border.all(style: BorderStyle.none, width: 0),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  ),
+                  child: IconButton(
+                      iconSize: 30,
+                      onPressed: () => showAddMemberDialog(context, cubit),
+                      icon: Icon(Icons.add, color: Colors.white)))
+            ],
+          ),
+        ));
+  }
+}
+
+class MemberTileExpandable extends StatelessWidget {
+  const MemberTileExpandable({
+    super.key,
+    required this.member,
+    required this.width,
+  });
+
+  final Member member;
+  final dynamic width;
+
+  @override
+  Widget build(BuildContext context) {
     Color textColor = Color(member.color).computeLuminance() > 0.2
       ? Colors.black
       : Colors.white;
@@ -145,8 +212,22 @@ class MemberBar extends StatelessWidget {
       )
     );
   }
+}
 
-  Container memberTile(Member member, GlobalKey key) {
+class MemberTile extends StatelessWidget {
+  final Member member;
+  final GlobalKey memberKey;
+  final Function onPressed;
+
+  const MemberTile({
+    super.key, 
+    required this.member, 
+    required this.memberKey,
+    required this.onPressed
+    });
+
+  @override
+  Widget build(BuildContext context) {
     Color textColor = Color(member.color).computeLuminance() > 0.2
       ? Colors.black
       : Colors.white;
@@ -165,9 +246,9 @@ class MemberBar extends StatelessWidget {
       ),
       margin: const EdgeInsets.all(2),
       child: IntrinsicWidth(
-        key: key,
+        key: memberKey,
         child: GestureDetector(
-          onTap: () => cubit.showMemberDialog(member, key: key),
+          onTap: () => onPressed(),
           child: Column(
             children: [
               Container(
@@ -206,59 +287,5 @@ class MemberBar extends StatelessWidget {
         )
       )
     );
-  }
-
-  List<Container> memberBar(state) {
-    List<Member> members = state.item.members;
-    members = members.where((m) => !m.deleted).toList();
-    if (!alreadyInit) {
-      alreadyInit = true;
-      memberKeys = createMemberKeys(state);
-    } else if (memberKeys.length != members.length) {
-      memberKeys = createMemberKeys(state);
-    }
-
-    return List.generate(members.length, (index) {
-      return memberTile(members[index], memberKeys[index]);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    this.context = context;
-    this.cubit = context.read<DetailViewCubit>();
-
-    return SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        child: BlocConsumer<DetailViewCubit, DetailViewState>(
-          bloc: cubit,
-          listener: (BuildContext context, DetailViewState state) {
-            switch (state.runtimeType) {
-              case DetailViewShowMemberDialog:
-                showAnimatedMemberDialog((state as DetailViewShowMemberDialog).member, state.memberKey!);
-                break;
-            }
-          },
-          builder: (context, state) => Row(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: memberBar(state),
-              ),
-              Container(
-                  margin: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary,
-                    border: Border.all(style: BorderStyle.none, width: 0),
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  ),
-                  child: IconButton(
-                      iconSize: 30,
-                      onPressed: () => showAddMemberDialog(),
-                      icon: Icon(Icons.add, color: Colors.white)))
-            ],
-          ),
-        ));
   }
 }

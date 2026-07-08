@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
 import 'package:splizz/resources/strings.dart';
-import 'package:splizz/ui/widgets/imageCropper.dart';
+import 'package:splizz/ui/widgets/imageSelection.dart';
 
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:splizz/ui/widgets/customDialog.dart';
@@ -103,7 +103,7 @@ class ItemDialog extends StatelessWidget {
                   children: [
                       GestureDetector(
                         onTap: () async {
-                          await imagePickCropper(ImageSource.camera, context, cubit, isDarkTheme: isDarkTheme);
+                          await imagePickCropper(ImageSource.camera, context, (croppedImage) => cubit.setImage(croppedImage), isDarkTheme: isDarkTheme);
                           if (imageFile == null) return;
                           cubit.changeImage(index);
                         },
@@ -115,7 +115,7 @@ class ItemDialog extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await imagePickCropper(ImageSource.gallery, context, cubit, isDarkTheme: isDarkTheme);
+                          await imagePickCropper(ImageSource.gallery, context, (croppedImage) => cubit.setImage(croppedImage), isDarkTheme: isDarkTheme);
                           if (imageFile == null) return;
                           cubit.changeImage(index);
                         },

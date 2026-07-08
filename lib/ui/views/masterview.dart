@@ -7,9 +7,9 @@ import 'package:splizz/bloc/masterview_states.dart';
 import 'package:splizz/data/app_config.dart';
 import 'package:splizz/resources/helper.dart';
 import 'package:splizz/resources/strings.dart';
+import 'package:splizz/ui/widgets/dismissTile.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:splizz/bloc/detailview_bloc.dart';
 import 'package:splizz/bloc/masterview_bloc.dart';
@@ -109,75 +109,6 @@ class MasterView extends StatelessWidget {
     ).then((value) => cubit.fetchData(),);
   }
 
-  Widget dismissTile(Item item, BuildContext context) {
-    final cubit = context.read<MasterViewCubit>();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 5),
-      decoration: const BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      clipBehavior: Clip.hardEdge,
-        child: Slidable(
-          key: ValueKey(item.id),
-          endActionPane: ActionPane(
-            motion: const DrawerMotion(),
-            extentRatio: 0.25,
-            children: [
-              SlidableAction(
-                onPressed: (_) => cubit.deleteItem(item),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: dismissText,
-              ),
-            ],
-          ),
-          child: itemTile(item, context),
-      ),
-    );
-  }
-
-  Widget itemTile(Item item, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      decoration: BoxDecoration(
-        color: item.balance == null || approximatelyZero(item.balance!)
-          ? Theme.of(context).colorScheme.surfaceContainer
-          : item.balance! > 0
-            ? Colors.green.shade300
-            : Colors.red.shade300,
-        border: Border.all(style: BorderStyle.none),
-        borderRadius: const BorderRadius.all(Radius.circular(20)),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        tileColor: item.balance == null || approximatelyZero(item.balance!)
-          ? Theme.of(context).colorScheme.surfaceContainer
-          : item.balance! > 0
-            ? Colors.green.shade300
-            : Colors.red.shade300,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              item.name,
-              style: const TextStyle(fontSize: 20),
-            ),
-            if(item.balance != null) Text(
-              item.balance!.toStringAsFixed(2) + '€',
-            )
-          ],
-        ),
-        onTap: () => pushDetailView(item, context),
-      ),
-    );
-  }
-
   Widget speedDial(BuildContext context) {
     final cubit = context.read<MasterViewCubit>();
 
@@ -268,7 +199,17 @@ class MasterView extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       itemCount: state.items.length,
                       itemBuilder: (context, i) {
-                        return dismissTile(state.items[i], context);
+                        return DismissTile(
+                          id: state.items[i].id, 
+                          context: context, 
+                          child: ItemTile(
+                            item: state.items[i], 
+                            context: context, 
+                            themeMode: themeMode, 
+                            onTap: () => pushDetailView(state.items[i], context)
+                          ),
+                          onPressed: () => cubit.deleteItem(state.items[i])
+                        );
                       }),
                   ),
                 ],
@@ -322,6 +263,61 @@ class MasterView extends StatelessWidget {
         child: body(context),
       ),
       floatingActionButton: speedDial(context),
+    );
+  }
+}
+
+class ItemTile extends StatelessWidget {
+  const ItemTile({
+    super.key,
+    required this.item,
+    required this.context,
+    required this.themeMode,
+    required this.onTap,
+  });
+
+  final Item item;
+  final BuildContext context;
+  final themeMode;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      decoration: BoxDecoration(
+        color: item.balance == null || approximatelyZero(item.balance!)
+          ? Theme.of(context).colorScheme.surfaceContainer
+          : item.balance! > 0
+            ? Colors.green.shade300
+            : Colors.red.shade300,
+        border: Border.all(style: BorderStyle.none),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        tileColor: item.balance == null || approximatelyZero(item.balance!)
+          ? Theme.of(context).colorScheme.surfaceContainer
+          : item.balance! > 0
+            ? Colors.green.shade300
+            : Colors.red.shade300,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              item.name,
+              style: const TextStyle(fontSize: 20),
+            ),
+            if(item.balance != null) Text(
+              item.balance!.toStringAsFixed(2) + '€',
+            )
+          ],
+        ),
+        onTap: onTap,
+      ),
     );
   }
 }

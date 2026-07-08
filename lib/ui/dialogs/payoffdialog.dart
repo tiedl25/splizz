@@ -223,102 +223,6 @@ class PayoffDialog extends StatelessWidget {
     );
   }
 
-  Widget paymapRelation(Member m, List<Member> paylist) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(left: 10),
-            margin: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Color(m.color),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  m.name,
-                  style: const TextStyle(color: Colors.black),
-                ),
-                const Icon(
-                  Icons.arrow_forward,
-                  color: Colors.black,
-                ),
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white54),
-                    child: Text('${m.total.abs().toStringAsFixed(2)}€',
-                        style: TextStyle(color: Colors.red.shade700))),
-              ],
-            ),
-          ),
-          Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(paylist.length, (index) {
-                final e = paylist[index];
-                return Container(
-                  padding: const EdgeInsets.only(right: 10),
-                  margin: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Color(e.color),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white54),
-                          child: Text('${e.balance.abs().toStringAsFixed(2)}€',
-                              style: TextStyle(color: Colors.green.shade700))),
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        e.name,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                );
-              }))
-        ],
-      ),
-    );
-  }
-
-  Widget paymapWidget(paymap) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      child: WidgetsToImage(
-        controller: controller,
-        child: IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: List.generate(paymap.length, (i) {
-              Member m = paymap.keys.toList()[i];
-              return paymapRelation(m, paymap[m]!);
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
   void sharePayoff(state, Transaction payoff) async {
     final overlayEntry = OverlayLoadingScreen();
     Overlay.of(context).insert(overlayEntry);
@@ -472,7 +376,7 @@ class PayoffDialog extends StatelessWidget {
                   itemCount: transactions.length + 1,
                   itemBuilder: (context, i) {
                     if (i == 0) {
-                      return paymapWidget(paymap);
+                      return Paymap(controller: controller, paymap: paymap, context: context);
                     }
                         
                     Transaction transaction = transactions[transactions.length - i];
@@ -553,6 +457,116 @@ class PayoffDialog extends StatelessWidget {
             child: TransactionPieChart(context: context, members: members, transaction: transaction, textColor: textColor),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class Paymap extends StatelessWidget {
+  const Paymap({
+    super.key,
+    required this.controller,
+    required this.paymap,
+    required this.context,
+  });
+
+  final WidgetsToImageController controller;
+  final dynamic paymap;
+  final BuildContext context;
+
+  Widget paymapRelation(Member m, List<Member> paylist) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Color(m.color),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  m.name,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.black,
+                ),
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white54),
+                    child: Text('${m.total.abs().toStringAsFixed(2)}€',
+                        style: TextStyle(color: Colors.red.shade700))),
+              ],
+            ),
+          ),
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(paylist.length, (index) {
+                final e = paylist[index];
+                return Container(
+                  padding: const EdgeInsets.only(right: 10),
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Color(e.color),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white54),
+                          child: Text('${e.balance.abs().toStringAsFixed(2)}€',
+                              style: TextStyle(color: Colors.green.shade700))),
+                      const Icon(
+                        Icons.arrow_forward,
+                        color: Colors.black,
+                      ),
+                      Text(
+                        e.name,
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                );
+              }))
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      child: WidgetsToImage(
+        controller: controller,
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(paymap.length, (i) {
+              Member m = paymap.keys.toList()[i];
+              return paymapRelation(m, paymap[m]!);
+            }),
+          ),
+        ),
       ),
     );
   }
