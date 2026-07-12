@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' as io; // Prefixed to avoid compilation failures on web
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
 import 'package:logging/logging.dart';
 import 'package:powersync/attachments/attachments.dart';
@@ -41,6 +40,7 @@ class DatabaseHelper {
   
   Future<String> getDatabasePath() async {
     if (kIsWeb) {
+      // Web uses a simple string identifier for its virtual OPFS storage
       return _databaseName;
     }
     final dir = await getApplicationSupportDirectory();
@@ -54,16 +54,15 @@ class DatabaseHelper {
   }
 
   Future<PowerSyncDatabase> _initDatabase() async {
-    final path = await getDatabasePath();
+    final dbPath = await getDatabasePath();
 
-    final db =
-        PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
+    final db = PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: dbPath);
     await db.initialize();
-    await initializeAttachmentQueue(db);
+    if (!kIsWeb) await initializeAttachmentQueue(db);
 
     if (loggedIn) {
       await connectToDatabase(db);
-      await attachmentQueue.startSync();
+      if (!kIsWeb) await attachmentQueue.startSync();
     }
 
     return db;
@@ -87,13 +86,15 @@ class DatabaseHelper {
     await db.connect(connector: connector);
     await db.waitForFirstSync();
       
-    await attachmentQueue.startSync();
-    await waitForAttachmentSync(db).timeout(
+    if (!kIsWeb) {
+      await attachmentQueue.startSync();
+      await waitForAttachmentSync(db).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
         logger.warning('Timed out while waiting for attachment sync during login.');
       },
     );
+    }
 
     await uploadAllData(
         items: items,
@@ -106,6 +107,11 @@ class DatabaseHelper {
     PowerSyncDatabase db, {
     Duration pollInterval = const Duration(milliseconds: 250),
   }) async {
+    if (kIsWeb) {
+      // On web, physical file path parsing via dart:io is unavailable.
+      // We rely on PowerSync's internal Sync queue status.
+      return;
+    }
 
     while (true) {
       final rows = await db.getAll(
@@ -120,7 +126,7 @@ class DatabaseHelper {
           continue;
         }
 
-        final file = File(await _getAttachmentFilePath(imageName));
+        final file = io.File(await _getAttachmentFilePath(imageName));
         if (!await file.exists()) {
           allAttachmentsAvailable = false;
           break;
@@ -153,8 +159,9 @@ class DatabaseHelper {
     }
 
     await Future.wait(items.map((item) async {
-      if (item.image != null)
+      if (item.image != null) {
         await DatabaseHelper.instance.uploadItemImage(item.image!, item.id);
+      }
     }));
 
     final sql = [
@@ -190,7 +197,7 @@ class DatabaseHelper {
 
     // 1. Stop syncing attachments first
     try {
-      await attachmentQueue.stopSyncing();
+      if (!kIsWeb) await attachmentQueue.stopSyncing();
     } catch (error) {
       logger.warning('Failed to stop attachment syncing during logout.', error);
     }
@@ -209,7 +216,7 @@ class DatabaseHelper {
 
     // 3. Delete locally stored images/attachments
     try {
-      await _clearLocalImages();
+      if (!kIsWeb) await _clearLocalImages();
     } catch (error) {
       logger.warning('Failed to delete local images during logout.', error);
     } finally {
@@ -218,11 +225,12 @@ class DatabaseHelper {
       await Supabase.instance.client.auth.signOut();
     }
 
-
-    final docDir = await getApplicationDocumentsDirectory();
-    final imagesDir = Directory('${docDir.path}/attachments');
-    if (!await imagesDir.exists()) {
-      await imagesDir.create(recursive: true);
+    if (!kIsWeb) {
+      final docDir = await getApplicationDocumentsDirectory();
+      final imagesDir = io.Directory('${docDir.path}/attachments');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
     }
 
     await db.close();
@@ -232,22 +240,29 @@ class DatabaseHelper {
 
   /// Helper method to delete the local images directory
   Future<void> _clearLocalImages() async {
-    // Get the directory where your attachments are stored.
-    // Replace this with the exact path logic your app uses to save images.
+    if (kIsWeb) {
+      logger.info('Web environment: Browser sandbox isolates attachment cache.');
+      return;
+    }
+
     final docDir = await getApplicationDocumentsDirectory();
-    final imagesDir = Directory('${docDir.path}/attachments'); // e.g., 'attachments' folder
+    final imagesDir = io.Directory('${docDir.path}/attachments');
 
     if (await imagesDir.exists()) {
-      // recursive: true deletes the folder and everything inside it
       await imagesDir.delete(recursive: true);
       logger.info('Successfully deleted local images directory.');
     }
   }
 
   Future<void> deleteLocalDatabase() async {
-    Directory documentsDirectory = await getApplicationSupportDirectory();
-    String path = join(documentsDirectory.path, _databaseName);
-    final file = File(path);
+    if (kIsWeb) {
+      _database = null;
+      return;
+    }
+
+    io.Directory documentsDirectory = await getApplicationSupportDirectory();
+    String dbPath = path.join(documentsDirectory.path, _databaseName);
+    final file = io.File(dbPath);
     if (await file.exists()) {
       await file.delete();
     }
@@ -255,11 +270,13 @@ class DatabaseHelper {
   }
 
   Future<void> delete() async {
-    Directory documentsDirectory = await getApplicationSupportDirectory();
-    String path = join(documentsDirectory.path, _databaseName);
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
+    if (!kIsWeb) {
+      io.Directory documentsDirectory = await getApplicationSupportDirectory();
+      String dbPath = path.join(documentsDirectory.path, _databaseName);
+      final file = io.File(dbPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
     _database = null;
 
@@ -276,7 +293,8 @@ class DatabaseHelper {
       item.balance = await getUserBalance(itemId: item.id, db: db);
       final imagePath = await getItemImagePath(db, item.id);
       if (imagePath != null) {
-        item.image = Uint8List.fromList(File(imagePath).readAsBytesSync());
+        // Only run native file sync byte parsing on native environments
+        item.image = await getImage(imagePath);
       }
     });
 
@@ -292,7 +310,7 @@ class DatabaseHelper {
     Item item = Item.fromMap(row);
     final imagePath = await getItemImagePath(db, item.id);
     if (imagePath != null) {
-      item.image = Uint8List.fromList(File(imagePath).readAsBytesSync());
+      item.image = await getImage(imagePath);
     }
 
     List<Operation> operations = await getOperations(id: id, db: db);
@@ -343,9 +361,10 @@ class DatabaseHelper {
         ? rows.map((e) => Member.fromMap(e)).toList()
         : <Member>[];
 
-    if (sort)
+    if (sort) {
       members.sort((Member a, Member b) =>
           a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
 
     return members;
   }
@@ -395,10 +414,11 @@ class DatabaseHelper {
         ? rows.map((e) => Operation.fromMap(e)).toList()
         : <Operation>[];
 
-    if (sort)
+    if (sort) {
       operations.sort(
         (Operation a, Operation b) => b.value.compareTo(a.value),
       );
+    }
 
     return operations;
   }
@@ -415,17 +435,38 @@ class DatabaseHelper {
     return user;
   }
 
+  Future<Uint8List> getImage(String imagePath) async {
+    if (kIsWeb) {
+      SupabaseStorageAdapter storageAdapter = SupabaseStorageAdapter();
+      Attachment attachment = Attachment(id: path.basenameWithoutExtension(imagePath), filename: imagePath);
+
+      final imageBytes = await storageAdapter.downloadFile(attachment).then((stream) => stream.expand((chunk) => chunk).toList());
+      return Uint8List.fromList(imageBytes);
+    } else {
+      final file = io.File(imagePath);
+      if (!await file.exists()) {
+        throw Exception("Image file not found at path: $imagePath");
+      }
+      return Uint8List.fromList(file.readAsBytesSync());
+    }
+  }
+
   Future<void> insertItem(Item item, {dynamic db}) async {
     db ??= await instance.database;
 
-    Attachment attachment = await uploadItemImage(item.image!, item.id);
-    item.imagePath = attachment.filename;
+    if (!kIsWeb) {
+      Attachment attachment = await uploadItemImage(item.image!, item.id);
+      item.imagePath = attachment.filename;
+    } else {
+      final attachment = await uploadItemImageDirectly(item.image!, item.id);
+      item.imagePath = attachment.filename;
+    }
 
     await db.execute(
         'INSERT INTO items (name, image, timestamp, id) VALUES (?, ?, ?, ?)',
         item.toMap().values.toList());
 
-    if (currentUser != null)
+    if (currentUser != null) {
       await db.execute(
           'INSERT INTO shared (item_id, user_id, full_access, user_email, expiration_date, id) VALUES (?, ?, ?, ?, ?, ?)',
           User(
@@ -436,6 +477,7 @@ class DatabaseHelper {
               .toMap()
               .values
               .toList());
+    }
 
     await Future.wait(
         item.members.map((member) => insertMember(member, db: db)));
@@ -465,13 +507,14 @@ class DatabaseHelper {
     db = db ?? await instance.database;
 
     final List<Map<String, dynamic>> rows;
-    if (itemId == null)
+    if (itemId == null) {
       rows = await db.getAll('SELECT * FROM members WHERE email = ?',
           [currentUser != null ? currentUser?.email : "thisIsMe"]);
-    else
+    } else {
       rows = await db.getAll(
           'SELECT * FROM members WHERE item_id = ? AND email = ?',
           [itemId, currentUser != null ? currentUser?.email : "thisIsMe"]);
+    }
 
     List<Member> members = rows.isNotEmpty
         ? rows.map((e) => Member.fromMap(e)).toList()
@@ -482,7 +525,7 @@ class DatabaseHelper {
       m.balance = await balanceFuture;
     }));
 
-    return members.length > 0
+    return members.isNotEmpty
         ? members.fold<double>(
             0.0, (previousValue, element) => previousValue + (element.balance))
         : 0;
@@ -569,8 +612,9 @@ class DatabaseHelper {
 
     if (row.isNotEmpty) {
       final existingPermission = User.fromMap(row[0]);
-      if (existingPermission.expirationDate == null)
+      if (existingPermission.expirationDate == null) {
         return Result.failure(alreadyGrantedAccess);
+      }
 
       existingPermission.fullAccess = permission.fullAccess;
       existingPermission.expirationDate = permission.expirationDate;
@@ -607,8 +651,9 @@ class DatabaseHelper {
     User permission = User.fromMap(row);
 
     if (permission.userEmail != null) {
-      if (permission.userEmail != currentUser?.email)
+      if (permission.userEmail != currentUser?.email) {
         return Result.failure(notAuthorized);
+      }
 
       permission.userId = currentUser?.id;
       permission.expirationDate = null;
@@ -705,7 +750,6 @@ class DatabaseHelper {
     db = db ?? await instance.database;
 
     await db.execute('DELETE FROM shared WHERE item_id = ?', [id]);
-
   }
 
   Future<double> getBalance(String memberId, String itemId,
@@ -716,7 +760,7 @@ class DatabaseHelper {
         'SELECT * FROM transactions WHERE item_id = ? AND deleted = ? AND description != ? AND payoff_id IS NULL',
         [itemId, false, "payoff"]);
     List<Transaction> transactions =
-        rows.isNotEmpty ? rows.map((e) => Transaction.fromMap(e)).toList() : [];
+        rows.isNotEmpty ? rows.map(Transaction.fromMap).toList() : [];
 
     if (transactions.isEmpty) return 0;
 
@@ -725,7 +769,7 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> rows2 = await db
         .getAll('SELECT * FROM operations WHERE member_id = ?', [memberId]);
     List<Operation> operations =
-        rows2.isNotEmpty ? rows2.map((e) => Operation.fromMap(e)).toList() : [];
+        rows2.isNotEmpty ? rows2.map(Operation.fromMap).toList() : [];
 
     if (operations.isEmpty) return 0;
 
@@ -742,7 +786,6 @@ class DatabaseHelper {
       remoteStorage: SupabaseStorageAdapter(),
       localStorage: await getLocalStorage(),
 
-      // Define which attachments exist in your data model
       watchAttachments: () => db.watch('''
         SELECT id, image 
         FROM items 
@@ -757,10 +800,9 @@ class DatabaseHelper {
         ],
       ),
 
-      // Optional configuration
-      syncInterval: const Duration(seconds: 30), // Sync every 30 seconds
-      downloadAttachments: true, // Auto-download referenced files
-      archivedCacheLimit: 100, // Keep 100 archived files before cleanup
+      syncInterval: const Duration(seconds: 30),
+      downloadAttachments: true,
+      archivedCacheLimit: 100,
       logger: logger,
     );
   }
@@ -769,7 +811,7 @@ class DatabaseHelper {
     Uint8List image,
     String id,
   ) async {
-    final imageBytes = await image;
+    final imageBytes = image;
 
     final attachment = await attachmentQueue.saveFile(
       id: id,
@@ -777,13 +819,26 @@ class DatabaseHelper {
       mediaType: 'image/jpeg',
       fileExtension: 'jpg',
 
-      // updateHook runs in same transaction, ensuring atomicity
       updateHook: (context, attachment) async {
         await context.execute(
           'UPDATE items SET image = ? WHERE id = ?',
           [attachment.filename, id],
         );
       },
+    );
+
+    return attachment;
+  }
+
+  Future<Attachment> uploadItemImageDirectly(
+    Uint8List image,
+    String id,
+  ) async {
+    final attachment = Attachment(id: id, filename: "images/" + id + ".jpg");
+
+    await SupabaseStorageAdapter().uploadFile(
+      Stream.value(image),
+      attachment,
     );
 
     return attachment;
@@ -803,8 +858,15 @@ class DatabaseHelper {
     }
 
     final imageName = item['image'] as String;
+
+    if (kIsWeb) {
+      // Web assets are handled directly through URLs or memory blobs,
+      // not direct localized path strings.
+      return imageName;
+    }
+
     final attachmentPath = await _getAttachmentFilePath(imageName);
-    if (await File(attachmentPath).exists()) {
+    if (await io.File(attachmentPath).exists()) {
       return attachmentPath;
     }
 
@@ -812,6 +874,7 @@ class DatabaseHelper {
   }
 
   Future<String> _getAttachmentFilePath(String filename) async {
+    if (kIsWeb) return filename;
     final appDocDir = await getApplicationDocumentsDirectory();
     return '${appDocDir.path}/attachments/$filename';
   }
@@ -819,10 +882,22 @@ class DatabaseHelper {
   Future<void> deleteItemImage(
     String id,
   ) async {
+    if (kIsWeb) {
+      // On web, we don't have a local file system to delete from.
+      // Instead, we can just remove the reference in the database.
+      PowerSyncDatabase db = await instance.database;
+      await db.execute(
+        'UPDATE items SET image = NULL WHERE id = ?',
+        [id],
+      );
+
+      await SupabaseStorageAdapter().deleteFile(Attachment(id: id, filename: "images/" + id + ".jpg"));
+      return;
+    }
+
     await attachmentQueue.deleteFile(
       attachmentId: id,
 
-      // updateHook ensures atomic deletion
       updateHook: (context, attachment) async {
         await context.execute(
           'UPDATE items SET image = NULL WHERE id = ?',
@@ -832,13 +907,8 @@ class DatabaseHelper {
     );
 
     print('Photo queued for deletion');
-    // The queue will:
-    // 1. Delete from remote storage
-    // 2. Delete local file
-    // 3. Remove attachment record
   }
 
-  // Alternative: Remove reference and let queue archive it automatically
   Future<void> removeItemImageReference(
     PowerSyncDatabase db,
     String id,
@@ -847,10 +917,6 @@ class DatabaseHelper {
       'UPDATE items SET image = NULL WHERE id = ?',
       [id],
     );
-
-    // The watchAttachments callback will detect this change
-    // The queue will automatically archive the unreferenced attachment
-    // After reaching archivedCacheLimit, it will be deleted
   }
 }
 
