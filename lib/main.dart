@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:splizz/resources/strings.dart';
 
 import 'package:splizz/bloc/masterview_bloc.dart';
 import 'package:splizz/bloc/settingsview_bloc.dart';
+import 'package:splizz/resources/utils.dart';
 import 'package:splizz/ui/views/masterview.dart';
 import 'package:splizz/ui/views/settingsview.dart';
 import 'package:splizz/ui/views/authview.dart';
@@ -120,6 +122,28 @@ class MyApp extends StatelessWidget {
                   ),
             },
             debugShowCheckedModeBanner: false,
+            builder: isWebPhone(context) ? null : (context, child) {
+              return Scaffold(
+                backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                    ? Color.fromARGB(255, 38, 39, 45).withAlpha(239)
+                    : Color.fromARGB(255, 238, 236, 245).withAlpha(239),
+                body: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: child,
+                  ),
+                ),
+              );
+            },
           );
         },
       ),

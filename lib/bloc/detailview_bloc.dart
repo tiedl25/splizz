@@ -12,7 +12,7 @@ import 'package:splizz/models/member.model.dart';
 import 'package:splizz/models/transaction.model.dart';
 import 'package:splizz/models/user.model.dart';
 import 'package:splizz/resources/colormap.dart';
-import 'package:splizz/resources/helper.dart';
+import 'package:splizz/resources/utils.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 

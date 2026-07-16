@@ -5,7 +5,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splizz/bloc/masterview_states.dart';
 import 'package:splizz/data/app_config.dart';
-import 'package:splizz/resources/helper.dart';
+import 'package:splizz/resources/utils.dart';
 import 'package:splizz/resources/strings.dart';
 import 'package:splizz/ui/widgets/dismissTile.dart';
 import 'package:splizz/ui/widgets/uiModels.dart';

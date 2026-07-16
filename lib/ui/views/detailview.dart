@@ -118,101 +118,122 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget body(BuildContext context) {
-    final cubit = context.read<DetailViewCubit>();
+Widget body(BuildContext context) {
+  final cubit = context.read<DetailViewCubit>();
 
-    bool isDarkTheme = themeMode == ThemeMode.system
+  bool isDarkTheme = themeMode == ThemeMode.system
       ? MediaQuery.of(context).platformBrightness == Brightness.dark
       : themeMode == ThemeMode.dark;
-    //double imageRadius = window.viewPadding.top - AppBar().preferredSize.height - MediaQuery.of(context).viewPadding.top;
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center, 
-          children: [
-            BlocBuilder<DetailViewCubit, DetailViewState>(
-              buildWhen: (previous, current) => 
-                current.runtimeType != previous.runtimeType || current.item.image != previous.item.image || current.runtimeType == DetailViewEditMode,
-              builder: (context, state) => ClipRRect(
-                borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(25)),
-                child: state is DetailViewEditMode
-                  ? ImageSelection(themeMode: themeMode, state: state, context: context, onImageSelected: (croppedImage) => cubit.changeImage(croppedImage))
-                  : state.item.image == null
-                    ? Container(
-                      color: isDarkTheme ? Colors.white24 : Colors.black26,
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.width / 2.2,
-                      child: Icon(Icons.image_not_supported, size: 100, color: const Color.fromARGB(179, 128, 8, 8)))
-                    : Image.memory(state.item.image!,
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.width / 2.2,
-                        fit: BoxFit.fill
-                      ),
-              ),
-            ),
-            const Spacer(),
-          ]
-        ),
-        BlocConsumer<DetailViewCubit, DetailViewState>(
-          bloc: cubit,
-          listenWhen: (_, current) => current is DetailViewListener,
-          listener: (context, state) {
-            switch (state.runtimeType) {
-              case DetailViewShowTransactionDialog:
-                showTransactionDialog(state, context);
-                break;
-              case DetailViewShowShareDialog:
-                showShareDialog(context);
-                break;
-              case DetailViewShowSnackBar:
-                showOverlayMessage(
-                  context: context, 
-                  message: (state as DetailViewShowSnackBar).message,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                );
-                break;
-              case DetailViewShowPayoffDialog:
-                showPayoffDialog(context);
-                break;
-              case DetailViewShowPastPayoffDialog:
-                showPastPayoffDialog(context);
-                break;
-            }
-          },
-          buildWhen: (_, current) =>
-            current.runtimeType == DetailViewLoading ||
-            current.runtimeType == DetailViewLoaded ||
-            current.runtimeType == DetailViewEditMode,
-          builder: (BuildContext context, DetailViewState state) {
-            if (state.runtimeType == DetailViewLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (state.runtimeType == DetailViewLoaded) {
-              state = state as DetailViewLoaded;
 
-              return Expanded(
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final availableWidth = constraints.maxWidth;
+      final imageHeight = availableWidth / 2.2;
+
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, 
+            children: [
+              BlocBuilder<DetailViewCubit, DetailViewState>(
+                buildWhen: (previous, current) => 
+                  current.runtimeType != previous.runtimeType || 
+                  current.item.image != previous.item.image || 
+                  current.runtimeType == DetailViewEditMode,
+                builder: (context, state) => ClipRRect(
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(25)),
+                  child: state is DetailViewEditMode
+                    ? ImageSelection(
+                        themeMode: themeMode, 
+                        state: state, 
+                        context: context, 
+                        onImageSelected: (croppedImage) => cubit.changeImage(croppedImage),
+                      )
+                    : state.item.image == null
+                      ? Container(
+                          color: isDarkTheme ? Colors.white24 : Colors.black26,
+                          width: availableWidth, // Scales dynamically with constraints
+                          height: imageHeight,
+                          child: const Icon(
+                            Icons.image_not_supported, 
+                            size: 100, 
+                            color: Color.fromARGB(179, 128, 8, 8),
+                          ),
+                        )
+                      : Image.memory(
+                          state.item.image!,
+                          width: availableWidth, // Scales dynamically with constraints
+                          height: imageHeight,
+                          fit: BoxFit.cover, // BoxFit.cover is usually cleaner than BoxFit.fill for responsive sizes
+                        ),
+                ),
+              ),
+            ],
+          ),
+          BlocConsumer<DetailViewCubit, DetailViewState>(
+            bloc: cubit,
+            listenWhen: (_, current) => current is DetailViewListener,
+            listener: (context, state) {
+              switch (state.runtimeType) {
+                case DetailViewShowTransactionDialog:
+                  showTransactionDialog(state, context);
+                  break;
+                case DetailViewShowShareDialog:
+                  showShareDialog(context);
+                  break;
+                case DetailViewShowSnackBar:
+                  showOverlayMessage(
+                    context: context, 
+                    message: (state as DetailViewShowSnackBar).message,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  );
+                  break;
+                case DetailViewShowPayoffDialog:
+                  showPayoffDialog(context);
+                  break;
+                case DetailViewShowPastPayoffDialog:
+                  showPastPayoffDialog(context);
+                  break;
+              }
+            },
+            buildWhen: (_, current) =>
+              current.runtimeType == DetailViewLoading ||
+              current.runtimeType == DetailViewLoaded ||
+              current.runtimeType == DetailViewEditMode,
+            builder: (BuildContext context, DetailViewState state) {
+              if (state.runtimeType == DetailViewLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else if (state.runtimeType == DetailViewLoaded) {
+                state = state as DetailViewLoaded;
+
+                return Expanded(
                   child: Column(
-                children: [
-                  const Spacer(),
-                  DetailviewMemberBar(),
-                  const Spacer(flex: 2,),
-                  payoffButton(state.unbalanced, context),
-                  const Spacer(),
-                  TransactionList(
-                    item: state.item, 
-                    showPieChart: state.showPieChart, 
-                    context: context),
-                ],
-              ));
-            } else {
-              return const Center();
-            }
-          }),
-      ],
-    );
-  }
+                    children: [
+                      const Spacer(),
+                      DetailviewMemberBar(),
+                      const Spacer(flex: 2),
+                      payoffButton(state.unbalanced, context),
+                      const Spacer(),
+                      TransactionList(
+                        item: state.item, 
+                        showPieChart: state.showPieChart, 
+                        context: context,
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink(); // Using SizedBox.shrink() is preferred over Center() for empty widgets
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -301,6 +322,34 @@ class DetailView extends StatelessWidget {
               ),
         );
       },
+    );
+  }
+}
+
+
+
+class LandscapeDetailView extends StatelessWidget {
+  const LandscapeDetailView({super.key, this.themeMode});
+
+  final themeMode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: DetailView(themeMode: themeMode),
+        ),
+        Expanded(
+          flex: 3,
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: const Center(
+              child: Text('Landscape view'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
