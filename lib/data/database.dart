@@ -290,12 +290,17 @@ class DatabaseHelper {
     final List<Item> items = rows.isNotEmpty ? rows.map(Item.fromMap).toList() : <Item>[];
 
     final futures = items.map<Future<void>>((item) async {
-      item.balance = await getUserBalance(itemId: item.id, db: db);
-      final imagePath = await getItemImagePath(db, item.id);
-      if (imagePath != null) {
-        // Only run native file sync byte parsing on native environments
-        item.image = await getImage(imagePath);
+      try {
+        item.balance = await getUserBalance(itemId: item.id, db: db);
+        final imagePath = await getItemImagePath(db, item.id);
+        if (imagePath != null) {
+          // Only run native file sync byte parsing on native environments
+          item.image = await getImage(imagePath);
+        }
+      } catch (e) {
+        logger.warning('Failed to load image for item ${item.id}: $e');
       }
+
     });
 
     await Future.wait(futures);
